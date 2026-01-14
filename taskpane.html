@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #15</span>
+        <span class="build-num">Build #16</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1268,12 +1268,14 @@
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
                     
-                    // Center header cells
+                    // Center header cells and clear shading
                     const headerCells = headerRow.cells;
                     headerCells.load("items");
                     await context.sync();
                     
                     for (let i = 0; i < headerCells.items.length; i++) {
+                        // Clear cell shading (no fill color)
+                        headerCells.items[i].shadingColor = "";
                         headerCells.items[i].body.paragraphs.load("items");
                     }
                     await context.sync();
@@ -1366,6 +1368,8 @@
                             await context.sync();
                             
                             for (let i = 0; i < headerCells.items.length; i++) {
+                                // Clear cell shading (no fill color)
+                                headerCells.items[i].shadingColor = "";
                                 headerCells.items[i].body.paragraphs.load("items");
                             }
                             await context.sync();
@@ -1429,6 +1433,9 @@
             await formatAllCaptions('Figure');
         }
 
+        // Latin terms to italicize in captions
+        const LATIN_TERMS = ['in vivo', 'in vitro', 'in situ', 'ex vivo', 'in utero'];
+
         async function formatAllCaptions(captionType) {
             try {
                 await Word.run(async (context) => {
@@ -1444,6 +1451,8 @@
                     await context.sync();
 
                     let formattedCount = 0;
+                    const captionParagraphs = []; // Track caption paragraphs for Latin term processing
+                    
                     // Match "Table" or "Figure" followed by space(s) and number(s)
                     const captionRegex = new RegExp(`^(${captionType}\\s*\\d+)(.*)`, 'i');
 
@@ -1497,9 +1506,25 @@
                         para.font.underline = Word.UnderlineType.none;
                         para.alignment = Word.Alignment.left;
                         
+                        captionParagraphs.push(para);
                         formattedCount++;
                     }
 
+                    await context.sync();
+                    
+                    // Now italicize Latin terms within captions
+                    for (const para of captionParagraphs) {
+                        for (const term of LATIN_TERMS) {
+                            const searchResults = para.search(term, { matchCase: false, matchWholeWord: true });
+                            searchResults.load("items");
+                            await context.sync();
+                            
+                            for (let j = 0; j < searchResults.items.length; j++) {
+                                searchResults.items[j].font.italic = true;
+                            }
+                        }
+                    }
+                    
                     await context.sync();
 
                     if (formattedCount > 0) {
