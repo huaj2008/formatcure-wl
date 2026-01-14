@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #24</span>
+        <span class="build-num">Build #27</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -733,6 +733,67 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Italicize Latin Terms</div>
                     <div class="tooltip-desc">in vivo, in vitro, in situ, ex vivo, in utero.</div>
+                </div>
+            </div>
+
+            <!-- WORD-LEVEL FORMAT BUTTONS (Less frequently used) -->
+            <!-- Toggle Bold -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnToggleBold" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon"><b>B</b></div>
+                    <span class="btn-label">Bold</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Toggle Bold</div>
+                    <div class="tooltip-desc">Toggle bold on/off for current word or selection.</div>
+                </div>
+            </div>
+
+            <!-- Toggle Italic -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnToggleItalic" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon"><i>I</i></div>
+                    <span class="btn-label">Italic</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Toggle Italic</div>
+                    <div class="tooltip-desc">Toggle italic on/off for current word or selection.</div>
+                </div>
+            </div>
+
+            <!-- UPPERCASE -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnUpperCase" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">AB</div>
+                    <span class="btn-label">UPPER</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">UPPERCASE</div>
+                    <div class="tooltip-desc">Convert word/selection to ALL CAPS.</div>
+                </div>
+            </div>
+
+            <!-- lowercase -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnLowerCase" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">ab</div>
+                    <span class="btn-label">lower</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">lowercase</div>
+                    <div class="tooltip-desc">Convert word/selection to all lowercase.</div>
+                </div>
+            </div>
+
+            <!-- Capitalize -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnCapitalize" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">Ab</div>
+                    <span class="btn-label">Capitalize</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Capitalize First Letter</div>
+                    <div class="tooltip-desc">Capitalize first letter only (rest lowercase).</div>
                 </div>
             </div>
 
@@ -931,6 +992,13 @@
                 document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
                 document.getElementById('btnHeadingFormat').addEventListener('click', handleHeadingFormat);
                 
+                // Word-level format buttons
+                document.getElementById('btnToggleBold').addEventListener('click', handleToggleBold);
+                document.getElementById('btnToggleItalic').addEventListener('click', handleToggleItalic);
+                document.getElementById('btnUpperCase').addEventListener('click', handleUpperCase);
+                document.getElementById('btnLowerCase').addEventListener('click', handleLowerCase);
+                document.getElementById('btnCapitalize').addEventListener('click', handleCapitalize);
+                
                 // Body & Tables buttons
                 document.getElementById('btnBodyFormat').addEventListener('click', handleBodyFormat);
                 document.getElementById('btnTableFormat').addEventListener('click', handleTableFormat);
@@ -1040,7 +1108,7 @@
 
         // ============================================
         // SENTENCE CASE HANDLER
-        // Converts text to sentence case while preserving cross-reference formatting
+        // Skips paragraphs with cross-references to preserve hyperlinks
         // ============================================
         async function handleSentenceCase() {
             try {
@@ -1074,61 +1142,25 @@
                     }
 
                     if (textToConvert && textToConvert.trim() !== "") {
-                        // Get cross-reference fields to restore their formatting later
-                        const crossRefTexts = [];
+                        // Check if paragraph has cross-references
+                        let hasFields = false;
                         if (para) {
                             const fields = para.fields;
                             fields.load("items");
                             await context.sync();
-                            
-                            for (let f = 0; f < fields.items.length; f++) {
-                                const field = fields.items[f];
-                                field.load("code, result");
-                                await context.sync();
-                                
-                                const fieldCode = field.code || "";
-                                if (fieldCode.toUpperCase().includes('REF ') || 
-                                    fieldCode.toUpperCase().includes('PAGEREF ') ||
-                                    fieldCode.toUpperCase().includes('NOTEREF ')) {
-                                    const resultRange = field.result;
-                                    resultRange.load("text");
-                                    await context.sync();
-                                    crossRefTexts.push(resultRange.text);
-                                }
-                            }
+                            hasFields = fields.items.length > 0;
                         }
                         
-                        // Apply sentence case
-                        const converted = convertToSentenceCase(textToConvert);
-                        targetRange.insertText(converted, Word.InsertLocation.replace);
-                        
-                        await context.sync();
-                        
-                        // Re-apply cross-ref styling after text replacement
-                        if (para && crossRefTexts.length > 0) {
-                            // Reload paragraph to search in updated content
-                            para.load("text");
+                        if (hasFields) {
+                            // Has cross-refs - cannot change text without breaking links
+                            showToast('Skipped: paragraph has cross-refs (would break links)', 'error');
+                        } else {
+                            // No cross-refs - safe to convert
+                            const converted = convertToSentenceCase(textToConvert);
+                            targetRange.insertText(converted, Word.InsertLocation.replace);
                             await context.sync();
-                            
-                            for (const refText of crossRefTexts) {
-                                if (refText && refText.trim() !== '') {
-                                    // Search for the cross-ref text (case-insensitive since text may have changed)
-                                    const searchResults = para.search(refText, { matchCase: false, matchWholeWord: false });
-                                    searchResults.load("items");
-                                    await context.sync();
-                                    
-                                    for (let s = 0; s < searchResults.items.length; s++) {
-                                        searchResults.items[s].font.bold = true;
-                                        searchResults.items[s].font.italic = false;
-                                        searchResults.items[s].font.underline = Word.UnderlineType.single;
-                                        searchResults.items[s].font.color = "#0000FF";
-                                    }
-                                }
-                            }
-                            await context.sync();
+                            showToast('Sentence Case applied!', 'success');
                         }
-                        
-                        showToast('Sentence Case applied!', 'success');
                     } else {
                         showToast('No text found', 'error');
                     }
@@ -1137,6 +1169,223 @@
                 });
             } catch (error) {
                 console.error("Sentence Case Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // WORD-LEVEL FORMAT HANDLERS
+        // Work on current word (if cursor) or selection
+        // ============================================
+        
+        // Helper: Get word at cursor or selection
+        async function getWordOrSelection(context) {
+            const selection = context.document.getSelection();
+            selection.load("text");
+            await context.sync();
+            
+            // If text is selected, use that
+            if (selection.text && selection.text.trim() !== "") {
+                return selection;
+            }
+            
+            // Otherwise, expand to word
+            const wordRange = selection.getRange().expandTo(selection.getRange().getRange('Word'));
+            wordRange.load("text");
+            await context.sync();
+            
+            return wordRange;
+        }
+        
+        // Toggle Bold
+        async function handleToggleBold() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text, font/bold");
+                    await context.sync();
+                    
+                    let range = selection;
+                    
+                    // If no selection, expand to word
+                    if (!selection.text || selection.text.trim() === "" || selection.text.trim() === "\r") {
+                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
+                        range.load("text, font/bold");
+                        await context.sync();
+                        
+                        if (range.isNullObject) {
+                            showToast('Place cursor in a word', 'error');
+                            return;
+                        }
+                    }
+                    
+                    // Toggle bold
+                    const isBold = range.font.bold;
+                    range.font.bold = !isBold;
+                    
+                    await context.sync();
+                    showToast(isBold ? 'Bold removed' : 'Bold applied', 'success');
+                });
+            } catch (error) {
+                console.error("Toggle Bold Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Toggle Italic
+        async function handleToggleItalic() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text, font/italic");
+                    await context.sync();
+                    
+                    let range = selection;
+                    
+                    // If no selection, expand to word
+                    if (!selection.text || selection.text.trim() === "" || selection.text.trim() === "\r") {
+                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
+                        range.load("text, font/italic");
+                        await context.sync();
+                        
+                        if (range.isNullObject) {
+                            showToast('Place cursor in a word', 'error');
+                            return;
+                        }
+                    }
+                    
+                    // Toggle italic
+                    const isItalic = range.font.italic;
+                    range.font.italic = !isItalic;
+                    
+                    await context.sync();
+                    showToast(isItalic ? 'Italic removed' : 'Italic applied', 'success');
+                });
+            } catch (error) {
+                console.error("Toggle Italic Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // UPPERCASE
+        async function handleUpperCase() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text");
+                    await context.sync();
+                    
+                    let range = selection;
+                    let text = selection.text;
+                    
+                    // If no selection, expand to word
+                    if (!text || text.trim() === "" || text.trim() === "\r") {
+                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
+                        range.load("text");
+                        await context.sync();
+                        
+                        if (range.isNullObject) {
+                            showToast('Place cursor in a word', 'error');
+                            return;
+                        }
+                        text = range.text;
+                    }
+                    
+                    // Remove trailing spaces/paragraph marks for conversion
+                    const trimmed = text.replace(/[\r\n\s]+$/, '');
+                    const trailingChars = text.substring(trimmed.length);
+                    
+                    // Convert to uppercase
+                    const converted = trimmed.toUpperCase() + trailingChars;
+                    range.insertText(converted, Word.InsertLocation.replace);
+                    
+                    await context.sync();
+                    showToast('UPPERCASE applied', 'success');
+                });
+            } catch (error) {
+                console.error("Uppercase Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // lowercase
+        async function handleLowerCase() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text");
+                    await context.sync();
+                    
+                    let range = selection;
+                    let text = selection.text;
+                    
+                    // If no selection, expand to word
+                    if (!text || text.trim() === "" || text.trim() === "\r") {
+                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
+                        range.load("text");
+                        await context.sync();
+                        
+                        if (range.isNullObject) {
+                            showToast('Place cursor in a word', 'error');
+                            return;
+                        }
+                        text = range.text;
+                    }
+                    
+                    // Remove trailing spaces/paragraph marks for conversion
+                    const trimmed = text.replace(/[\r\n\s]+$/, '');
+                    const trailingChars = text.substring(trimmed.length);
+                    
+                    // Convert to lowercase
+                    const converted = trimmed.toLowerCase() + trailingChars;
+                    range.insertText(converted, Word.InsertLocation.replace);
+                    
+                    await context.sync();
+                    showToast('lowercase applied', 'success');
+                });
+            } catch (error) {
+                console.error("Lowercase Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Capitalize (first letter only)
+        async function handleCapitalize() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text");
+                    await context.sync();
+                    
+                    let range = selection;
+                    let text = selection.text;
+                    
+                    // If no selection, expand to word
+                    if (!text || text.trim() === "" || text.trim() === "\r") {
+                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
+                        range.load("text");
+                        await context.sync();
+                        
+                        if (range.isNullObject) {
+                            showToast('Place cursor in a word', 'error');
+                            return;
+                        }
+                        text = range.text;
+                    }
+                    
+                    // Remove trailing spaces/paragraph marks for conversion
+                    const trimmed = text.replace(/[\r\n\s]+$/, '');
+                    const trailingChars = text.substring(trimmed.length);
+                    
+                    // Capitalize first letter, rest lowercase
+                    const converted = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase() + trailingChars;
+                    range.insertText(converted, Word.InsertLocation.replace);
+                    
+                    await context.sync();
+                    showToast('Capitalized', 'success');
+                });
+            } catch (error) {
+                console.error("Capitalize Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
@@ -1301,7 +1550,9 @@
 
         // ============================================
         // BODY FORMAT HANDLER
-        // Applies body formatting while preserving cross-reference styling
+        // Applies body formatting while preserving cross-reference fields
+        // For paragraphs WITH cross-refs: applies formatting only (no text change)
+        // For paragraphs WITHOUT cross-refs: applies formatting + sentence case
         // ============================================
         async function handleBodyFormat() {
             try {
@@ -1312,91 +1563,64 @@
                     await context.sync();
 
                     let paraCount = 0;
+                    let skippedCount = 0;
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
                         
-                        // Apply paragraph-level formatting
+                        // Apply paragraph-level formatting (spacing, alignment)
                         para.alignment = Word.Alignment.left;
                         para.spaceAfter = 6;
                         para.spaceBefore = 6;
                         para.lineSpacing = 13.8; // 1.15 × 12pt = 13.8pt
                         
-                        // Get paragraph text
-                        para.load("text");
-                        await context.sync();
-                        
-                        let text = para.text;
-                        if (text.endsWith('\r')) {
-                            text = text.slice(0, -1);
-                        }
-                        
-                        if (text.trim() === '') {
-                            paraCount++;
-                            continue;
-                        }
-                        
-                        // Get cross-reference fields in this paragraph
+                        // Check if paragraph has cross-reference fields
                         const fields = para.fields;
                         fields.load("items");
                         await context.sync();
                         
-                        // Store cross-ref text values to restore their formatting later
-                        const crossRefTexts = [];
-                        for (let f = 0; f < fields.items.length; f++) {
-                            const field = fields.items[f];
-                            field.load("code, result");
+                        if (fields.items.length > 0) {
+                            // Has cross-refs - ONLY apply font formatting, don't change text
+                            // This preserves the hyperlinks
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            skippedCount++;
+                        } else {
+                            // No cross-refs - safe to replace text and apply full formatting
+                            para.load("text");
                             await context.sync();
                             
-                            const fieldCode = field.code || "";
-                            if (fieldCode.toUpperCase().includes('REF ') || 
-                                fieldCode.toUpperCase().includes('PAGEREF ') ||
-                                fieldCode.toUpperCase().includes('NOTEREF ')) {
-                                const resultRange = field.result;
-                                resultRange.load("text");
-                                await context.sync();
-                                crossRefTexts.push(resultRange.text);
+                            let text = para.text;
+                            if (text.endsWith('\r')) {
+                                text = text.slice(0, -1);
                             }
-                        }
-                        
-                        // Apply sentence case to entire paragraph
-                        const converted = convertToSentenceCase(text);
-                        para.insertText(converted, Word.InsertLocation.replace);
-                        await context.sync();
-                        
-                        // Apply body font formatting to make all text regular
-                        // (no bold, italic, underline - just plain TNR 12pt black)
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = false;
-                        para.font.italic = false;
-                        para.font.underline = Word.UnderlineType.none;
-                        para.font.color = "#000000";
-                        
-                        await context.sync();
-                        
-                        // Now re-apply cross-ref styling to the field text
-                        for (const refText of crossRefTexts) {
-                            if (refText && refText.trim() !== '') {
-                                // Search case-insensitive since sentence case may have changed text
-                                const searchResults = para.search(refText, { matchCase: false, matchWholeWord: false });
-                                searchResults.load("items");
+                            
+                            if (text.trim() !== '') {
+                                // Apply sentence case
+                                const converted = convertToSentenceCase(text);
+                                para.insertText(converted, Word.InsertLocation.replace);
                                 await context.sync();
-                                
-                                for (let s = 0; s < searchResults.items.length; s++) {
-                                    searchResults.items[s].font.bold = true;
-                                    searchResults.items[s].font.italic = false;
-                                    searchResults.items[s].font.underline = Word.UnderlineType.single;
-                                    searchResults.items[s].font.color = "#0000FF";
-                                }
                             }
+                            
+                            // Apply full body font formatting (regular text)
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = false;
+                            para.font.italic = false;
+                            para.font.underline = Word.UnderlineType.none;
+                            para.font.color = "#000000";
                         }
                         
                         paraCount++;
                     }
 
                     await context.sync();
-                    showToast(`Body format applied to ${paraCount} paragraph(s)!`, 'success');
+                    
+                    let msg = `Body format applied to ${paraCount} paragraph(s)!`;
+                    if (skippedCount > 0) {
+                        msg += ` (${skippedCount} with cross-refs: font only)`;
+                    }
+                    showToast(msg, 'success');
                 });
             } catch (error) {
                 console.error("Body Format Error:", error);
