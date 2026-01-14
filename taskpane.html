@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #19</span>
+        <span class="build-num">Build #20</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1312,13 +1312,13 @@
                     table.load("rows");
                     await context.sync();
                     
+                    // Set first row as header row (repeats on each page)
+                    table.headerRowCount = 1;
+                    
                     // Get first row (header)
                     const headerRow = table.rows.getFirst();
                     headerRow.load("cells");
                     await context.sync();
-                    
-                    // Set header row to repeat on each page
-                    headerRow.isHeader = true;
                     
                     // Make header row bold
                     headerRow.font.bold = true;
@@ -1409,6 +1409,9 @@
                     for (let t = 0; t < tables.items.length; t++) {
                         const table = tables.items[t];
                         
+                        // Set first row as header row (repeats on each page)
+                        table.headerRowCount = 1;
+                        
                         // Get first row (header)
                         const rows = table.rows;
                         rows.load("items");
@@ -1416,9 +1419,6 @@
                         
                         if (rows.items.length > 0) {
                             const headerRow = rows.items[0];
-                            
-                            // Set header row to repeat on each page
-                            headerRow.isHeader = true;
                             
                             // Format header row - bold, centered, white fill
                             headerRow.font.bold = true;
@@ -1637,7 +1637,7 @@
 
         // ============================================
         // ALL CROSS-REFERENCE STYLE HANDLER
-        // Finds all internal hyperlinks (Word cross-references)
+        // Finds all REF fields (Word cross-references)
         // These are created via References → Cross-reference
         // ============================================
         async function handleAllCrossRefStyle() {
@@ -1646,38 +1646,34 @@
                 await Word.run(async (context) => {
                     let totalFormatted = 0;
                     
-                    // Get all hyperlinks in the document
-                    // Word cross-references are internal hyperlinks (address starts with # or is empty)
-                    const body = context.document.body;
-                    const hyperlinks = body.getRange().hyperlinks;
-                    hyperlinks.load("items");
+                    // Get all fields in the document
+                    const fields = context.document.body.fields;
+                    fields.load("items");
                     await context.sync();
                     
-                    // Format each hyperlink that is an internal cross-reference
-                    for (let i = 0; i < hyperlinks.items.length; i++) {
-                        const hyperlink = hyperlinks.items[i];
+                    // Format each REF field (cross-reference)
+                    for (let i = 0; i < fields.items.length; i++) {
+                        const field = fields.items[i];
+                        field.load("code, result");
+                        await context.sync();
                         
-                        // Internal cross-references have address starting with # or empty
-                        // External links have http://, https://, mailto:, etc.
-                        const address = hyperlink.address || "";
-                        
-                        // Skip external URLs (http, https, mailto, www, file)
-                        if (address.toLowerCase().startsWith('http') || 
-                            address.toLowerCase().startsWith('mailto') ||
-                            address.toLowerCase().startsWith('www') ||
-                            address.toLowerCase().startsWith('file')) {
-                            continue;
+                        // Check if this is a REF field (cross-reference)
+                        // REF fields have codes like " REF _Ref123456 \h "
+                        const fieldCode = field.code || "";
+                        if (fieldCode.toUpperCase().includes('REF ') || 
+                            fieldCode.toUpperCase().includes('PAGEREF ') ||
+                            fieldCode.toUpperCase().includes('NOTEREF ')) {
+                            
+                            // Get the result range and format it
+                            const resultRange = field.result;
+                            resultRange.font.name = "Times New Roman";
+                            resultRange.font.size = 12;
+                            resultRange.font.bold = true;
+                            resultRange.font.italic = false;
+                            resultRange.font.underline = Word.UnderlineType.single;
+                            resultRange.font.color = "#0000FF";
+                            totalFormatted++;
                         }
-                        
-                        // This is an internal cross-reference - get its range and format
-                        const range = hyperlink.getRange();
-                        range.font.name = "Times New Roman";
-                        range.font.size = 12;
-                        range.font.bold = true;
-                        range.font.italic = false;
-                        range.font.underline = Word.UnderlineType.single;
-                        range.font.color = "#0000FF";
-                        totalFormatted++;
                     }
                     
                     await context.sync();
