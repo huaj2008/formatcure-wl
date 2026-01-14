@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #14</span>
+        <span class="build-num">Build #15</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -636,31 +636,43 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Table</div>
-                    <div class="tooltip-desc">TNR 10pt, header bold/centered, body left-aligned.</div>
+                    <div class="tooltip-desc">TNR 10pt, header bold/centered (no fill), body left-aligned.</div>
                 </div>
             </div>
 
-            <!-- Format Table Caption -->
+            <!-- All Table Format -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnAllTableFormat">
+                    <div class="btn-icon">▦▦</div>
+                    <span class="btn-label">All Table Format</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format All Tables</div>
+                    <div class="tooltip-desc">Format ALL tables in document: TNR 10pt, header bold/centered.</div>
+                </div>
+            </div>
+
+            <!-- All Table Caption -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnTableCaption">
                     <div class="btn-icon">T#</div>
-                    <span class="btn-label">Table Caption</span>
+                    <span class="btn-label">All Table Caption</span>
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Table Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold.</div>
+                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
                 </div>
             </div>
 
-            <!-- Format Figure Caption -->
+            <!-- All Figure Caption -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnFigureCaption">
                     <div class="btn-icon">F#</div>
-                    <span class="btn-label">Figure Caption</span>
+                    <span class="btn-label">All Figure Caption</span>
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Figure Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold.</div>
+                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
                 </div>
             </div>
 
@@ -672,7 +684,19 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Cross-Reference Style</div>
-                    <div class="tooltip-desc">Blue, Bold, Underlined, TNR 12pt.</div>
+                    <div class="tooltip-desc">Format selection: Blue, Bold, Underlined, TNR 12pt.</div>
+                </div>
+            </div>
+
+            <!-- All Cross-Ref Style -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnAllCrossRef">
+                    <div class="btn-icon">↗↗</div>
+                    <span class="btn-label">All Cross-Ref Style</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format All Cross-References</div>
+                    <div class="tooltip-desc">Find all refs to Tables/Figures/Headings, apply Blue Bold Underlined.</div>
                 </div>
             </div>
 
@@ -870,11 +894,13 @@
                 // Body & Tables buttons
                 document.getElementById('btnBodyFormat').addEventListener('click', handleBodyFormat);
                 document.getElementById('btnTableFormat').addEventListener('click', handleTableFormat);
+                document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
                 
                 // Captions & References buttons
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
+                document.getElementById('btnAllCrossRef').addEventListener('click', handleAllCrossRefStyle);
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
                 
                 // Document Tools buttons
@@ -902,7 +928,7 @@
                 });
                 
                 // Show ready state
-                showToast('DocuAlign ready!', 'success');
+                showToast('FormatCure WL ready!', 'success');
             }
         });
 
@@ -1303,6 +1329,93 @@
         }
 
         // ============================================
+        // ALL TABLE FORMAT HANDLER
+        // Formats ALL tables in the document
+        // ============================================
+        async function handleAllTableFormat() {
+            try {
+                showToast('Formatting all tables...', 'success');
+                await Word.run(async (context) => {
+                    const tables = context.document.body.tables;
+                    tables.load("items");
+                    await context.sync();
+                    
+                    if (tables.items.length === 0) {
+                        showToast('No tables found in document', 'error');
+                        return;
+                    }
+                    
+                    for (let t = 0; t < tables.items.length; t++) {
+                        const table = tables.items[t];
+                        
+                        // Get first row (header)
+                        const rows = table.rows;
+                        rows.load("items");
+                        await context.sync();
+                        
+                        if (rows.items.length > 0) {
+                            const headerRow = rows.items[0];
+                            
+                            // Format header row - bold, centered, no fill
+                            headerRow.font.bold = true;
+                            headerRow.font.name = "Times New Roman";
+                            headerRow.font.size = 10;
+                            
+                            const headerCells = headerRow.cells;
+                            headerCells.load("items");
+                            await context.sync();
+                            
+                            for (let i = 0; i < headerCells.items.length; i++) {
+                                headerCells.items[i].body.paragraphs.load("items");
+                            }
+                            await context.sync();
+                            
+                            for (let i = 0; i < headerCells.items.length; i++) {
+                                const paras = headerCells.items[i].body.paragraphs.items;
+                                for (let j = 0; j < paras.length; j++) {
+                                    paras[j].alignment = Word.Alignment.centered;
+                                }
+                            }
+                            
+                            // Format body rows
+                            for (let r = 1; r < rows.items.length; r++) {
+                                const row = rows.items[r];
+                                row.font.bold = false;
+                                row.font.name = "Times New Roman";
+                                row.font.size = 10;
+                                
+                                const cells = row.cells;
+                                cells.load("items");
+                                await context.sync();
+                                
+                                for (let c = 0; c < cells.items.length; c++) {
+                                    cells.items[c].body.paragraphs.load("items");
+                                }
+                                await context.sync();
+                                
+                                for (let c = 0; c < cells.items.length; c++) {
+                                    const paras = cells.items[c].body.paragraphs.items;
+                                    for (let p = 0; p < paras.length; p++) {
+                                        paras[p].alignment = Word.Alignment.left;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Auto-fit table
+                        table.autoFitWindow();
+                    }
+                    
+                    await context.sync();
+                    showToast(`Formatted ${tables.items.length} table(s)!`, 'success');
+                });
+            } catch (error) {
+                console.error("All Table Format Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
         // FORMAT CAPTION HANDLERS
         // Finds ALL captions in document and formats them
         // Converts any separator (colon, space, none) to tab
@@ -1376,10 +1489,12 @@
                             continue;
                         }
 
-                        // Apply formatting to entire paragraph
+                        // Apply formatting to entire paragraph - Bold only, no italic/underline
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
                         para.font.bold = true;
+                        para.font.italic = false;
+                        para.font.underline = Word.UnderlineType.none;
                         para.alignment = Word.Alignment.left;
                         
                         formattedCount++;
@@ -1426,6 +1541,62 @@
                 });
             } catch (error) {
                 console.error("Cross-Ref Style Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // ALL CROSS-REFERENCE STYLE HANDLER
+        // Searches for Table X, Figure X, Section X patterns
+        // ============================================
+        async function handleAllCrossRefStyle() {
+            try {
+                showToast('Formatting cross-references...', 'success');
+                await Word.run(async (context) => {
+                    let totalFormatted = 0;
+                    
+                    // Patterns to search for cross-references
+                    const patterns = [
+                        'Table [0-9]*',
+                        'Tables [0-9]*',
+                        'Figure [0-9]*',
+                        'Figures [0-9]*',
+                        'Section [0-9]*',
+                        'Sections [0-9]*',
+                        'Appendix [A-Z]*',
+                        'Appendices [A-Z]*'
+                    ];
+                    
+                    for (const pattern of patterns) {
+                        const searchResults = context.document.body.search(pattern, {
+                            matchCase: false,
+                            matchWholeWord: false,
+                            matchWildcards: true
+                        });
+                        searchResults.load("items");
+                        await context.sync();
+                        
+                        for (let i = 0; i < searchResults.items.length; i++) {
+                            const range = searchResults.items[i];
+                            range.font.name = "Times New Roman";
+                            range.font.size = 12;
+                            range.font.bold = true;
+                            range.font.underline = Word.UnderlineType.single;
+                            range.font.color = "#0000FF";
+                            totalFormatted++;
+                        }
+                    }
+                    
+                    await context.sync();
+                    
+                    if (totalFormatted > 0) {
+                        showToast(`Formatted ${totalFormatted} cross-reference(s)!`, 'success');
+                    } else {
+                        showToast('No cross-references found', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("All Cross-Ref Style Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
