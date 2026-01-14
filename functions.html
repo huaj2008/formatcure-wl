@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    <title>FormatCure WL Functions</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        // ============================================
+        // FORMATCURE WL - RIBBON BUTTON FUNCTIONS
+        // ============================================
+
+        // Pharmaceutical acronyms to preserve
+        const PRESERVED_TERMS = [
+            'FDA', 'EMA', 'ICH', 'GMP', 'GLP', 'GCP', 'API', 'IND', 'NDA', 'BLA', 'ANDA', 'DMF', 'CTD', 'eCTD',
+            'CRO', 'CMO', 'CDMO', 'QA', 'QC', 'QP', 'SOP', 'WI', 'BMR', 'BPR', 'OOS', 'OOT', 'CAPA', 'NCR',
+            'PK', 'PD', 'ADME', 'DMPK', 'AUC', 'Cmax', 'Tmax', 'CL', 'Vd', 't1/2', 'MRT', 'BE', 'BA', 'IVIVC',
+            'SAE', 'AE', 'SUSAR', 'TEAE', 'CIOMS', 'MedDRA', 'WHO', 'NIH', 'CDC', 'USP', 'EP', 'BP', 'JP', 'IP',
+            'HPLC', 'UPLC', 'GC', 'MS', 'NMR', 'IR', 'UV', 'DSC', 'TGA', 'XRD', 'SEM', 'TEM',
+            'DNA', 'RNA', 'mRNA', 'siRNA', 'PCR', 'qPCR', 'ELISA', 'FACS', 'WB',
+            'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN', 'STAT',
+            'pH', 'pKa', 'MW', 'Da', 'kDa', 'mg', 'mL', 'μL', 'ng', 'μg', 'kg', 'L', 'dL',
+            'w/v', 'v/v', 'w/w', 'N/A', 'TBD', 'WFI', 'PFS', 'RTU',
+            'COVID-19', 'SARS-CoV-2', 'HIV', 'HBV', 'HCV', 'HPV',
+            'CAR-T', 'ADC', 'mAb', 'LOD', 'LOQ', 'RSD', 'SD', 'CV', 'CI', 'SE',
+            'US', 'EU', 'UK', 'PMDA', 'NMPA', 'R&D', 'CMC', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP', 'cGMP'
+        ];
+
+        const LOWERCASE_WORDS = [
+            'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'for', 'yet', 'so',
+            'at', 'by', 'in', 'of', 'on', 'to', 'up', 'as', 'is', 'it',
+            'vs', 'via', 'per', 'with', 'from', 'into', 'onto', 'upon', 'than'
+        ];
+
+        // Initialize Office
+        Office.onReady(function(info) {
+            if (info.host === Office.HostType.Word) {
+                Office.actions.associate("applyTitleCase", applyTitleCase);
+                Office.actions.associate("applySentenceCase", applySentenceCase);
+                Office.actions.associate("applyBodyFormat", applyBodyFormat);
+                Office.actions.associate("applyCrossRefStyle", applyCrossRefStyle);
+                Office.actions.associate("applyEctdLinkStyle", applyEctdLinkStyle);
+                Office.actions.associate("applyLatinTerms", applyLatinTerms);
+            }
+        });
+
+        // ============================================
+        // TITLE CASE
+        // ============================================
+        async function applyTitleCase(event) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text");
+                    await context.sync();
+
+                    let text = selection.text;
+                    let target = selection;
+
+                    if (!text || text.trim() === "") {
+                        const paras = selection.paragraphs;
+                        paras.load("items");
+                        await context.sync();
+                        if (paras.items.length > 0) {
+                            target = paras.items[0].getRange();
+                            target.load("text");
+                            await context.sync();
+                            text = target.text;
+                            if (text.endsWith('\r')) text = text.slice(0, -1);
+                        }
+                    }
+
+                    if (text && text.trim()) {
+                        target.insertText(convertToTitleCase(text), Word.InsertLocation.replace);
+                        await context.sync();
+                    }
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // SENTENCE CASE
+        // ============================================
+        async function applySentenceCase(event) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.load("text");
+                    await context.sync();
+
+                    let text = selection.text;
+                    let target = selection;
+
+                    if (!text || text.trim() === "") {
+                        const paras = selection.paragraphs;
+                        paras.load("items");
+                        await context.sync();
+                        if (paras.items.length > 0) {
+                            target = paras.items[0].getRange();
+                            target.load("text");
+                            await context.sync();
+                            text = target.text;
+                            if (text.endsWith('\r')) text = text.slice(0, -1);
+                        }
+                    }
+
+                    if (text && text.trim()) {
+                        target.insertText(convertToSentenceCase(text), Word.InsertLocation.replace);
+                        await context.sync();
+                    }
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // BODY FORMAT
+        // ============================================
+        async function applyBodyFormat(event) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    const paras = selection.paragraphs;
+                    paras.load("items");
+                    await context.sync();
+
+                    for (let i = 0; i < paras.items.length; i++) {
+                        paras.items[i].load("text");
+                    }
+                    await context.sync();
+
+                    for (let i = 0; i < paras.items.length; i++) {
+                        const para = paras.items[i];
+                        let text = para.text;
+                        if (text.endsWith('\r')) text = text.slice(0, -1);
+                        
+                        if (text.trim()) {
+                            para.insertText(convertToSentenceCase(text), Word.InsertLocation.replace);
+                        }
+                        
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
+                        para.font.bold = false;
+                        para.lineSpacing = 13.8;
+                        para.spaceBefore = 6;
+                        para.spaceAfter = 6;
+                        para.alignment = Word.Alignment.left;
+                    }
+                    await context.sync();
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // CROSS-REF STYLE
+        // ============================================
+        async function applyCrossRefStyle(event) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.font.name = "Times New Roman";
+                    selection.font.size = 12;
+                    selection.font.bold = true;
+                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.color = "#0000FF";
+                    await context.sync();
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // eCTD LINK STYLE
+        // ============================================
+        async function applyEctdLinkStyle(event) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    selection.font.name = "Times New Roman";
+                    selection.font.size = 12;
+                    selection.font.bold = false;
+                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.color = "#0000FF";
+                    await context.sync();
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // LATIN TERMS
+        // ============================================
+        async function applyLatinTerms(event) {
+            const terms = ['in vivo', 'in vitro', 'in situ', 'ex vivo', 'in utero'];
+            try {
+                await Word.run(async (context) => {
+                    for (const term of terms) {
+                        const results = context.document.body.search(term, { matchCase: false, matchWholeWord: true });
+                        results.load("items");
+                        await context.sync();
+                        for (let i = 0; i < results.items.length; i++) {
+                            results.items[i].font.italic = true;
+                        }
+                    }
+                    await context.sync();
+                });
+            } catch (e) { console.error(e); }
+            event.completed();
+        }
+
+        // ============================================
+        // CONVERSION FUNCTIONS
+        // ============================================
+        function convertToTitleCase(text) {
+            const preservedMap = {};
+            PRESERVED_TERMS.forEach(t => preservedMap[t.toLowerCase()] = t);
+
+            const words = text.split(/(\s+)/);
+            const result = [];
+            let idx = 0;
+            const total = words.filter(w => w.trim()).length;
+
+            for (const seg of words) {
+                if (!seg.trim()) { result.push(seg); continue; }
+                idx++;
+                const lower = seg.toLowerCase();
+                const isFirst = idx === 1, isLast = idx === total;
+
+                if (preservedMap[lower]) result.push(preservedMap[lower]);
+                else if (/^[A-Z]{2,10}$/.test(seg)) result.push(seg);
+                else if (!isFirst && !isLast && LOWERCASE_WORDS.includes(lower)) result.push(lower);
+                else result.push(seg.charAt(0).toUpperCase() + seg.slice(1).toLowerCase());
+            }
+            return result.join('');
+        }
+
+        function convertToSentenceCase(text) {
+            const preservedMap = {};
+            PRESERVED_TERMS.forEach(t => preservedMap[t.toLowerCase()] = t);
+
+            const sentences = text.split(/([.!?]+\s*)/);
+            const result = [];
+
+            for (const sent of sentences) {
+                if (/^[.!?]+\s*$/.test(sent)) { result.push(sent); continue; }
+                
+                const words = sent.split(/(\s+)/);
+                const processed = [];
+                let isFirst = true;
+
+                for (const w of words) {
+                    if (!w.trim()) { processed.push(w); continue; }
+                    const lower = w.toLowerCase();
+
+                    if (preservedMap[lower]) processed.push(preservedMap[lower]);
+                    else if (/^[A-Z]{2,10}$/.test(w)) processed.push(w);
+                    else if (isFirst) processed.push(w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+                    else processed.push(lower);
+                    isFirst = false;
+                }
+                result.push(processed.join(''));
+            }
+            return result.join('');
+        }
+    </script>
+</body>
+</html>
