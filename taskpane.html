@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #16</span>
+        <span class="build-num">Build #17</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -761,6 +761,14 @@
                 <p class="modal-desc">Choose case conversion for each heading level:</p>
                 <div class="heading-options">
                     <div class="heading-option">
+                        <label>TOC Heading (Unnumbered):</label>
+                        <select id="hTocOption">
+                            <option value="0">No Change</option>
+                            <option value="1" selected>Title Case</option>
+                            <option value="2">Sentence Case</option>
+                        </select>
+                    </div>
+                    <div class="heading-option">
                         <label>Heading 1:</label>
                         <select id="h1Option">
                             <option value="0">No Change</option>
@@ -772,40 +780,72 @@
                         <label>Heading 2:</label>
                         <select id="h2Option">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
                         </select>
                     </div>
                     <div class="heading-option">
                         <label>Heading 3:</label>
                         <select id="h3Option">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
                         </select>
                     </div>
                     <div class="heading-option">
                         <label>Heading 4:</label>
                         <select id="h4Option">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
                         </select>
                     </div>
                     <div class="heading-option">
                         <label>Heading 5:</label>
                         <select id="h5Option">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
                         </select>
                     </div>
                     <div class="heading-option">
                         <label>Heading 6:</label>
                         <select id="h6Option">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
+                        </select>
+                    </div>
+                    <div class="heading-option">
+                        <label>Heading 7:</label>
+                        <select id="h7Option">
+                            <option value="0">No Change</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
+                        </select>
+                    </div>
+                    <div class="heading-option">
+                        <label>Heading 8:</label>
+                        <select id="h8Option">
+                            <option value="0">No Change</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
+                        </select>
+                    </div>
+                    <div class="heading-option">
+                        <label>Heading 9:</label>
+                        <select id="h9Option">
+                            <option value="0">No Change</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
+                        </select>
+                    </div>
+                    <div class="heading-option">
+                        <label>Heading 10:</label>
+                        <select id="h10Option">
+                            <option value="0">No Change</option>
+                            <option value="1">Title Case</option>
+                            <option value="2" selected>Sentence Case</option>
                         </select>
                     </div>
                 </div>
@@ -1048,6 +1088,7 @@
 
         // ============================================
         // TITLE ALL HEADINGS HANDLER
+        // Includes TOC Heading (unnumbered) and H1-H10
         // ============================================
         async function handleTitleAllHeadings() {
             try {
@@ -1069,9 +1110,11 @@
                         const para = paragraphs.items[i];
                         const styleName = para.style.toLowerCase();
                         
-                        // Check if it's a heading style
+                        // Check if it's a heading style (including TOC Heading and H1-H10)
                         if (styleName.includes('heading') || 
-                            styleName.match(/^h[1-6]$/) ||
+                            styleName.includes('toc heading') ||
+                            styleName.match(/^h[1-9]$/) ||
+                            styleName === 'h10' ||
                             styleName === 'title') {
                             
                             let text = para.text;
@@ -1114,12 +1157,17 @@
 
         async function applyHeadingOptions() {
             const options = {
+                'toc': document.getElementById('hTocOption').value,
                 1: document.getElementById('h1Option').value,
                 2: document.getElementById('h2Option').value,
                 3: document.getElementById('h3Option').value,
                 4: document.getElementById('h4Option').value,
                 5: document.getElementById('h5Option').value,
-                6: document.getElementById('h6Option').value
+                6: document.getElementById('h6Option').value,
+                7: document.getElementById('h7Option').value,
+                8: document.getElementById('h8Option').value,
+                9: document.getElementById('h9Option').value,
+                10: document.getElementById('h10Option').value
             };
 
             hideHeadingModal();
@@ -1143,17 +1191,23 @@
                         const para = paragraphs.items[i];
                         const styleName = para.style.toLowerCase();
                         
-                        // Determine heading level
-                        let headingLevel = 0;
-                        if (styleName.includes('heading 1') || styleName === 'h1') headingLevel = 1;
-                        else if (styleName.includes('heading 2') || styleName === 'h2') headingLevel = 2;
-                        else if (styleName.includes('heading 3') || styleName === 'h3') headingLevel = 3;
-                        else if (styleName.includes('heading 4') || styleName === 'h4') headingLevel = 4;
-                        else if (styleName.includes('heading 5') || styleName === 'h5') headingLevel = 5;
-                        else if (styleName.includes('heading 6') || styleName === 'h6') headingLevel = 6;
+                        // Determine heading level or TOC Heading
+                        let headingKey = null;
+                        if (styleName.includes('toc heading') || styleName === 'toc heading') {
+                            headingKey = 'toc';
+                        } else if (styleName.includes('heading 1') || styleName === 'h1') headingKey = 1;
+                        else if (styleName.includes('heading 2') || styleName === 'h2') headingKey = 2;
+                        else if (styleName.includes('heading 3') || styleName === 'h3') headingKey = 3;
+                        else if (styleName.includes('heading 4') || styleName === 'h4') headingKey = 4;
+                        else if (styleName.includes('heading 5') || styleName === 'h5') headingKey = 5;
+                        else if (styleName.includes('heading 6') || styleName === 'h6') headingKey = 6;
+                        else if (styleName.includes('heading 7') || styleName === 'h7') headingKey = 7;
+                        else if (styleName.includes('heading 8') || styleName === 'h8') headingKey = 8;
+                        else if (styleName.includes('heading 9') || styleName === 'h9') headingKey = 9;
+                        else if (styleName.includes('heading 10') || styleName === 'h10') headingKey = 10;
                         
-                        if (headingLevel > 0) {
-                            const option = options[headingLevel];
+                        if (headingKey !== null) {
+                            const option = options[headingKey];
                             
                             // 0 = No Change, 1 = Title Case, 2 = Sentence Case
                             if (option !== '0') {
@@ -1680,15 +1734,37 @@
                         const para = paragraphs.items[i];
                         const styleName = para.style.toLowerCase();
                         
-                        let headingLevel = 0;
-                        if (styleName.includes('heading 1') || styleName === 'h1' || styleName === 'title') headingLevel = 1;
-                        else if (styleName.includes('heading 2') || styleName === 'h2') headingLevel = 2;
-                        else if (styleName.includes('heading 3') || styleName === 'h3') headingLevel = 3;
-                        else if (styleName.includes('heading 4') || styleName === 'h4') headingLevel = 4;
-                        else if (styleName.includes('heading 5') || styleName === 'h5') headingLevel = 5;
-                        else if (styleName.includes('heading 6') || styleName === 'h6') headingLevel = 6;
+                        // Determine heading level (TOC Heading and H1 get Title Case, rest get Sentence Case)
+                        let useTitle = false;
+                        let isHeading = false;
                         
-                        if (headingLevel > 0) {
+                        if (styleName.includes('toc heading') || styleName === 'toc heading') {
+                            isHeading = true;
+                            useTitle = true; // TOC Heading = Title Case
+                        } else if (styleName.includes('heading 1') || styleName === 'h1' || styleName === 'title') {
+                            isHeading = true;
+                            useTitle = true; // H1 = Title Case
+                        } else if (styleName.includes('heading 2') || styleName === 'h2') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 3') || styleName === 'h3') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 4') || styleName === 'h4') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 5') || styleName === 'h5') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 6') || styleName === 'h6') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 7') || styleName === 'h7') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 8') || styleName === 'h8') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 9') || styleName === 'h9') {
+                            isHeading = true;
+                        } else if (styleName.includes('heading 10') || styleName === 'h10') {
+                            isHeading = true;
+                        }
+                        
+                        if (isHeading) {
                             let text = para.text;
                             if (text.endsWith('\r')) {
                                 text = text.slice(0, -1);
@@ -1696,11 +1772,11 @@
                             
                             if (text.trim() !== '') {
                                 let converted;
-                                if (headingLevel === 1) {
-                                    // H1 = Title Case
+                                if (useTitle) {
+                                    // TOC Heading and H1 = Title Case
                                     converted = convertToTitleCase(text);
                                 } else {
-                                    // H2-H6 = Sentence Case
+                                    // H2-H10 = Sentence Case
                                     converted = convertToSentenceCase(text);
                                 }
                                 para.insertText(converted, Word.InsertLocation.replace);
