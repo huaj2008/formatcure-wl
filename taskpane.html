@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #20</span>
+        <span class="build-num">Build #21</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1040,6 +1040,7 @@
 
         // ============================================
         // SENTENCE CASE HANDLER
+        // Warns if selection contains cross-references
         // ============================================
         async function handleSentenceCase() {
             try {
@@ -1050,6 +1051,7 @@
 
                     let textToConvert = selection.text;
                     let targetRange = selection;
+                    let para = null;
 
                     // If no text selected, get entire paragraph
                     if (!textToConvert || textToConvert.trim() === "") {
@@ -1058,7 +1060,8 @@
                         await context.sync();
 
                         if (paragraphs.items.length > 0) {
-                            targetRange = paragraphs.items[0].getRange();
+                            para = paragraphs.items[0];
+                            targetRange = para.getRange();
                             targetRange.load("text");
                             await context.sync();
                             textToConvert = targetRange.text;
@@ -1071,9 +1074,22 @@
                     }
 
                     if (textToConvert && textToConvert.trim() !== "") {
-                        const converted = convertToSentenceCase(textToConvert);
-                        targetRange.insertText(converted, Word.InsertLocation.replace);
-                        showToast('Sentence Case applied!', 'success');
+                        // Check if paragraph has cross-references
+                        let hasFields = false;
+                        if (para) {
+                            const fields = para.fields;
+                            fields.load("items");
+                            await context.sync();
+                            hasFields = fields.items.length > 0;
+                        }
+                        
+                        if (hasFields) {
+                            showToast('Paragraph has cross-refs - case not changed to preserve links', 'error');
+                        } else {
+                            const converted = convertToSentenceCase(textToConvert);
+                            targetRange.insertText(converted, Word.InsertLocation.replace);
+                            showToast('Sentence Case applied!', 'success');
+                        }
                     } else {
                         showToast('No text found', 'error');
                     }
@@ -1246,6 +1262,7 @@
 
         // ============================================
         // BODY FORMAT HANDLER
+        // Skips cross-references (blue text) when applying sentence case
         // ============================================
         async function handleBodyFormat() {
             try {
@@ -1259,39 +1276,53 @@
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
-                        para.load("text");
-                    }
-                    await context.sync();
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
                         
-                        // Get text and convert to Sentence Case
-                        let text = para.text;
-                        if (text.endsWith('\r')) {
-                            text = text.slice(0, -1);
-                        }
-                        
-                        if (text.trim() !== '') {
-                            // Convert to Sentence Case
-                            const converted = convertToSentenceCase(text);
-                            para.insertText(converted, Word.InsertLocation.replace);
-                        }
-                        
-                        // Apply body text formatting
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = false;
+                        // Apply paragraph-level formatting first
                         para.alignment = Word.Alignment.left;
                         para.spaceAfter = 6;
                         para.spaceBefore = 6;
                         para.lineSpacing = 13.8; // 1.15 × 12pt = 13.8pt
                         
+                        // Get all ranges in the paragraph to process text
+                        // We need to find non-blue text and convert it
+                        const range = para.getRange();
+                        range.load("text");
+                        await context.sync();
+                        
+                        let text = range.text;
+                        if (text.endsWith('\r')) {
+                            text = text.slice(0, -1);
+                        }
+                        
+                        if (text.trim() !== '') {
+                            // Search for REF fields (cross-references) to skip them
+                            const fields = para.fields;
+                            fields.load("items");
+                            await context.sync();
+                            
+                            if (fields.items.length === 0) {
+                                // No cross-refs in this paragraph - safe to convert entire text
+                                const converted = convertToSentenceCase(text);
+                                para.insertText(converted, Word.InsertLocation.replace);
+                                
+                                // Apply font formatting
+                                para.font.name = "Times New Roman";
+                                para.font.size = 12;
+                                para.font.bold = false;
+                            } else {
+                                // Has cross-refs - just apply font to non-field text
+                                // Don't change text content to preserve cross-ref text
+                                // Apply basic formatting only
+                                para.font.name = "Times New Roman";
+                                para.font.size = 12;
+                            }
+                        }
+                        
                         paraCount++;
                     }
 
                     await context.sync();
-                    showToast(`Body format + Sentence Case applied to ${paraCount} paragraph(s)!`, 'success');
+                    showToast(`Body format applied to ${paraCount} paragraph(s)!`, 'success');
                 });
             } catch (error) {
                 console.error("Body Format Error:", error);
@@ -1301,6 +1332,8 @@
 
         // ============================================
         // TABLE FORMAT HANDLER
+        // Note: Repeat header row not supported in Word JS API
+        // User must set manually: Table Properties → Row → Repeat as header row
         // ============================================
         async function handleTableFormat() {
             try {
@@ -1311,9 +1344,6 @@
                     const table = selection.parentTable;
                     table.load("rows");
                     await context.sync();
-                    
-                    // Set first row as header row (repeats on each page)
-                    table.headerRowCount = 1;
                     
                     // Get first row (header)
                     const headerRow = table.rows.getFirst();
@@ -1381,7 +1411,7 @@
                     table.autoFitWindow();
                     
                     await context.sync();
-                    showToast('Table formatted with repeat header!', 'success');
+                    showToast('Table formatted! (Set repeat header manually if needed)', 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
@@ -1392,6 +1422,7 @@
         // ============================================
         // ALL TABLE FORMAT HANDLER
         // Formats ALL tables in the document
+        // Note: Repeat header row not supported in Word JS API
         // ============================================
         async function handleAllTableFormat() {
             try {
@@ -1408,9 +1439,6 @@
                     
                     for (let t = 0; t < tables.items.length; t++) {
                         const table = tables.items[t];
-                        
-                        // Set first row as header row (repeats on each page)
-                        table.headerRowCount = 1;
                         
                         // Get first row (header)
                         const rows = table.rows;
@@ -1475,7 +1503,7 @@
                     }
                     
                     await context.sync();
-                    showToast(`Formatted ${tables.items.length} table(s) with repeat headers!`, 'success');
+                    showToast(`Formatted ${tables.items.length} table(s)!`, 'success');
                 });
             } catch (error) {
                 console.error("All Table Format Error:", error);
