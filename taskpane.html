@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #23</span>
+        <span class="build-num">Build #24</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1104,11 +1104,16 @@
                         
                         await context.sync();
                         
-                        // Re-apply cross-ref styling
+                        // Re-apply cross-ref styling after text replacement
                         if (para && crossRefTexts.length > 0) {
+                            // Reload paragraph to search in updated content
+                            para.load("text");
+                            await context.sync();
+                            
                             for (const refText of crossRefTexts) {
                                 if (refText && refText.trim() !== '') {
-                                    const searchResults = para.search(refText, { matchCase: true, matchWholeWord: false });
+                                    // Search for the cross-ref text (case-insensitive since text may have changed)
+                                    const searchResults = para.search(refText, { matchCase: false, matchWholeWord: false });
                                     searchResults.load("items");
                                     await context.sync();
                                     
@@ -1120,6 +1125,7 @@
                                     }
                                 }
                             }
+                            await context.sync();
                         }
                         
                         showToast('Sentence Case applied!', 'success');
@@ -1356,23 +1362,24 @@
                         // Apply sentence case to entire paragraph
                         const converted = convertToSentenceCase(text);
                         para.insertText(converted, Word.InsertLocation.replace);
+                        await context.sync();
                         
-                        // Get the full range and apply body font formatting
-                        // This ensures ALL text becomes regular (no bold, italic, underline)
-                        const paraRange = para.getRange();
-                        paraRange.font.name = "Times New Roman";
-                        paraRange.font.size = 12;
-                        paraRange.font.bold = false;
-                        paraRange.font.italic = false;
-                        paraRange.font.underline = Word.UnderlineType.none;
-                        paraRange.font.color = "auto";
+                        // Apply body font formatting to make all text regular
+                        // (no bold, italic, underline - just plain TNR 12pt black)
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
+                        para.font.bold = false;
+                        para.font.italic = false;
+                        para.font.underline = Word.UnderlineType.none;
+                        para.font.color = "#000000";
                         
                         await context.sync();
                         
                         // Now re-apply cross-ref styling to the field text
                         for (const refText of crossRefTexts) {
                             if (refText && refText.trim() !== '') {
-                                const searchResults = para.search(refText, { matchCase: true, matchWholeWord: false });
+                                // Search case-insensitive since sentence case may have changed text
+                                const searchResults = para.search(refText, { matchCase: false, matchWholeWord: false });
                                 searchResults.load("items");
                                 await context.sync();
                                 
