@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #21</span>
+        <span class="build-num">Build #23</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1040,7 +1040,7 @@
 
         // ============================================
         // SENTENCE CASE HANDLER
-        // Warns if selection contains cross-references
+        // Converts text to sentence case while preserving cross-reference formatting
         // ============================================
         async function handleSentenceCase() {
             try {
@@ -1074,22 +1074,55 @@
                     }
 
                     if (textToConvert && textToConvert.trim() !== "") {
-                        // Check if paragraph has cross-references
-                        let hasFields = false;
+                        // Get cross-reference fields to restore their formatting later
+                        const crossRefTexts = [];
                         if (para) {
                             const fields = para.fields;
                             fields.load("items");
                             await context.sync();
-                            hasFields = fields.items.length > 0;
+                            
+                            for (let f = 0; f < fields.items.length; f++) {
+                                const field = fields.items[f];
+                                field.load("code, result");
+                                await context.sync();
+                                
+                                const fieldCode = field.code || "";
+                                if (fieldCode.toUpperCase().includes('REF ') || 
+                                    fieldCode.toUpperCase().includes('PAGEREF ') ||
+                                    fieldCode.toUpperCase().includes('NOTEREF ')) {
+                                    const resultRange = field.result;
+                                    resultRange.load("text");
+                                    await context.sync();
+                                    crossRefTexts.push(resultRange.text);
+                                }
+                            }
                         }
                         
-                        if (hasFields) {
-                            showToast('Paragraph has cross-refs - case not changed to preserve links', 'error');
-                        } else {
-                            const converted = convertToSentenceCase(textToConvert);
-                            targetRange.insertText(converted, Word.InsertLocation.replace);
-                            showToast('Sentence Case applied!', 'success');
+                        // Apply sentence case
+                        const converted = convertToSentenceCase(textToConvert);
+                        targetRange.insertText(converted, Word.InsertLocation.replace);
+                        
+                        await context.sync();
+                        
+                        // Re-apply cross-ref styling
+                        if (para && crossRefTexts.length > 0) {
+                            for (const refText of crossRefTexts) {
+                                if (refText && refText.trim() !== '') {
+                                    const searchResults = para.search(refText, { matchCase: true, matchWholeWord: false });
+                                    searchResults.load("items");
+                                    await context.sync();
+                                    
+                                    for (let s = 0; s < searchResults.items.length; s++) {
+                                        searchResults.items[s].font.bold = true;
+                                        searchResults.items[s].font.italic = false;
+                                        searchResults.items[s].font.underline = Word.UnderlineType.single;
+                                        searchResults.items[s].font.color = "#0000FF";
+                                    }
+                                }
+                            }
                         }
+                        
+                        showToast('Sentence Case applied!', 'success');
                     } else {
                         showToast('No text found', 'error');
                     }
@@ -1262,7 +1295,7 @@
 
         // ============================================
         // BODY FORMAT HANDLER
-        // Skips cross-references (blue text) when applying sentence case
+        // Applies body formatting while preserving cross-reference styling
         // ============================================
         async function handleBodyFormat() {
             try {
@@ -1277,44 +1310,78 @@
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
                         
-                        // Apply paragraph-level formatting first
+                        // Apply paragraph-level formatting
                         para.alignment = Word.Alignment.left;
                         para.spaceAfter = 6;
                         para.spaceBefore = 6;
                         para.lineSpacing = 13.8; // 1.15 × 12pt = 13.8pt
                         
-                        // Get all ranges in the paragraph to process text
-                        // We need to find non-blue text and convert it
-                        const range = para.getRange();
-                        range.load("text");
+                        // Get paragraph text
+                        para.load("text");
                         await context.sync();
                         
-                        let text = range.text;
+                        let text = para.text;
                         if (text.endsWith('\r')) {
                             text = text.slice(0, -1);
                         }
                         
-                        if (text.trim() !== '') {
-                            // Search for REF fields (cross-references) to skip them
-                            const fields = para.fields;
-                            fields.load("items");
+                        if (text.trim() === '') {
+                            paraCount++;
+                            continue;
+                        }
+                        
+                        // Get cross-reference fields in this paragraph
+                        const fields = para.fields;
+                        fields.load("items");
+                        await context.sync();
+                        
+                        // Store cross-ref text values to restore their formatting later
+                        const crossRefTexts = [];
+                        for (let f = 0; f < fields.items.length; f++) {
+                            const field = fields.items[f];
+                            field.load("code, result");
                             await context.sync();
                             
-                            if (fields.items.length === 0) {
-                                // No cross-refs in this paragraph - safe to convert entire text
-                                const converted = convertToSentenceCase(text);
-                                para.insertText(converted, Word.InsertLocation.replace);
+                            const fieldCode = field.code || "";
+                            if (fieldCode.toUpperCase().includes('REF ') || 
+                                fieldCode.toUpperCase().includes('PAGEREF ') ||
+                                fieldCode.toUpperCase().includes('NOTEREF ')) {
+                                const resultRange = field.result;
+                                resultRange.load("text");
+                                await context.sync();
+                                crossRefTexts.push(resultRange.text);
+                            }
+                        }
+                        
+                        // Apply sentence case to entire paragraph
+                        const converted = convertToSentenceCase(text);
+                        para.insertText(converted, Word.InsertLocation.replace);
+                        
+                        // Get the full range and apply body font formatting
+                        // This ensures ALL text becomes regular (no bold, italic, underline)
+                        const paraRange = para.getRange();
+                        paraRange.font.name = "Times New Roman";
+                        paraRange.font.size = 12;
+                        paraRange.font.bold = false;
+                        paraRange.font.italic = false;
+                        paraRange.font.underline = Word.UnderlineType.none;
+                        paraRange.font.color = "auto";
+                        
+                        await context.sync();
+                        
+                        // Now re-apply cross-ref styling to the field text
+                        for (const refText of crossRefTexts) {
+                            if (refText && refText.trim() !== '') {
+                                const searchResults = para.search(refText, { matchCase: true, matchWholeWord: false });
+                                searchResults.load("items");
+                                await context.sync();
                                 
-                                // Apply font formatting
-                                para.font.name = "Times New Roman";
-                                para.font.size = 12;
-                                para.font.bold = false;
-                            } else {
-                                // Has cross-refs - just apply font to non-field text
-                                // Don't change text content to preserve cross-ref text
-                                // Apply basic formatting only
-                                para.font.name = "Times New Roman";
-                                para.font.size = 12;
+                                for (let s = 0; s < searchResults.items.length; s++) {
+                                    searchResults.items[s].font.bold = true;
+                                    searchResults.items[s].font.italic = false;
+                                    searchResults.items[s].font.underline = Word.UnderlineType.single;
+                                    searchResults.items[s].font.color = "#0000FF";
+                                }
                             }
                         }
                         
