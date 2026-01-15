@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #33</span>
+        <span class="build-num">Build #34</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1700,7 +1700,7 @@
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
                     
-                    // Format header cells - left align, clear shading, 6pt padding
+                    // Format header cells - left align, clear shading
                     const headerCells = headerRow.cells;
                     headerCells.load("items");
                     await context.sync();
@@ -1708,9 +1708,6 @@
                     for (let i = 0; i < headerCells.items.length; i++) {
                         // Set cell shading to white (clear any color)
                         headerCells.items[i].shadingColor = "FFFFFF";
-                        // Set 6pt left/right padding (120 twips = 6pt, 1pt = 20 twips)
-                        headerCells.items[i].setCellPadding("Left", 100);
-                        headerCells.items[i].setCellPadding("Right", 100);
                         headerCells.items[i].body.paragraphs.load("items");
                     }
                     await context.sync();
@@ -1743,9 +1740,6 @@
                         for (let c = 0; c < cells.items.length; c++) {
                             // Clear body cell shading
                             cells.items[c].shadingColor = "FFFFFF";
-                            // Set 6pt left/right padding
-                            cells.items[c].setCellPadding("Left", 100);
-                            cells.items[c].setCellPadding("Right", 100);
                             cells.items[c].body.paragraphs.load("items");
                         }
                         await context.sync();
@@ -1762,7 +1756,7 @@
                     table.autoFitWindow();
                     
                     await context.sync();
-                    showToast('Table formatted! (Set repeat header manually if needed)', 'success');
+                    showToast('Table formatted!', 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
@@ -1799,7 +1793,7 @@
                         if (rows.items.length > 0) {
                             const headerRow = rows.items[0];
                             
-                            // Format header row - bold, left align, white fill, 6pt padding
+                            // Format header row - bold, left align, white fill
                             headerRow.font.bold = true;
                             headerRow.font.name = "Times New Roman";
                             headerRow.font.size = 10;
@@ -1811,9 +1805,6 @@
                             for (let i = 0; i < headerCells.items.length; i++) {
                                 // Set cell shading to white
                                 headerCells.items[i].shadingColor = "FFFFFF";
-                                // Set 6pt left/right padding
-                                headerCells.items[i].setCellPadding("Left", 100);
-                                headerCells.items[i].setCellPadding("Right", 100);
                                 headerCells.items[i].body.paragraphs.load("items");
                             }
                             await context.sync();
@@ -1839,9 +1830,6 @@
                                 for (let c = 0; c < cells.items.length; c++) {
                                     // Set body cell shading to white
                                     cells.items[c].shadingColor = "FFFFFF";
-                                    // Set 6pt left/right padding
-                                    cells.items[c].setCellPadding("Left", 100);
-                                    cells.items[c].setCellPadding("Right", 100);
                                     cells.items[c].body.paragraphs.load("items");
                                 }
                                 await context.sync();
