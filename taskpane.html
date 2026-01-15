@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #29</span>
+        <span class="build-num">Build #31</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -733,6 +733,18 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format Scientific Names</div>
                     <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
+                </div>
+            </div>
+
+            <!-- Custom Uppercase -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnCustomUppercase">
+                    <div class="btn-icon">AB</div>
+                    <span class="btn-label">Custom UPPERCASE</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom UPPERCASE Terms</div>
+                    <div class="tooltip-desc">Enter terms to convert to ALL CAPS throughout document (e.g., drug names).</div>
                 </div>
             </div>
 
@@ -972,6 +984,25 @@
         </div>
     </div>
 
+    <!-- Custom Uppercase Modal -->
+    <div class="modal-overlay" id="customUppercaseModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title">Custom UPPERCASE</span>
+                <button class="modal-close" id="customUppercaseClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Enter terms to UPPERCASE (one per line):</p>
+                <textarea id="customUppercaseInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="xyz-123&#10;abc-456&#10;drug name"></textarea>
+                <p style="font-size:11px;color:#666;margin-top:8px;">Will convert all instances to UPPERCASE (e.g., xyz-123 → XYZ-123)</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" id="customUppercaseCancel">Cancel</button>
+                <button class="modal-btn apply" id="customUppercaseApply">Apply to Document</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <span class="toast-icon">✓</span>
@@ -1033,6 +1064,7 @@
                 // Document Tools buttons
                 document.getElementById('btnSpecialChars').addEventListener('click', showSpecialCharsModal);
                 document.getElementById('btnScientificNames').addEventListener('click', showScientificNamesModal);
+                document.getElementById('btnCustomUppercase').addEventListener('click', showCustomUppercaseModal);
                 
                 // Document Updates button
                 document.getElementById('btnUpdateAll').addEventListener('click', handleUpdateAll);
@@ -1060,6 +1092,14 @@
                 document.getElementById('scientificNamesApply').addEventListener('click', applyScientificNames);
                 document.getElementById('scientificNamesModal').addEventListener('click', function(e) {
                     if (e.target === this) hideScientificNamesModal();
+                });
+                
+                // Custom Uppercase Modal events
+                document.getElementById('customUppercaseClose').addEventListener('click', hideCustomUppercaseModal);
+                document.getElementById('customUppercaseCancel').addEventListener('click', hideCustomUppercaseModal);
+                document.getElementById('customUppercaseApply').addEventListener('click', applyCustomUppercase);
+                document.getElementById('customUppercaseModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideCustomUppercaseModal();
                 });
                 
                 // Show ready state
@@ -2230,6 +2270,77 @@
         }
 
         // ============================================
+        // CUSTOM UPPERCASE MODAL & HANDLER
+        // ============================================
+        function showCustomUppercaseModal() {
+            document.getElementById('customUppercaseModal').classList.add('show');
+            document.getElementById('customUppercaseInput').value = '';
+            document.getElementById('customUppercaseInput').focus();
+        }
+        
+        function hideCustomUppercaseModal() {
+            document.getElementById('customUppercaseModal').classList.remove('show');
+        }
+        
+        async function applyCustomUppercase() {
+            const input = document.getElementById('customUppercaseInput').value.trim();
+            
+            if (!input) {
+                showToast('Enter at least one term', 'error');
+                return;
+            }
+            
+            // Parse input - one term per line
+            const terms = input.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            if (terms.length === 0) {
+                showToast('Enter at least one term', 'error');
+                return;
+            }
+            
+            hideCustomUppercaseModal();
+            
+            try {
+                await Word.run(async (context) => {
+                    let totalFormatted = 0;
+                    
+                    for (const term of terms) {
+                        // Convert to uppercase
+                        const uppercaseTerm = term.toUpperCase();
+                        
+                        // Search for all variations (case-insensitive)
+                        const searchResults = context.document.body.search(term, {
+                            matchCase: false,
+                            matchWholeWord: true
+                        });
+                        searchResults.load("items");
+                        await context.sync();
+                        
+                        for (let i = 0; i < searchResults.items.length; i++) {
+                            const range = searchResults.items[i];
+                            // Replace with uppercase version
+                            range.insertText(uppercaseTerm, Word.InsertLocation.replace);
+                            totalFormatted++;
+                        }
+                        
+                        await context.sync();
+                    }
+                    
+                    if (totalFormatted > 0) {
+                        showToast(`Uppercased ${totalFormatted} instance(s)!`, 'success');
+                    } else {
+                        showToast('No matching terms found in document', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Custom Uppercase Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
         // UPDATE TOC/LOT/LOF FORMAT (Optimized)
         // ============================================
         async function handleUpdateAll() {
@@ -2421,9 +2532,6 @@
                 if (preservedMap[lowerSegment]) {
                     result.push(preservedMap[lowerSegment]);
                 }
-                else if (/^[A-Z]{2,10}$/.test(segment)) {
-                    result.push(segment);
-                }
                 else if (!isFirst && !isLast && LOWERCASE_WORDS.includes(lowerSegment)) {
                     result.push(lowerSegment);
                 }
@@ -2446,6 +2554,15 @@
             PRESERVED_TERMS.forEach(term => {
                 preservedMap[term.toLowerCase()] = term;
             });
+
+            // Special two-word Latin phrases - normalize to lowercase (except at start)
+            const LATIN_PHRASES = [
+                { search: /\bin\s+vivo\b/gi, replace: 'in vivo' },
+                { search: /\bin\s+vitro\b/gi, replace: 'in vitro' },
+                { search: /\bin\s+situ\b/gi, replace: 'in situ' },
+                { search: /\bex\s+vivo\b/gi, replace: 'ex vivo' },
+                { search: /\bin\s+utero\b/gi, replace: 'in utero' }
+            ];
 
             const sentences = text.split(/([.!?]+\s*)/);
             const result = [];
@@ -2475,9 +2592,6 @@
                     if (preservedMap[lowerWord]) {
                         processedWords.push(preservedMap[lowerWord]);
                     }
-                    else if (/^[A-Z]{2,10}$/.test(word)) {
-                        processedWords.push(word);
-                    }
                     else if (isFirstWord) {
                         processedWords.push(word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
                     }
@@ -2491,7 +2605,21 @@
                 result.push(processedWords.join(''));
             }
 
-            return result.join('');
+            // Fix Latin phrases (normalize to lowercase)
+            let finalResult = result.join('');
+            for (const phrase of LATIN_PHRASES) {
+                finalResult = finalResult.replace(phrase.search, phrase.replace);
+            }
+            
+            // But capitalize if at start of sentence
+            finalResult = finalResult.replace(/^(in vivo|in vitro|in situ|ex vivo|in utero)/i, match => {
+                return match.charAt(0).toUpperCase() + match.slice(1);
+            });
+            finalResult = finalResult.replace(/([.!?]\s+)(in vivo|in vitro|in situ|ex vivo|in utero)/gi, (match, p1, p2) => {
+                return p1 + p2.charAt(0).toUpperCase() + p2.slice(1);
+            });
+            
+            return finalResult;
         }
     </script>
 </body>
