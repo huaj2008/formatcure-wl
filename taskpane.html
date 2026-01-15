@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #37</span>
+        <span class="build-num">Build #38</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1752,11 +1752,20 @@
                         }
                     }
                     
+                    // Set default cell margins for entire table (in points)
+                    // Top: 3pt, Bottom: 3pt, Left: 5pt, Right: 5pt
+                    table.cellMargins = {
+                        top: 3,
+                        bottom: 3,
+                        left: 5,
+                        right: 5
+                    };
+                    
                     // Auto-fit table to window (at the end)
                     table.autoFitWindow();
                     
                     await context.sync();
-                    showToast('Table formatted! (Set cell margins manually if needed)', 'success');
+                    showToast('Table formatted!', 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
@@ -1843,12 +1852,20 @@
                             }
                         }
                         
+                        // Set default cell margins for entire table (in points)
+                        table.cellMargins = {
+                            top: 3,
+                            bottom: 3,
+                            left: 5,
+                            right: 5
+                        };
+                        
                         // Auto-fit table (at the end)
                         table.autoFitWindow();
                     }
                     
                     await context.sync();
-                    showToast(`Formatted ${tables.items.length} table(s)! (Set cell margins manually if needed)`, 'success');
+                    showToast(`Formatted ${tables.items.length} table(s)!`, 'success');
                 });
             } catch (error) {
                 console.error("All Table Format Error:", error);
