@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #27</span>
+        <span class="build-num">Build #29</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -724,15 +724,15 @@
                 </div>
             </div>
 
-            <!-- Latin Terms -->
+            <!-- Scientific Names -->
             <div class="tooltip-container">
-                <button class="btn success" id="btnLatinTerms">
-                    <div class="btn-icon">𝑖𝑡</div>
-                    <span class="btn-label">Latin Terms</span>
+                <button class="btn success" id="btnScientificNames">
+                    <div class="btn-icon">𝐸𝑐</div>
+                    <span class="btn-label">Scientific Names</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Italicize Latin Terms</div>
-                    <div class="tooltip-desc">in vivo, in vitro, in situ, ex vivo, in utero.</div>
+                    <div class="tooltip-title">Format Scientific Names</div>
+                    <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
                 </div>
             </div>
 
@@ -953,6 +953,25 @@
         </div>
     </div>
 
+    <!-- Scientific Names Modal -->
+    <div class="modal-overlay" id="scientificNamesModal">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title">Scientific Names</span>
+                <button class="modal-close" id="scientificNamesClose">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Enter scientific names (one per line):</p>
+                <textarea id="scientificNamesInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="escherichia coli&#10;bos taurus&#10;saccharomyces cerevisiae"></textarea>
+                <p style="font-size:11px;color:#666;margin-top:8px;">Will format as: <em>Escherichia coli</em> (italic, genus capitalized, species lowercase)</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" id="scientificNamesCancel">Cancel</button>
+                <button class="modal-btn apply" id="scientificNamesApply">Apply to Document</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <span class="toast-icon">✓</span>
@@ -1013,7 +1032,7 @@
                 
                 // Document Tools buttons
                 document.getElementById('btnSpecialChars').addEventListener('click', showSpecialCharsModal);
-                document.getElementById('btnLatinTerms').addEventListener('click', handleLatinTerms);
+                document.getElementById('btnScientificNames').addEventListener('click', showScientificNamesModal);
                 
                 // Document Updates button
                 document.getElementById('btnUpdateAll').addEventListener('click', handleUpdateAll);
@@ -1033,6 +1052,14 @@
                 });
                 document.querySelectorAll('.char-btn').forEach(btn => {
                     btn.addEventListener('click', () => insertSpecialChar(btn.dataset.char));
+                });
+                
+                // Scientific Names Modal events
+                document.getElementById('scientificNamesClose').addEventListener('click', hideScientificNamesModal);
+                document.getElementById('scientificNamesCancel').addEventListener('click', hideScientificNamesModal);
+                document.getElementById('scientificNamesApply').addEventListener('click', applyScientificNames);
+                document.getElementById('scientificNamesModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideScientificNamesModal();
                 });
                 
                 // Show ready state
@@ -1178,23 +1205,45 @@
         // Work on current word (if cursor) or selection
         // ============================================
         
-        // Helper: Get word at cursor or selection
-        async function getWordOrSelection(context) {
-            const selection = context.document.getSelection();
-            selection.load("text");
+        // Helper: Get the current word by expanding selection
+        async function expandToWord(context, selection) {
+            // Try to get the paragraph and find the word
+            const para = selection.paragraphs.getFirst();
+            para.load("text");
+            selection.load("start, text");
             await context.sync();
             
-            // If text is selected, use that
-            if (selection.text && selection.text.trim() !== "") {
-                return selection;
+            const paraText = para.text;
+            const selStart = selection.start;
+            
+            // Find word boundaries around cursor
+            let wordStart = selStart;
+            let wordEnd = selStart;
+            
+            // Go backward to find start of word
+            while (wordStart > 0 && /\w/.test(paraText[wordStart - 1])) {
+                wordStart--;
             }
             
-            // Otherwise, expand to word
-            const wordRange = selection.getRange().expandTo(selection.getRange().getRange('Word'));
-            wordRange.load("text");
+            // Go forward to find end of word
+            while (wordEnd < paraText.length && /\w/.test(paraText[wordEnd])) {
+                wordEnd++;
+            }
+            
+            if (wordStart === wordEnd) {
+                return null; // No word found
+            }
+            
+            // Search for the word in the paragraph
+            const word = paraText.substring(wordStart, wordEnd);
+            const searchResults = para.search(word, { matchWholeWord: true });
+            searchResults.load("items");
             await context.sync();
             
-            return wordRange;
+            if (searchResults.items.length > 0) {
+                return { range: searchResults.items[0], text: word };
+            }
+            return null;
         }
         
         // Toggle Bold
@@ -1207,16 +1256,10 @@
                     
                     let range = selection;
                     
-                    // If no selection, expand to word
+                    // If no selection, just apply to current position
                     if (!selection.text || selection.text.trim() === "" || selection.text.trim() === "\r") {
-                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
-                        range.load("text, font/bold");
-                        await context.sync();
-                        
-                        if (range.isNullObject) {
-                            showToast('Place cursor in a word', 'error');
-                            return;
-                        }
+                        showToast('Select text first', 'error');
+                        return;
                     }
                     
                     // Toggle bold
@@ -1242,16 +1285,10 @@
                     
                     let range = selection;
                     
-                    // If no selection, expand to word
+                    // If no selection
                     if (!selection.text || selection.text.trim() === "" || selection.text.trim() === "\r") {
-                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
-                        range.load("text, font/italic");
-                        await context.sync();
-                        
-                        if (range.isNullObject) {
-                            showToast('Place cursor in a word', 'error');
-                            return;
-                        }
+                        showToast('Select text first', 'error');
+                        return;
                     }
                     
                     // Toggle italic
@@ -1275,29 +1312,19 @@
                     selection.load("text");
                     await context.sync();
                     
-                    let range = selection;
                     let text = selection.text;
                     
-                    // If no selection, expand to word
                     if (!text || text.trim() === "" || text.trim() === "\r") {
-                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
-                        range.load("text");
-                        await context.sync();
-                        
-                        if (range.isNullObject) {
-                            showToast('Place cursor in a word', 'error');
-                            return;
-                        }
-                        text = range.text;
+                        showToast('Select text first', 'error');
+                        return;
                     }
                     
                     // Remove trailing spaces/paragraph marks for conversion
-                    const trimmed = text.replace(/[\r\n\s]+$/, '');
-                    const trailingChars = text.substring(trimmed.length);
+                    const trimmed = text.replace(/[\r\n]+$/, '');
                     
                     // Convert to uppercase
-                    const converted = trimmed.toUpperCase() + trailingChars;
-                    range.insertText(converted, Word.InsertLocation.replace);
+                    const converted = trimmed.toUpperCase();
+                    selection.insertText(converted, Word.InsertLocation.replace);
                     
                     await context.sync();
                     showToast('UPPERCASE applied', 'success');
@@ -1316,29 +1343,19 @@
                     selection.load("text");
                     await context.sync();
                     
-                    let range = selection;
                     let text = selection.text;
                     
-                    // If no selection, expand to word
                     if (!text || text.trim() === "" || text.trim() === "\r") {
-                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
-                        range.load("text");
-                        await context.sync();
-                        
-                        if (range.isNullObject) {
-                            showToast('Place cursor in a word', 'error');
-                            return;
-                        }
-                        text = range.text;
+                        showToast('Select text first', 'error');
+                        return;
                     }
                     
-                    // Remove trailing spaces/paragraph marks for conversion
-                    const trimmed = text.replace(/[\r\n\s]+$/, '');
-                    const trailingChars = text.substring(trimmed.length);
+                    // Remove trailing paragraph marks for conversion
+                    const trimmed = text.replace(/[\r\n]+$/, '');
                     
                     // Convert to lowercase
-                    const converted = trimmed.toLowerCase() + trailingChars;
-                    range.insertText(converted, Word.InsertLocation.replace);
+                    const converted = trimmed.toLowerCase();
+                    selection.insertText(converted, Word.InsertLocation.replace);
                     
                     await context.sync();
                     showToast('lowercase applied', 'success');
@@ -1357,29 +1374,19 @@
                     selection.load("text");
                     await context.sync();
                     
-                    let range = selection;
                     let text = selection.text;
                     
-                    // If no selection, expand to word
                     if (!text || text.trim() === "" || text.trim() === "\r") {
-                        range = selection.expandToOrNullObject(Word.ExpansionType.word);
-                        range.load("text");
-                        await context.sync();
-                        
-                        if (range.isNullObject) {
-                            showToast('Place cursor in a word', 'error');
-                            return;
-                        }
-                        text = range.text;
+                        showToast('Select text first', 'error');
+                        return;
                     }
                     
-                    // Remove trailing spaces/paragraph marks for conversion
-                    const trimmed = text.replace(/[\r\n\s]+$/, '');
-                    const trailingChars = text.substring(trimmed.length);
+                    // Remove trailing paragraph marks for conversion
+                    const trimmed = text.replace(/[\r\n]+$/, '');
                     
                     // Capitalize first letter, rest lowercase
-                    const converted = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase() + trailingChars;
-                    range.insertText(converted, Word.InsertLocation.replace);
+                    const converted = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+                    selection.insertText(converted, Word.InsertLocation.replace);
                     
                     await context.sync();
                     showToast('Capitalized', 'success');
@@ -1823,9 +1830,6 @@
             await formatAllCaptions('Figure');
         }
 
-        // Latin terms to italicize in captions
-        const LATIN_TERMS = ['in vivo', 'in vitro', 'in situ', 'ex vivo', 'in utero'];
-
         async function formatAllCaptions(captionType) {
             try {
                 await Word.run(async (context) => {
@@ -1841,7 +1845,6 @@
                     await context.sync();
 
                     let formattedCount = 0;
-                    const captionParagraphs = []; // Track caption paragraphs for Latin term processing
                     
                     // Match "Table" or "Figure" followed by space(s) and number(s)
                     const captionRegex = new RegExp(`^(${captionType}\\s*\\d+)(.*)`, 'i');
@@ -1896,25 +1899,9 @@
                         para.font.underline = Word.UnderlineType.none;
                         para.alignment = Word.Alignment.left;
                         
-                        captionParagraphs.push(para);
                         formattedCount++;
                     }
 
-                    await context.sync();
-                    
-                    // Now italicize Latin terms within captions
-                    for (const para of captionParagraphs) {
-                        for (const term of LATIN_TERMS) {
-                            const searchResults = para.search(term, { matchCase: false, matchWholeWord: true });
-                            searchResults.load("items");
-                            await context.sync();
-                            
-                            for (let j = 0; j < searchResults.items.length; j++) {
-                                searchResults.items[j].font.italic = true;
-                            }
-                        }
-                    }
-                    
                     await context.sync();
 
                     if (formattedCount > 0) {
@@ -2164,15 +2151,54 @@
         // ============================================
         // LATIN TERMS HANDLER
         // ============================================
-        async function handleLatinTerms() {
-            const latinTerms = ['in vivo', 'in vitro', 'in situ', 'ex vivo', 'in utero'];
+        // ============================================
+        // SCIENTIFIC NAMES MODAL & HANDLER
+        // ============================================
+        function showScientificNamesModal() {
+            document.getElementById('scientificNamesModal').classList.add('show');
+            document.getElementById('scientificNamesInput').value = '';
+            document.getElementById('scientificNamesInput').focus();
+        }
+        
+        function hideScientificNamesModal() {
+            document.getElementById('scientificNamesModal').classList.remove('show');
+        }
+        
+        async function applyScientificNames() {
+            const input = document.getElementById('scientificNamesInput').value.trim();
+            
+            if (!input) {
+                showToast('Enter at least one scientific name', 'error');
+                return;
+            }
+            
+            // Parse input - one name per line
+            const names = input.split('\n')
+                .map(line => line.trim().toLowerCase())
+                .filter(line => line.length > 0 && line.includes(' '));
+            
+            if (names.length === 0) {
+                showToast('Enter genus and species (e.g., "escherichia coli")', 'error');
+                return;
+            }
+            
+            hideScientificNamesModal();
             
             try {
                 await Word.run(async (context) => {
-                    let totalFound = 0;
+                    let totalFormatted = 0;
                     
-                    for (const term of latinTerms) {
-                        const searchResults = context.document.body.search(term, {
+                    for (const name of names) {
+                        // Split into genus and species
+                        const parts = name.split(/\s+/);
+                        const genus = parts[0];
+                        const species = parts.slice(1).join(' ');
+                        
+                        // Correct format: Genus species (first capitalized, rest lowercase)
+                        const correctFormat = genus.charAt(0).toUpperCase() + genus.slice(1).toLowerCase() + ' ' + species.toLowerCase();
+                        
+                        // Search for all variations (case-insensitive)
+                        const searchResults = context.document.body.search(name, {
                             matchCase: false,
                             matchWholeWord: true
                         });
@@ -2180,21 +2206,25 @@
                         await context.sync();
                         
                         for (let i = 0; i < searchResults.items.length; i++) {
-                            searchResults.items[i].font.italic = true;
-                            totalFound++;
+                            const range = searchResults.items[i];
+                            // Replace with correct format
+                            range.insertText(correctFormat, Word.InsertLocation.replace);
+                            // Apply italic
+                            range.font.italic = true;
+                            totalFormatted++;
                         }
+                        
+                        await context.sync();
                     }
                     
-                    await context.sync();
-                    
-                    if (totalFound > 0) {
-                        showToast(`Italicized ${totalFound} Latin term(s)!`, 'success');
+                    if (totalFormatted > 0) {
+                        showToast(`Formatted ${totalFormatted} scientific name(s)!`, 'success');
                     } else {
-                        showToast('No Latin terms found', 'error');
+                        showToast('No matching names found in document', 'error');
                     }
                 });
             } catch (error) {
-                console.error("Latin Terms Error:", error);
+                console.error("Scientific Names Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
@@ -2358,6 +2388,16 @@
             PRESERVED_TERMS.forEach(term => {
                 preservedMap[term.toLowerCase()] = term;
             });
+            
+            // Special two-word phrases where both words should be capitalized
+            // (normally "in" would be lowercase in title case)
+            const SPECIAL_PHRASES = [
+                { search: /\bin\s+vivo\b/gi, replace: 'In Vivo' },
+                { search: /\bin\s+vitro\b/gi, replace: 'In Vitro' },
+                { search: /\bin\s+situ\b/gi, replace: 'In Situ' },
+                { search: /\bex\s+vivo\b/gi, replace: 'Ex Vivo' },
+                { search: /\bin\s+utero\b/gi, replace: 'In Utero' }
+            ];
 
             const words = text.split(/(\s+)/);
             const result = [];
@@ -2392,7 +2432,13 @@
                 }
             }
 
-            return result.join('');
+            // Join and then fix special phrases
+            let finalResult = result.join('');
+            for (const phrase of SPECIAL_PHRASES) {
+                finalResult = finalResult.replace(phrase.search, phrase.replace);
+            }
+            
+            return finalResult;
         }
 
         function convertToSentenceCase(text) {
