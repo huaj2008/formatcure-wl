@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #34</span>
+        <span class="build-num">Build #36</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1752,7 +1752,13 @@
                         }
                     }
                     
-                    // Auto-fit table to window
+                    // Set default cell margins for entire table (5pt = 100 twips)
+                    table.setTableCellPadding("Top", 60);    // 3pt
+                    table.setTableCellPadding("Bottom", 60); // 3pt
+                    table.setTableCellPadding("Left", 100);  // 5pt
+                    table.setTableCellPadding("Right", 100); // 5pt
+                    
+                    // Auto-fit table to window (at the end)
                     table.autoFitWindow();
                     
                     await context.sync();
@@ -1843,7 +1849,13 @@
                             }
                         }
                         
-                        // Auto-fit table
+                        // Set default cell margins for entire table (5pt left/right, 3pt top/bottom)
+                        table.setTableCellPadding("Top", 60);    // 3pt
+                        table.setTableCellPadding("Bottom", 60); // 3pt
+                        table.setTableCellPadding("Left", 100);  // 5pt
+                        table.setTableCellPadding("Right", 100); // 5pt
+                        
+                        // Auto-fit table (at the end)
                         table.autoFitWindow();
                     }
                     
@@ -2058,11 +2070,11 @@
                         return;
                     }
 
-                    // Apply eCTD link style: Blue, Underlined, NOT bold
+                    // Apply eCTD link style: Blue only, NOT underlined, NOT bold
                     selection.font.name = "Times New Roman";
                     selection.font.size = 12;
                     selection.font.bold = false;
-                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.underline = Word.UnderlineType.none;
                     selection.font.color = "#0000FF"; // Blue
 
                     await context.sync();
