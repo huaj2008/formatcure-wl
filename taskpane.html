@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #39</span>
+        <span class="build-num">Build #40</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -649,6 +649,18 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Tables</div>
                     <div class="tooltip-desc">Format ALL tables in document: TNR 10pt, header bold/centered.</div>
+                </div>
+            </div>
+
+            <!-- Table Padding -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnTablePadding">
+                    <div class="btn-icon">▦⊡</div>
+                    <span class="btn-label">Table Padding</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Set All Table Cell Padding</div>
+                    <div class="tooltip-desc">Set cell padding for ALL tables: 3pt top/bottom, 5pt left/right.</div>
                 </div>
             </div>
 
@@ -1053,6 +1065,7 @@
                 document.getElementById('btnBodyFormat').addEventListener('click', handleBodyFormat);
                 document.getElementById('btnTableFormat').addEventListener('click', handleTableFormat);
                 document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
+                document.getElementById('btnTablePadding').addEventListener('click', setAllTablePadding);
                 
                 // Captions & References buttons
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
@@ -1752,12 +1765,6 @@
                         }
                     }
                     
-                    // Set default cell margins for entire table (in points)
-                    table.topCellMargin = 3;
-                    table.bottomCellMargin = 3;
-                    table.leftCellMargin = 5;
-                    table.rightCellMargin = 5;
-                    
                     // Auto-fit table to window (at the end)
                     table.autoFitWindow();
                     
@@ -1849,12 +1856,6 @@
                             }
                         }
                         
-                        // Set default cell margins for entire table (in points)
-                        table.topCellMargin = 3;
-                        table.bottomCellMargin = 3;
-                        table.leftCellMargin = 5;
-                        table.rightCellMargin = 5;
-                        
                         // Auto-fit table (at the end)
                         table.autoFitWindow();
                     }
@@ -1864,6 +1865,54 @@
                 });
             } catch (error) {
                 console.error("All Table Format Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // SET ALL TABLE PADDING
+        // Sets cell padding for ALL tables in document
+        // ============================================
+        async function setAllTablePadding() {
+            try {
+                showToast('Setting table padding...', 'success');
+                await Word.run(async (context) => {
+                    // Get all tables in the body
+                    const body = context.document.body;
+                    const tables = body.tables;
+                    
+                    // Load tables and their structural children to access cells
+                    tables.load("items/rows/items/cells/items");
+                    await context.sync();
+                    
+                    if (tables.items.length === 0) {
+                        showToast('No tables found in document', 'error');
+                        return;
+                    }
+                    
+                    // Loop through every table
+                    for (let i = 0; i < tables.items.length; i++) {
+                        const table = tables.items[i];
+                        // Loop through every row in the table
+                        for (let j = 0; j < table.rows.items.length; j++) {
+                            const row = table.rows.items[j];
+                            // Loop through every cell in the row
+                            for (let k = 0; k < row.cells.items.length; k++) {
+                                const cell = row.cells.items[k];
+                                // Set the padding (Values are in Points)
+                                cell.paddingTop = 3;
+                                cell.paddingBottom = 3;
+                                cell.paddingLeft = 5;
+                                cell.paddingRight = 5;
+                            }
+                        }
+                    }
+                    
+                    await context.sync();
+                    showToast(`Padding set for ${tables.items.length} table(s)!`, 'success');
+                });
+            } catch (error) {
+                console.error("Table Padding Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
