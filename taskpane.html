@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #44</span>
+        <span class="build-num">Build #45</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -2395,14 +2395,21 @@
                     const body = context.document.body;
                     const paragraphs = body.paragraphs;
                     const tables = body.tables;
+                    const fields = body.fields;
                     
                     paragraphs.load("items");
                     tables.load("items");
+                    fields.load("items");
                     await context.sync();
                     
                     // Load paragraph details
                     for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text");
+                        paragraphs.items[i].load("style, text, listItem");
+                    }
+                    
+                    // Load field codes
+                    for (let i = 0; i < fields.items.length; i++) {
+                        fields.items[i].load("code");
                     }
                     await context.sync();
                     
@@ -2410,11 +2417,27 @@
                     let stats = {
                         totalParagraphs: paragraphs.items.length,
                         totalTables: tables.items.length,
-                        headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, other: 0 },
+                        headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, h7: 0, h8: 0, h9: 0, h10: 0, other: 0 },
                         bodyText: 0,
                         captions: { table: 0, figure: 0 },
-                        tocEntries: 0
+                        tocEntries: 0,
+                        crossRefs: 0,
+                        emptyParagraphs: 0,
+                        bulletedLists: 0,
+                        numberedLists: 0
                     };
+                    
+                    let issues = [];
+                    let headingTexts = { h1: [], h2: [], h3: [] }; // Store for case checking
+                    let captionTexts = [];
+                    
+                    // Count cross-references (REF fields)
+                    for (let i = 0; i < fields.items.length; i++) {
+                        const code = fields.items[i].code || '';
+                        if (code.toUpperCase().includes('REF ')) {
+                            stats.crossRefs++;
+                        }
+                    }
                     
                     // Scan paragraphs
                     for (let i = 0; i < paragraphs.items.length; i++) {
@@ -2422,29 +2445,69 @@
                         const style = (para.style || '').toLowerCase();
                         const text = para.text || '';
                         
-                        // Count headings
+                        // Count empty paragraphs
+                        if (text.trim() === '') {
+                            stats.emptyParagraphs++;
+                            continue;
+                        }
+                        
+                        // Count lists
+                        try {
+                            if (para.listItem) {
+                                para.listItem.load("level, listString");
+                                await context.sync();
+                                const listString = para.listItem.listString || '';
+                                if (listString.match(/^[•\-\*◦▪]/)) {
+                                    stats.bulletedLists++;
+                                } else if (listString.match(/^[\d]+[\.\)]/)) {
+                                    stats.numberedLists++;
+                                } else {
+                                    stats.numberedLists++; // Default to numbered
+                                }
+                            }
+                        } catch (e) {
+                            // Not a list item
+                        }
+                        
+                        // Count headings and store text for case check
                         if (style.includes('heading 1') || style === 'h1') {
                             stats.headings.h1++;
+                            headingTexts.h1.push(text.trim());
                         } else if (style.includes('heading 2') || style === 'h2') {
                             stats.headings.h2++;
+                            headingTexts.h2.push(text.trim());
                         } else if (style.includes('heading 3') || style === 'h3') {
                             stats.headings.h3++;
+                            headingTexts.h3.push(text.trim());
                         } else if (style.includes('heading 4') || style === 'h4') {
                             stats.headings.h4++;
                         } else if (style.includes('heading 5') || style === 'h5') {
                             stats.headings.h5++;
                         } else if (style.includes('heading 6') || style === 'h6') {
                             stats.headings.h6++;
+                        } else if (style.includes('heading 7') || style === 'h7') {
+                            stats.headings.h7++;
+                        } else if (style.includes('heading 8') || style === 'h8') {
+                            stats.headings.h8++;
+                        } else if (style.includes('heading 9') || style === 'h9') {
+                            stats.headings.h9++;
+                        } else if (style.includes('heading 10') || style === 'h10') {
+                            stats.headings.h10++;
                         } else if (style.includes('heading')) {
                             stats.headings.other++;
                         }
                         
-                        // Count captions
-                        if (style === 'caption' || text.match(/^Table\s+\d/i)) {
+                        // Count and check captions
+                        const tableMatch = text.match(/^(Table\s+\d+[\.\-]?\d*)/i);
+                        const figureMatch = text.match(/^(Figure\s+\d+[\.\-]?\d*)/i);
+                        
+                        if (tableMatch || style === 'caption') {
                             stats.captions.table++;
+                            captionTexts.push({ type: 'Table', text: text });
                         }
-                        if (text.match(/^Figure\s+\d/i)) {
+                        if (figureMatch) {
                             stats.captions.figure++;
+                            captionTexts.push({ type: 'Figure', text: text });
                         }
                         
                         // Count TOC entries
@@ -2458,6 +2521,55 @@
                         }
                     }
                     
+                    // Check H1 for Title Case
+                    for (const h1Text of headingTexts.h1) {
+                        // Remove numbering prefix (e.g., "1. ", "1.1 ")
+                        const textOnly = h1Text.replace(/^[\d\.]+\s*/, '');
+                        if (textOnly.length > 0 && !isTitleCase(textOnly)) {
+                            issues.push({
+                                type: 'H1 Case',
+                                text: h1Text.substring(0, 50) + (h1Text.length > 50 ? '...' : ''),
+                                issue: 'May not be Title Case'
+                            });
+                        }
+                    }
+                    
+                    // Check H2-H3 for Sentence Case (sample first 5)
+                    for (const h2Text of headingTexts.h2.slice(0, 5)) {
+                        const textOnly = h2Text.replace(/^[\d\.]+\s*/, '');
+                        if (textOnly.length > 0 && isTitleCase(textOnly) && !isSentenceCase(textOnly)) {
+                            issues.push({
+                                type: 'H2 Case',
+                                text: h2Text.substring(0, 50) + (h2Text.length > 50 ? '...' : ''),
+                                issue: 'May be Title Case (expected Sentence)'
+                            });
+                        }
+                    }
+                    
+                    // Check caption format (should have tab after number)
+                    for (const cap of captionTexts.slice(0, 10)) {
+                        const hasTab = cap.text.includes('\t');
+                        const hasColonSpace = cap.text.match(/^(Table|Figure)\s+\d+[\.\-]?\d*:\s/i);
+                        const hasJustSpace = cap.text.match(/^(Table|Figure)\s+\d+[\.\-]?\d*\s+[A-Z]/i) && !hasTab;
+                        
+                        if (!hasTab && (hasColonSpace || hasJustSpace)) {
+                            issues.push({
+                                type: 'Caption',
+                                text: cap.text.substring(0, 50) + (cap.text.length > 50 ? '...' : ''),
+                                issue: 'Missing tab separator (has colon or space)'
+                            });
+                        }
+                    }
+                    
+                    // Check for excessive empty paragraphs
+                    if (stats.emptyParagraphs > 20) {
+                        issues.push({
+                            type: 'Formatting',
+                            text: `${stats.emptyParagraphs} empty paragraphs`,
+                            issue: 'Consider using spacing instead of blank lines'
+                        });
+                    }
+                    
                     // Build results HTML
                     let html = '<div style="margin-bottom:15px;">';
                     html += '<h3 style="margin:0 0 10px 0;color:#9c27b0;">📊 Document Statistics</h3>';
@@ -2467,14 +2579,40 @@
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 1</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h1}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 2</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h2}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 3</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h3}</b></td></tr>`;
-                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 4-6+</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h4 + stats.headings.h5 + stats.headings.h6 + stats.headings.other}</b></td></tr>`;
+                    const h4plus = stats.headings.h4 + stats.headings.h5 + stats.headings.h6 + stats.headings.h7 + stats.headings.h8 + stats.headings.h9 + stats.headings.h10 + stats.headings.other;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 4-10+</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${h4plus}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Body Paragraphs</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.bodyText}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Table Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.table}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Figure Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.figure}</b></td></tr>`;
-                    html += `<tr><td style="padding:4px;">TOC/LOT/LOF Entries</td><td style="padding:4px;text-align:right;"><b>${stats.tocEntries}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Cross-References</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.crossRefs}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">TOC/LOT/LOF Entries</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.tocEntries}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Bulleted Lists</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.bulletedLists}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Numbered Lists</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.numberedLists}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;">Empty Paragraphs</td><td style="padding:4px;text-align:right;"><b>${stats.emptyParagraphs}</b></td></tr>`;
                     html += '</table></div>';
                     
-                    html += '<p style="color:#666;font-size:11px;margin-top:10px;">✅ Scan complete. Font checking coming in future version.</p>';
+                    // Issues section
+                    html += '<div>';
+                    html += '<h3 style="margin:0 0 10px 0;color:' + (issues.length > 0 ? '#f44336' : '#4caf50') + ';">⚠️ Issues Found: ' + issues.length + '</h3>';
+                    
+                    if (issues.length === 0) {
+                        html += '<p style="color:#4caf50;margin:0;">✅ No formatting issues detected!</p>';
+                    } else {
+                        html += '<div style="max-height:200px;overflow-y:auto;">';
+                        // Limit to first 15 issues
+                        const displayIssues = issues.slice(0, 15);
+                        for (const issue of displayIssues) {
+                            html += `<div style="padding:6px;margin-bottom:4px;background:#fff3e0;border-radius:4px;font-size:11px;">`;
+                            html += `<b style="color:#e65100;">${issue.type}:</b> ${issue.issue}<br>`;
+                            html += `<span style="color:#666;">"${issue.text}"</span>`;
+                            html += '</div>';
+                        }
+                        if (issues.length > 15) {
+                            html += `<p style="color:#666;font-style:italic;">...and ${issues.length - 15} more issues</p>`;
+                        }
+                        html += '</div>';
+                    }
+                    html += '</div>';
                     
                     // Display results
                     document.getElementById('scannerResults').innerHTML = html;
@@ -2484,6 +2622,62 @@
                 console.error("Style Scanner Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
+        }
+        
+        // Helper: Check if text appears to be Title Case
+        function isTitleCase(text) {
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            if (words.length === 0) return true;
+            
+            const minorWords = ['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'by', 'of', 'in', 'with'];
+            let titleCaseCount = 0;
+            
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i].replace(/[^\w]/g, '');
+                if (word.length === 0) continue;
+                
+                // Skip acronyms (all caps)
+                if (word === word.toUpperCase() && word.length <= 6) continue;
+                
+                // First word should be capitalized
+                if (i === 0) {
+                    if (word[0] === word[0].toUpperCase()) titleCaseCount++;
+                }
+                // Minor words can be lowercase (except first)
+                else if (minorWords.includes(word.toLowerCase())) {
+                    titleCaseCount++;
+                }
+                // Other words should be capitalized
+                else if (word[0] === word[0].toUpperCase()) {
+                    titleCaseCount++;
+                }
+            }
+            
+            return titleCaseCount >= words.length * 0.7; // 70% threshold
+        }
+        
+        // Helper: Check if text appears to be Sentence Case
+        function isSentenceCase(text) {
+            const words = text.split(/\s+/).filter(w => w.length > 0);
+            if (words.length <= 1) return true;
+            
+            let lowercaseCount = 0;
+            
+            for (let i = 1; i < words.length; i++) { // Skip first word
+                const word = words[i].replace(/[^\w]/g, '');
+                if (word.length === 0) continue;
+                
+                // Skip acronyms
+                if (word === word.toUpperCase() && word.length <= 6) continue;
+                
+                // Non-first words should be lowercase
+                if (word[0] === word[0].toLowerCase()) {
+                    lowercaseCount++;
+                }
+            }
+            
+            const nonFirstWords = words.length - 1;
+            return nonFirstWords === 0 || lowercaseCount >= nonFirstWords * 0.5;
         }
 
         // ============================================
