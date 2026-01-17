@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #45</span>
+        <span class="build-num">Build #46</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -2404,7 +2404,7 @@
                     
                     // Load paragraph details
                     for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text, listItem");
+                        paragraphs.items[i].load("style, text");
                     }
                     
                     // Load field codes
@@ -2422,9 +2422,7 @@
                         captions: { table: 0, figure: 0 },
                         tocEntries: 0,
                         crossRefs: 0,
-                        emptyParagraphs: 0,
-                        bulletedLists: 0,
-                        numberedLists: 0
+                        emptyParagraphs: 0
                     };
                     
                     let issues = [];
@@ -2449,24 +2447,6 @@
                         if (text.trim() === '') {
                             stats.emptyParagraphs++;
                             continue;
-                        }
-                        
-                        // Count lists
-                        try {
-                            if (para.listItem) {
-                                para.listItem.load("level, listString");
-                                await context.sync();
-                                const listString = para.listItem.listString || '';
-                                if (listString.match(/^[•\-\*◦▪]/)) {
-                                    stats.bulletedLists++;
-                                } else if (listString.match(/^[\d]+[\.\)]/)) {
-                                    stats.numberedLists++;
-                                } else {
-                                    stats.numberedLists++; // Default to numbered
-                                }
-                            }
-                        } catch (e) {
-                            // Not a list item
                         }
                         
                         // Count headings and store text for case check
@@ -2586,8 +2566,6 @@
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Figure Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.figure}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Cross-References</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.crossRefs}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">TOC/LOT/LOF Entries</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.tocEntries}</b></td></tr>`;
-                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Bulleted Lists</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.bulletedLists}</b></td></tr>`;
-                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Numbered Lists</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.numberedLists}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;">Empty Paragraphs</td><td style="padding:4px;text-align:right;"><b>${stats.emptyParagraphs}</b></td></tr>`;
                     html += '</table></div>';
                     
