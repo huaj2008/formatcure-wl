@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #42</span>
+        <span class="build-num">Build #43</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -820,6 +820,18 @@
                     <div class="tooltip-desc">Update fields, format entries, auto-add missing titles.</div>
                 </div>
             </div>
+
+            <!-- Style Scanner -->
+            <div class="tooltip-container">
+                <button class="btn full-btn" id="btnStyleScanner" style="background:#9c27b0;color:white;">
+                    <div class="btn-icon">🔍</div>
+                    <span class="btn-label">Style Scanner (QC)</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Scan Document Styles</div>
+                    <div class="tooltip-desc">QC check: scan for formatting issues and report.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1003,6 +1015,22 @@
         </div>
     </div>
 
+    <!-- Style Scanner Modal -->
+    <div class="modal-overlay" id="styleScannerModal">
+        <div class="modal" style="max-width: 500px; max-height: 80vh;">
+            <div class="modal-header" style="background:#9c27b0;">
+                <span class="modal-title" style="color:white;">Style Scanner Results</span>
+                <button class="modal-close" id="styleScannerClose" style="color:white;">×</button>
+            </div>
+            <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                <div id="scannerResults" style="font-size:12px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" id="styleScannerOk">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <span class="toast-icon">✓</span>
@@ -1100,6 +1128,14 @@
                 document.getElementById('customUppercaseApply').addEventListener('click', applyCustomUppercase);
                 document.getElementById('customUppercaseModal').addEventListener('click', function(e) {
                     if (e.target === this) hideCustomUppercaseModal();
+                });
+                
+                // Style Scanner events
+                document.getElementById('btnStyleScanner').addEventListener('click', runStyleScanner);
+                document.getElementById('styleScannerClose').addEventListener('click', hideStyleScannerModal);
+                document.getElementById('styleScannerOk').addEventListener('click', hideStyleScannerModal);
+                document.getElementById('styleScannerModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideStyleScannerModal();
                 });
                 
                 // Show ready state
@@ -2336,6 +2372,193 @@
                 });
             } catch (error) {
                 console.error("Custom Uppercase Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // STYLE SCANNER (QC)
+        // ============================================
+        function showStyleScannerModal() {
+            document.getElementById('styleScannerModal').classList.add('show');
+        }
+        
+        function hideStyleScannerModal() {
+            document.getElementById('styleScannerModal').classList.remove('show');
+        }
+        
+        async function runStyleScanner() {
+            try {
+                showToast('Scanning document...', 'success');
+                
+                await Word.run(async (context) => {
+                    const body = context.document.body;
+                    const paragraphs = body.paragraphs;
+                    const tables = body.tables;
+                    
+                    paragraphs.load("items");
+                    tables.load("items");
+                    await context.sync();
+                    
+                    // Load paragraph details
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text, font");
+                    }
+                    await context.sync();
+                    
+                    // Initialize counters and issues
+                    let stats = {
+                        totalParagraphs: paragraphs.items.length,
+                        totalTables: tables.items.length,
+                        headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, other: 0 },
+                        bodyText: 0,
+                        captions: { table: 0, figure: 0 },
+                        tocEntries: 0
+                    };
+                    
+                    let issues = [];
+                    
+                    // Scan paragraphs
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        const style = (para.style || '').toLowerCase();
+                        const text = para.text || '';
+                        const fontName = para.font.name;
+                        const fontSize = para.font.size;
+                        
+                        // Count headings
+                        if (style.includes('heading 1') || style === 'h1') {
+                            stats.headings.h1++;
+                        } else if (style.includes('heading 2') || style === 'h2') {
+                            stats.headings.h2++;
+                        } else if (style.includes('heading 3') || style === 'h3') {
+                            stats.headings.h3++;
+                        } else if (style.includes('heading 4') || style === 'h4') {
+                            stats.headings.h4++;
+                        } else if (style.includes('heading 5') || style === 'h5') {
+                            stats.headings.h5++;
+                        } else if (style.includes('heading 6') || style === 'h6') {
+                            stats.headings.h6++;
+                        } else if (style.includes('heading')) {
+                            stats.headings.other++;
+                        }
+                        
+                        // Count captions
+                        if (style === 'caption' || text.match(/^Table\s+\d/i)) {
+                            stats.captions.table++;
+                        }
+                        if (text.match(/^Figure\s+\d/i)) {
+                            stats.captions.figure++;
+                        }
+                        
+                        // Count TOC entries
+                        if (style.includes('toc') || style.includes('table of')) {
+                            stats.tocEntries++;
+                        }
+                        
+                        // Count body text (Normal style)
+                        if (style === 'normal' || style === '') {
+                            stats.bodyText++;
+                            
+                            // Check body text formatting issues
+                            if (fontName && fontName !== 'Times New Roman' && text.trim().length > 0) {
+                                issues.push({
+                                    type: 'Font',
+                                    text: text.substring(0, 40) + (text.length > 40 ? '...' : ''),
+                                    issue: `Font is "${fontName}" (expected TNR)`
+                                });
+                            }
+                            if (fontSize && fontSize !== 12 && text.trim().length > 0) {
+                                issues.push({
+                                    type: 'Size',
+                                    text: text.substring(0, 40) + (text.length > 40 ? '...' : ''),
+                                    issue: `Size is ${fontSize}pt (expected 12pt)`
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Scan tables
+                    for (let t = 0; t < tables.items.length; t++) {
+                        const table = tables.items[t];
+                        table.load("rows");
+                        await context.sync();
+                        
+                        if (table.rows.items.length > 0) {
+                            const headerRow = table.rows.items[0];
+                            headerRow.load("font");
+                            await context.sync();
+                            
+                            // Check header font
+                            if (headerRow.font.name && headerRow.font.name !== 'Times New Roman') {
+                                issues.push({
+                                    type: 'Table',
+                                    text: `Table ${t + 1} header`,
+                                    issue: `Font is "${headerRow.font.name}" (expected TNR)`
+                                });
+                            }
+                            if (headerRow.font.size && headerRow.font.size !== 10) {
+                                issues.push({
+                                    type: 'Table',
+                                    text: `Table ${t + 1} header`,
+                                    issue: `Size is ${headerRow.font.size}pt (expected 10pt)`
+                                });
+                            }
+                            if (headerRow.font.bold === false) {
+                                issues.push({
+                                    type: 'Table',
+                                    text: `Table ${t + 1} header`,
+                                    issue: 'Header not bold'
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Build results HTML
+                    let html = '<div style="margin-bottom:15px;">';
+                    html += '<h3 style="margin:0 0 10px 0;color:#9c27b0;">📊 Document Statistics</h3>';
+                    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Total Paragraphs</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.totalParagraphs}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Total Tables</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.totalTables}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 1</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h1}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 2</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h2}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 3</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h3}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 4-6+</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h4 + stats.headings.h5 + stats.headings.h6 + stats.headings.other}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Body Paragraphs</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.bodyText}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Table Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.table}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Figure Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.figure}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;">TOC/LOT/LOF Entries</td><td style="padding:4px;text-align:right;"><b>${stats.tocEntries}</b></td></tr>`;
+                    html += '</table></div>';
+                    
+                    // Issues section
+                    html += '<div>';
+                    html += '<h3 style="margin:0 0 10px 0;color:#f44336;">⚠️ Issues Found: ' + issues.length + '</h3>';
+                    
+                    if (issues.length === 0) {
+                        html += '<p style="color:#4caf50;margin:0;">✅ No formatting issues detected!</p>';
+                    } else {
+                        html += '<div style="max-height:200px;overflow-y:auto;">';
+                        // Limit to first 20 issues
+                        const displayIssues = issues.slice(0, 20);
+                        for (const issue of displayIssues) {
+                            html += `<div style="padding:6px;margin-bottom:4px;background:#fff3e0;border-radius:4px;font-size:11px;">`;
+                            html += `<b style="color:#e65100;">${issue.type}:</b> ${issue.issue}<br>`;
+                            html += `<span style="color:#666;">"${issue.text}"</span>`;
+                            html += '</div>';
+                        }
+                        if (issues.length > 20) {
+                            html += `<p style="color:#666;font-style:italic;">...and ${issues.length - 20} more issues</p>`;
+                        }
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    
+                    // Display results
+                    document.getElementById('scannerResults').innerHTML = html;
+                    showStyleScannerModal();
+                });
+            } catch (error) {
+                console.error("Style Scanner Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
