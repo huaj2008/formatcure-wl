@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #43</span>
+        <span class="build-num">Build #44</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -2402,11 +2402,11 @@
                     
                     // Load paragraph details
                     for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text, font");
+                        paragraphs.items[i].load("style, text");
                     }
                     await context.sync();
                     
-                    // Initialize counters and issues
+                    // Initialize counters
                     let stats = {
                         totalParagraphs: paragraphs.items.length,
                         totalTables: tables.items.length,
@@ -2416,15 +2416,11 @@
                         tocEntries: 0
                     };
                     
-                    let issues = [];
-                    
                     // Scan paragraphs
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
                         const style = (para.style || '').toLowerCase();
                         const text = para.text || '';
-                        const fontName = para.font.name;
-                        const fontSize = para.font.size;
                         
                         // Count headings
                         if (style.includes('heading 1') || style === 'h1') {
@@ -2459,58 +2455,6 @@
                         // Count body text (Normal style)
                         if (style === 'normal' || style === '') {
                             stats.bodyText++;
-                            
-                            // Check body text formatting issues
-                            if (fontName && fontName !== 'Times New Roman' && text.trim().length > 0) {
-                                issues.push({
-                                    type: 'Font',
-                                    text: text.substring(0, 40) + (text.length > 40 ? '...' : ''),
-                                    issue: `Font is "${fontName}" (expected TNR)`
-                                });
-                            }
-                            if (fontSize && fontSize !== 12 && text.trim().length > 0) {
-                                issues.push({
-                                    type: 'Size',
-                                    text: text.substring(0, 40) + (text.length > 40 ? '...' : ''),
-                                    issue: `Size is ${fontSize}pt (expected 12pt)`
-                                });
-                            }
-                        }
-                    }
-                    
-                    // Scan tables
-                    for (let t = 0; t < tables.items.length; t++) {
-                        const table = tables.items[t];
-                        table.load("rows");
-                        await context.sync();
-                        
-                        if (table.rows.items.length > 0) {
-                            const headerRow = table.rows.items[0];
-                            headerRow.load("font");
-                            await context.sync();
-                            
-                            // Check header font
-                            if (headerRow.font.name && headerRow.font.name !== 'Times New Roman') {
-                                issues.push({
-                                    type: 'Table',
-                                    text: `Table ${t + 1} header`,
-                                    issue: `Font is "${headerRow.font.name}" (expected TNR)`
-                                });
-                            }
-                            if (headerRow.font.size && headerRow.font.size !== 10) {
-                                issues.push({
-                                    type: 'Table',
-                                    text: `Table ${t + 1} header`,
-                                    issue: `Size is ${headerRow.font.size}pt (expected 10pt)`
-                                });
-                            }
-                            if (headerRow.font.bold === false) {
-                                issues.push({
-                                    type: 'Table',
-                                    text: `Table ${t + 1} header`,
-                                    issue: 'Header not bold'
-                                });
-                            }
                         }
                     }
                     
@@ -2530,28 +2474,7 @@
                     html += `<tr><td style="padding:4px;">TOC/LOT/LOF Entries</td><td style="padding:4px;text-align:right;"><b>${stats.tocEntries}</b></td></tr>`;
                     html += '</table></div>';
                     
-                    // Issues section
-                    html += '<div>';
-                    html += '<h3 style="margin:0 0 10px 0;color:#f44336;">⚠️ Issues Found: ' + issues.length + '</h3>';
-                    
-                    if (issues.length === 0) {
-                        html += '<p style="color:#4caf50;margin:0;">✅ No formatting issues detected!</p>';
-                    } else {
-                        html += '<div style="max-height:200px;overflow-y:auto;">';
-                        // Limit to first 20 issues
-                        const displayIssues = issues.slice(0, 20);
-                        for (const issue of displayIssues) {
-                            html += `<div style="padding:6px;margin-bottom:4px;background:#fff3e0;border-radius:4px;font-size:11px;">`;
-                            html += `<b style="color:#e65100;">${issue.type}:</b> ${issue.issue}<br>`;
-                            html += `<span style="color:#666;">"${issue.text}"</span>`;
-                            html += '</div>';
-                        }
-                        if (issues.length > 20) {
-                            html += `<p style="color:#666;font-style:italic;">...and ${issues.length - 20} more issues</p>`;
-                        }
-                        html += '</div>';
-                    }
-                    html += '</div>';
+                    html += '<p style="color:#666;font-size:11px;margin-top:10px;">✅ Scan complete. Font checking coming in future version.</p>';
                     
                     // Display results
                     document.getElementById('scannerResults').innerHTML = html;
