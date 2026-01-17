@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #48</span>
+        <span class="build-num">Build #49</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -2377,8 +2377,15 @@
         }
 
         // ============================================
-        // STYLE SCANNER (QC)
+        // STYLE SCANNER (QC) - Build #49 Fixed
+        // Fixes: 1) Table checking via cell fonts
+        //        2) Navigation keeps modal open
         // ============================================
+        
+        // Store last scan results globally for re-display
+        window.lastScannerHTML = '';
+        window.scannerIssues = [];
+        
         function showStyleScannerModal() {
             document.getElementById('styleScannerModal').classList.add('show');
         }
@@ -2504,7 +2511,9 @@
                         }
                     }
                     
-                    // Check tables (with error handling)
+                    // ============================================
+                    // FIXED: Check tables by examining CELLS, not rows
+                    // ============================================
                     for (let t = 0; t < tables.items.length; t++) {
                         try {
                             const table = tables.items[t];
@@ -2513,37 +2522,62 @@
                             
                             if (table.rows.items.length > 0) {
                                 const headerRow = table.rows.items[0];
-                                headerRow.load("font");
+                                headerRow.load("cells");
                                 await context.sync();
                                 
-                                // Check header formatting
-                                if (headerRow.font.name && headerRow.font.name !== 'Times New Roman') {
-                                    issues.push({
-                                        type: 'Table',
-                                        text: `Table ${t + 1}`,
-                                        issue: `Header font: "${headerRow.font.name}" (expected TNR)`,
-                                        searchText: null
-                                    });
-                                }
-                                if (headerRow.font.size && headerRow.font.size !== 10) {
-                                    issues.push({
-                                        type: 'Table',
-                                        text: `Table ${t + 1}`,
-                                        issue: `Header size: ${headerRow.font.size}pt (expected 10pt)`,
-                                        searchText: null
-                                    });
-                                }
-                                if (headerRow.font.bold === false) {
-                                    issues.push({
-                                        type: 'Table',
-                                        text: `Table ${t + 1}`,
-                                        issue: 'Header not bold',
-                                        searchText: null
-                                    });
+                                // Check first cell in header row (more reliable than row-level font)
+                                if (headerRow.cells.items.length > 0) {
+                                    const firstCell = headerRow.cells.items[0];
+                                    const cellBody = firstCell.body;
+                                    
+                                    // Get paragraphs in cell
+                                    const cellParagraphs = cellBody.paragraphs;
+                                    cellParagraphs.load("items");
+                                    await context.sync();
+                                    
+                                    // Load font from first paragraph in cell
+                                    let cellText = '';
+                                    if (cellParagraphs.items.length > 0) {
+                                        cellParagraphs.items[0].load("text, font");
+                                        await context.sync();
+                                        cellText = cellParagraphs.items[0].text.trim().substring(0, 20);
+                                        
+                                        const cellFont = cellParagraphs.items[0].font;
+                                        
+                                        // Check font name
+                                        if (cellFont.name && cellFont.name !== 'Times New Roman') {
+                                            issues.push({
+                                                type: 'Table',
+                                                text: `Table ${t + 1}: "${cellText}"`,
+                                                issue: `Header font: "${cellFont.name}" (expected TNR)`,
+                                                searchText: cellText.length > 3 ? cellText : null
+                                            });
+                                        }
+                                        
+                                        // Check font size
+                                        if (cellFont.size && cellFont.size !== 10) {
+                                            issues.push({
+                                                type: 'Table',
+                                                text: `Table ${t + 1}: "${cellText}"`,
+                                                issue: `Header size: ${cellFont.size}pt (expected 10pt)`,
+                                                searchText: cellText.length > 3 ? cellText : null
+                                            });
+                                        }
+                                        
+                                        // Check bold
+                                        if (cellFont.bold === false) {
+                                            issues.push({
+                                                type: 'Table',
+                                                text: `Table ${t + 1}: "${cellText}"`,
+                                                issue: 'Header not bold',
+                                                searchText: cellText.length > 3 ? cellText : null
+                                            });
+                                        }
+                                    }
                                 }
                             }
                         } catch (tableErr) {
-                            console.log('Table check error:', tableErr);
+                            console.log('Table check error for table ' + (t + 1) + ':', tableErr);
                         }
                     }
                     
@@ -2680,7 +2714,7 @@
                     if (issues.length === 0) {
                         html += '<p style="color:#4caf50;margin:0;">✅ No formatting issues detected!</p>';
                     } else {
-                        html += '<p style="font-size:10px;color:#666;margin:0 0 8px 0;">Click an issue with 📍 to navigate</p>';
+                        html += '<p style="font-size:10px;color:#666;margin:0 0 8px 0;">Click 📍 to navigate (report stays open)</p>';
                         html += '<div style="max-height:200px;overflow-y:auto;">';
                         const displayIssues = issues.slice(0, 15);
                         for (let idx = 0; idx < displayIssues.length; idx++) {
@@ -2700,6 +2734,9 @@
                     }
                     html += '</div>';
                     
+                    // Store HTML for later re-display
+                    window.lastScannerHTML = html;
+                    
                     document.getElementById('scannerResults').innerHTML = html;
                     showStyleScannerModal();
                 });
@@ -2709,7 +2746,9 @@
             }
         }
         
-        // Navigate to issue in document
+        // ============================================
+        // FIXED: Navigate to issue WITHOUT closing modal
+        // ============================================
         async function navigateToIssue(index) {
             const issues = window.scannerIssues || [];
             if (index >= issues.length) return;
@@ -2729,8 +2768,8 @@
                     if (searchResults.items.length > 0) {
                         searchResults.items[0].select();
                         await context.sync();
-                        hideStyleScannerModal();
-                        showToast('Navigated to issue', 'success');
+                        // FIXED: Do NOT close the modal - just show toast
+                        showToast('Navigated to: ' + issue.type, 'success');
                     } else {
                         showToast('Text not found', 'error');
                     }
