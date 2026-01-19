@@ -809,6 +809,42 @@
                 </div>
             </div>
 
+            <!-- Insert TOC -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnInsertTOC">
+                    <div class="btn-icon">📑</div>
+                    <span class="btn-label">Insert TOC</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Insert Table of Contents</div>
+                    <div class="tooltip-desc">Insert TOC at cursor. Requires Office 2019+ or M365.</div>
+                </div>
+            </div>
+
+            <!-- Insert LOT -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnInsertLOT">
+                    <div class="btn-icon">📋</div>
+                    <span class="btn-label">Insert LOT</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Insert List of Tables</div>
+                    <div class="tooltip-desc">Insert LOT at cursor. Requires Office 2019+ or M365.</div>
+                </div>
+            </div>
+
+            <!-- Insert LOF -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnInsertLOF">
+                    <div class="btn-icon">🖼️</div>
+                    <span class="btn-label">Insert LOF</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Insert List of Figures</div>
+                    <div class="tooltip-desc">Insert LOF at cursor. Requires Office 2019+ or M365.</div>
+                </div>
+            </div>
+
             <!-- Update TOC/LOT/LOF Format -->
             <div class="tooltip-container full-width">
                 <button class="btn accent full-btn" id="btnUpdateAll">
@@ -1093,6 +1129,11 @@
                 document.getElementById('btnSpecialChars').addEventListener('click', showSpecialCharsModal);
                 document.getElementById('btnScientificNames').addEventListener('click', showScientificNamesModal);
                 document.getElementById('btnCustomUppercase').addEventListener('click', showCustomUppercaseModal);
+                
+                // Insert TOC/LOT/LOF buttons
+                document.getElementById('btnInsertTOC').addEventListener('click', handleInsertTOC);
+                document.getElementById('btnInsertLOT').addEventListener('click', handleInsertLOT);
+                document.getElementById('btnInsertLOF').addEventListener('click', handleInsertLOF);
                 
                 // Document Updates button
                 document.getElementById('btnUpdateAll').addEventListener('click', handleUpdateAll);
@@ -1726,6 +1767,21 @@
                     table.load("rows");
                     await context.sync();
                     
+                    // Check if setCellPadding is supported (WordApi 1.3+)
+                    const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
+                    
+                    // Set cell padding for entire table (if supported)
+                    if (paddingSupported) {
+                        try {
+                            table.setCellPadding("Top", 3);
+                            table.setCellPadding("Bottom", 3);
+                            table.setCellPadding("Left", 5);
+                            table.setCellPadding("Right", 5);
+                        } catch (padErr) {
+                            console.log('Cell padding error:', padErr);
+                        }
+                    }
+                    
                     // Get first row (header)
                     const headerRow = table.rows.getFirst();
                     headerRow.load("cells");
@@ -1792,7 +1848,11 @@
                     table.autoFitWindow();
                     
                     await context.sync();
-                    showToast('Table formatted!', 'success');
+                    let msg = 'Table formatted!';
+                    if (paddingSupported) {
+                        msg += ' (with padding)';
+                    }
+                    showToast(msg, 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
@@ -1818,8 +1878,23 @@
                         return;
                     }
                     
+                    // Check if setCellPadding is supported (WordApi 1.3+)
+                    const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
+                    
                     for (let t = 0; t < tables.items.length; t++) {
                         const table = tables.items[t];
+                        
+                        // Set cell padding for entire table (if supported)
+                        if (paddingSupported) {
+                            try {
+                                table.setCellPadding("Top", 3);
+                                table.setCellPadding("Bottom", 3);
+                                table.setCellPadding("Left", 5);
+                                table.setCellPadding("Right", 5);
+                            } catch (padErr) {
+                                console.log('Cell padding error:', padErr);
+                            }
+                        }
                         
                         // Get first row (header)
                         const rows = table.rows;
@@ -1884,7 +1959,13 @@
                     }
                     
                     await context.sync();
-                    showToast(`Formatted ${tables.items.length} table(s)!`, 'success');
+                    let msg = `Formatted ${tables.items.length} table(s)!`;
+                    if (paddingSupported) {
+                        msg += ' (with padding)';
+                    } else {
+                        msg += ' (padding needs VBA)';
+                    }
+                    showToast(msg, 'success');
                 });
             } catch (error) {
                 console.error("All Table Format Error:", error);
@@ -2427,6 +2508,7 @@
                     let stats = {
                         totalParagraphs: paragraphs.items.length,
                         totalTables: tables.items.length,
+                        tablesChecked: 0,
                         headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, h7: 0, h8: 0, h9: 0, h10: 0, other: 0 },
                         bodyText: 0,
                         captions: { table: 0, figure: 0 },
@@ -2512,8 +2594,11 @@
                     }
                     
                     // ============================================
-                    // FIXED: Check tables by examining CELLS, not rows
+                    // FIXED Build #49: Check tables by examining CELLS
+                    // With diagnostic output to help debug
                     // ============================================
+                    let tableCheckErrors = [];
+                    
                     for (let t = 0; t < tables.items.length; t++) {
                         try {
                             const table = tables.items[t];
@@ -2525,7 +2610,7 @@
                                 headerRow.load("cells");
                                 await context.sync();
                                 
-                                // Check first cell in header row (more reliable than row-level font)
+                                // Check first cell in header row
                                 if (headerRow.cells.items.length > 0) {
                                     const firstCell = headerRow.cells.items[0];
                                     const cellBody = firstCell.body;
@@ -2535,37 +2620,49 @@
                                     cellParagraphs.load("items");
                                     await context.sync();
                                     
-                                    // Load font from first paragraph in cell
-                                    let cellText = '';
                                     if (cellParagraphs.items.length > 0) {
-                                        cellParagraphs.items[0].load("text, font");
+                                        const firstPara = cellParagraphs.items[0];
+                                        firstPara.load("text");
                                         await context.sync();
-                                        cellText = cellParagraphs.items[0].text.trim().substring(0, 20);
                                         
-                                        const cellFont = cellParagraphs.items[0].font;
+                                        const cellText = (firstPara.text || '').trim().substring(0, 20);
                                         
-                                        // Check font name
-                                        if (cellFont.name && cellFont.name !== 'Times New Roman') {
+                                        // Now load font properties explicitly
+                                        const cellFont = firstPara.font;
+                                        cellFont.load("name, size, bold");
+                                        await context.sync();
+                                        
+                                        const fontName = cellFont.name;
+                                        const fontSize = cellFont.size;
+                                        const fontBold = cellFont.bold;
+                                        
+                                        // Mark this table as successfully checked
+                                        stats.tablesChecked++;
+                                        
+                                        // Check font name - report if NOT Times New Roman
+                                        // fontName could be null/undefined if mixed formatting
+                                        if (fontName !== null && fontName !== undefined && fontName !== 'Times New Roman') {
                                             issues.push({
                                                 type: 'Table',
                                                 text: `Table ${t + 1}: "${cellText}"`,
-                                                issue: `Header font: "${cellFont.name}" (expected TNR)`,
+                                                issue: `Header font: "${fontName}" (expected TNR)`,
                                                 searchText: cellText.length > 3 ? cellText : null
                                             });
                                         }
                                         
-                                        // Check font size
-                                        if (cellFont.size && cellFont.size !== 10) {
+                                        // Check font size - report if NOT 10pt
+                                        // fontSize could be null/undefined if mixed
+                                        if (fontSize !== null && fontSize !== undefined && fontSize !== 10) {
                                             issues.push({
                                                 type: 'Table',
                                                 text: `Table ${t + 1}: "${cellText}"`,
-                                                issue: `Header size: ${cellFont.size}pt (expected 10pt)`,
+                                                issue: `Header size: ${fontSize}pt (expected 10pt)`,
                                                 searchText: cellText.length > 3 ? cellText : null
                                             });
                                         }
                                         
-                                        // Check bold
-                                        if (cellFont.bold === false) {
+                                        // Check bold - report if explicitly NOT bold
+                                        if (fontBold === false) {
                                             issues.push({
                                                 type: 'Table',
                                                 text: `Table ${t + 1}: "${cellText}"`,
@@ -2573,12 +2670,29 @@
                                                 searchText: cellText.length > 3 ? cellText : null
                                             });
                                         }
+                                    } else {
+                                        tableCheckErrors.push(`Table ${t + 1}: No paragraphs in first cell`);
                                     }
+                                } else {
+                                    tableCheckErrors.push(`Table ${t + 1}: No cells in header row`);
                                 }
+                            } else {
+                                tableCheckErrors.push(`Table ${t + 1}: No rows`);
                             }
                         } catch (tableErr) {
-                            console.log('Table check error for table ' + (t + 1) + ':', tableErr);
+                            // Log error but continue checking other tables
+                            tableCheckErrors.push(`Table ${t + 1}: ${tableErr.message || tableErr}`);
                         }
+                    }
+                    
+                    // If there were table check errors, add a summary issue
+                    if (tableCheckErrors.length > 0 && stats.tablesChecked === 0) {
+                        issues.push({
+                            type: 'Debug',
+                            text: `Table check errors`,
+                            issue: tableCheckErrors.slice(0, 3).join('; '),
+                            searchText: null
+                        });
                     }
                     
                     // Check H1 for Title Case
@@ -2681,6 +2795,7 @@
                     html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Total Paragraphs</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.totalParagraphs}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Total Tables</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.totalTables}</b></td></tr>`;
+                    html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Tables Checked</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.tablesChecked}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 1</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h1}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 2</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h2}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 3</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h3}</b></td></tr>`;
@@ -2834,6 +2949,99 @@
             
             const nonFirstWords = words.length - 1;
             return nonFirstWords === 0 || lowercaseCount >= nonFirstWords * 0.5;
+        }
+
+        // ============================================
+        // INSERT TOC/LOT/LOF (WordApi 1.5+)
+        // ============================================
+        async function handleInsertTOC() {
+            // Check if insertField is supported (WordApi 1.5+)
+            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
+                showToast('Requires Office 2019+ or M365. Use Insert > Table of Contents.', 'error');
+                return;
+            }
+            
+            try {
+                await Word.run(async (context) => {
+                    const range = context.document.getSelection().getRange();
+                    
+                    // Insert TOC with hyperlinks, showing heading levels 1-3
+                    const field = range.insertField(
+                        Word.InsertLocation.replace,
+                        Word.FieldType.toc,
+                        '\\o "1-3" \\h'
+                    );
+                    
+                    // Update the field to populate it
+                    field.updateResult();
+                    
+                    await context.sync();
+                    showToast('Table of Contents inserted!', 'success');
+                });
+            } catch (error) {
+                console.error("Insert TOC Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function handleInsertLOT() {
+            // Check if insertField is supported (WordApi 1.5+)
+            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
+                showToast('Requires Office 2019+ or M365. Use Insert > Table of Figures.', 'error');
+                return;
+            }
+            
+            try {
+                await Word.run(async (context) => {
+                    const range = context.document.getSelection().getRange();
+                    
+                    // Insert LOT using TOC field with \c "Table" switch
+                    const field = range.insertField(
+                        Word.InsertLocation.replace,
+                        Word.FieldType.toc,
+                        '\\c "Table"'
+                    );
+                    
+                    // Update the field to populate it
+                    field.updateResult();
+                    
+                    await context.sync();
+                    showToast('List of Tables inserted!', 'success');
+                });
+            } catch (error) {
+                console.error("Insert LOT Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function handleInsertLOF() {
+            // Check if insertField is supported (WordApi 1.5+)
+            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
+                showToast('Requires Office 2019+ or M365. Use Insert > Table of Figures.', 'error');
+                return;
+            }
+            
+            try {
+                await Word.run(async (context) => {
+                    const range = context.document.getSelection().getRange();
+                    
+                    // Insert LOF using TOC field with \c "Figure" switch
+                    const field = range.insertField(
+                        Word.InsertLocation.replace,
+                        Word.FieldType.toc,
+                        '\\c "Figure"'
+                    );
+                    
+                    // Update the field to populate it
+                    field.updateResult();
+                    
+                    await context.sync();
+                    showToast('List of Figures inserted!', 'success');
+                });
+            } catch (error) {
+                console.error("Insert LOF Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
         }
 
         // ============================================
