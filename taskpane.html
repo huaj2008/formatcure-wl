@@ -550,13 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #66</span>
-    </div>
-
-    <!-- IMPORTANT: US Letter Margin Reminder -->
-    <div style="background:#ffebee;border-left:4px solid #f44336;padding:8px 12px;margin:8px 12px 0 12px;border-radius:0 4px 4px 0;font-size:11px;">
-        <strong style="color:#c62828;">⚠️ Before formatting:</strong>
-        <span style="color:#b71c1c;">Set page to US Letter with 1" margins (Layout → Size → Letter, Margins → Normal)</span>
+        <span class="build-num">Build #67</span>
     </div>
 
     <!-- Custom UPPERCASE Terms Display -->
@@ -573,18 +567,6 @@
     <!-- Main Content - Flat button grid -->
     <div class="main-content">
         <div class="button-grid">
-            <!-- ====== US LETTER PAGE SETUP (Prominent) ====== -->
-            <div class="tooltip-container" style="grid-column: span 2;">
-                <button class="btn" id="btnUSLetter" style="background:#d32f2f;color:white;font-size:14px;padding:12px;">
-                    <div class="btn-icon" style="font-size:20px;">📄</div>
-                    <span class="btn-label" style="font-size:13px;font-weight:700;">US Letter</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">US Letter Page Setup</div>
-                    <div class="tooltip-desc">Set page to US Letter (8.5" × 11") with 1" margins.</div>
-                </div>
-            </div>
-
             <!-- ====== CUSTOM HEADINGS (Convert non-standard to standard) ====== -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnCustomHeadings">
@@ -598,39 +580,15 @@
             </div>
 
             <!-- ====== STANDARD HEADINGS (H1-H10) ====== -->
-            <!-- Title Case All Headings -->
-            <div class="tooltip-container">
-                <button class="btn secondary" id="btnTitleAllHeadings">
-                    <div class="btn-icon">Ht</div>
-                    <span class="btn-label">All Headings</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Title Case All Headings</div>
-                    <div class="tooltip-desc">Apply Title Case to all standard Word headings (H1-H10).</div>
-                </div>
-            </div>
-
-            <!-- Heading Case Dialog -->
+            <!-- Heading Options Dialog -->
             <div class="tooltip-container">
                 <button class="btn secondary" id="btnHeadingDialog">
                     <div class="btn-icon">H⚙</div>
                     <span class="btn-label">Heading Options</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Heading Case Dialog</div>
-                    <div class="tooltip-desc">Choose Title/Sentence Case for each standard heading level (1-10).</div>
-                </div>
-            </div>
-
-            <!-- Heading Format -->
-            <div class="tooltip-container">
-                <button class="btn secondary" id="btnHeadingFormat">
-                    <div class="btn-icon">Hs</div>
-                    <span class="btn-label">Heading Format</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Heading Format</div>
-                    <div class="tooltip-desc">H1 = Title Case, H2-H10 = Sentence Case (standard headings only).</div>
+                    <div class="tooltip-title">Heading Options</div>
+                    <div class="tooltip-desc">Set case, bold, italic, size for each heading level (H1-H10). Pre-populated with standard settings.</div>
                 </div>
             </div>
 
@@ -921,100 +879,294 @@
 
     <!-- Heading Options Modal -->
     <div class="modal-overlay" id="headingModal">
-        <div class="modal">
+        <div class="modal" style="max-width: 580px;">
             <div class="modal-header">
-                <span class="modal-title">Heading Case Options</span>
+                <span class="modal-title">Heading Options</span>
                 <button class="modal-close" id="modalClose">×</button>
             </div>
-            <div class="modal-body">
-                <p class="modal-desc">Choose case conversion for each heading level:</p>
-                <div class="heading-options">
-                    <div class="heading-option">
-                        <label>TOC Heading (Unnumbered):</label>
-                        <select id="hTocOption">
+            <div class="modal-body" style="padding: 12px;">
+                <p class="modal-desc" style="margin-bottom:10px;font-size:11px;">Set formatting for each heading level (pre-populated with standard settings):</p>
+                
+                <!-- Table header -->
+                <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;font-size:10px;font-weight:600;color:#666;margin-bottom:6px;padding:0 4px;">
+                    <span>Level</span>
+                    <span>Case</span>
+                    <span>Bold</span>
+                    <span>Italic</span>
+                    <span>Size</span>
+                </div>
+                
+                <div style="max-height:320px;overflow-y:auto;">
+                    <!-- TOC Heading -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">TOC</label>
+                        <select id="hTocCase" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1" selected>Title</option>
+                            <option value="2">Sentence</option>
+                        </select>
+                        <select id="hTocBold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="hTocItalic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="hTocSize" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 1:</label>
-                        <select id="h1Option">
+                    <!-- H1 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H1</label>
+                        <select id="h1Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1" selected>Title Case</option>
-                            <option value="2">Sentence Case</option>
+                            <option value="1" selected>Title</option>
+                            <option value="2">Sentence</option>
+                        </select>
+                        <select id="h1Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h1Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h1Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 2:</label>
-                        <select id="h2Option">
+                    <!-- H2 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H2</label>
+                        <select id="h2Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h2Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h2Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h2Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 3:</label>
-                        <select id="h3Option">
+                    <!-- H3 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H3</label>
+                        <select id="h3Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h3Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h3Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h3Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 4:</label>
-                        <select id="h4Option">
+                    <!-- H4 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H4</label>
+                        <select id="h4Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h4Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h4Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h4Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 5:</label>
-                        <select id="h5Option">
+                    <!-- H5 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H5</label>
+                        <select id="h5Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h5Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h5Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h5Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 6:</label>
-                        <select id="h6Option">
+                    <!-- H6 -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H6</label>
+                        <select id="h6Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h6Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h6Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h6Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 7:</label>
-                        <select id="h7Option">
+                    <!-- H7-H10 (collapsed by default, less common) -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H7</label>
+                        <select id="h7Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h7Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h7Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h7Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 8:</label>
-                        <select id="h8Option">
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H8</label>
+                        <select id="h8Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h8Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h8Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h8Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 9:</label>
-                        <select id="h9Option">
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H9</label>
+                        <select id="h9Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h9Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h9Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h9Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
-                    <div class="heading-option">
-                        <label>Heading 10:</label>
-                        <select id="h10Option">
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">H10</label>
+                        <select id="h10Case" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
-                            <option value="1">Title Case</option>
-                            <option value="2" selected>Sentence Case</option>
+                            <option value="1">Title</option>
+                            <option value="2" selected>Sentence</option>
+                        </select>
+                        <select id="h10Bold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="h10Italic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h10Size" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
                         </select>
                     </div>
                 </div>
@@ -1230,7 +1382,8 @@
             'DNA', 'RNA', 'mRNA', 'pH', 'UV', 'IR', 'NMR', 'HPLC', 'GC', 'MS',
             'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN',
             'US', 'EU', 'UK', 'WHO', 'EMA', 'PMDA', 'TGA', 'NMPA',
-            'SOP', 'QA', 'QC', 'R&D', 'CMC', 'CMO', 'CRO', 'CDMO'
+            'SOP', 'QA', 'QC', 'R&D', 'CMC', 'CMO', 'CRO', 'CDMO',
+            'DS', 'DP', 'ADC'
         ];
 
         const LOWERCASE_WORDS = [
@@ -1264,17 +1417,12 @@
         // Initialize Office
         Office.onReady(function(info) {
             if (info.host === Office.HostType.Word) {
-                // US Letter Page Setup button
-                document.getElementById('btnUSLetter').addEventListener('click', handleUSLetter);
-                
                 // Text Formatting buttons
                 document.getElementById('btnTitleCase').addEventListener('click', handleTitleCase);
                 document.getElementById('btnSentenceCase').addEventListener('click', handleSentenceCase);
                 
-                // Standard Heading buttons
-                document.getElementById('btnTitleAllHeadings').addEventListener('click', handleTitleAllHeadings);
+                // Standard Heading button
                 document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
-                document.getElementById('btnHeadingFormat').addEventListener('click', handleHeadingFormat);
                 
                 // Custom Heading button (combined scan & convert)
                 document.getElementById('btnCustomHeadings').addEventListener('click', showCustomHeadingsModal);
@@ -1405,13 +1553,6 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
-        }
-
-        // ============================================
-        // US LETTER PAGE SETUP
-        // ============================================
-        function handleUSLetter() {
-            showToast('⚠️ Use Layout → Size → Letter, Margins → Normal', 'success');
         }
 
         // ============================================
@@ -1703,68 +1844,6 @@
         }
 
         // ============================================
-        // TITLE ALL HEADINGS HANDLER
-        // Includes TOC Heading (unnumbered) and H1-H10
-        // ============================================
-        async function handleTitleAllHeadings() {
-            try {
-                await Word.run(async (context) => {
-                    const body = context.document.body;
-                    const paragraphs = body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-
-                    let headingCount = 0;
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        para.load("style, text");
-                    }
-                    await context.sync();
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        const styleName = para.style;
-                        const lowerStyleName = styleName.toLowerCase();
-                        
-                        // Check if it's a heading style (standard or custom)
-                        const headingLevel = getHeadingLevelForStyle(styleName);
-                        const isHeading = headingLevel !== null || 
-                                          lowerStyleName.includes('heading') || 
-                                          lowerStyleName.includes('toc heading') ||
-                                          lowerStyleName.match(/^h[1-9]$/) ||
-                                          lowerStyleName === 'h10' ||
-                                          lowerStyleName === 'title';
-                        
-                        if (isHeading) {
-                            let text = para.text;
-                            if (text.endsWith('\r')) {
-                                text = text.slice(0, -1);
-                            }
-                            
-                            if (text.trim() !== '') {
-                                const converted = convertToTitleCase(text);
-                                para.insertText(converted, Word.InsertLocation.replace);
-                                headingCount++;
-                            }
-                        }
-                    }
-
-                    await context.sync();
-                    
-                    if (headingCount > 0) {
-                        showToast(`Title Case applied to ${headingCount} heading(s)!`, 'success');
-                    } else {
-                        showToast('No headings found in document', 'error');
-                    }
-                });
-            } catch (error) {
-                console.error("Title All Headings Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-
-        // ============================================
         // HEADING MODAL FUNCTIONS
         // ============================================
         function showHeadingModal() {
@@ -1776,19 +1855,20 @@
         }
 
         async function applyHeadingOptions() {
-            const options = {
-                'toc': document.getElementById('hTocOption').value,
-                1: document.getElementById('h1Option').value,
-                2: document.getElementById('h2Option').value,
-                3: document.getElementById('h3Option').value,
-                4: document.getElementById('h4Option').value,
-                5: document.getElementById('h5Option').value,
-                6: document.getElementById('h6Option').value,
-                7: document.getElementById('h7Option').value,
-                8: document.getElementById('h8Option').value,
-                9: document.getElementById('h9Option').value,
-                10: document.getElementById('h10Option').value
-            };
+            // Gather all options for each heading level
+            const levels = ['Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+            const options = {};
+            
+            for (const level of levels) {
+                const key = level === 'Toc' ? 'toc' : parseInt(level);
+                const prefix = level === 'Toc' ? 'hToc' : `h${level}`;
+                options[key] = {
+                    case: document.getElementById(`${prefix}Case`).value,
+                    bold: document.getElementById(`${prefix}Bold`).value,
+                    italic: document.getElementById(`${prefix}Italic`).value,
+                    size: document.getElementById(`${prefix}Size`).value
+                };
+            }
 
             hideHeadingModal();
 
@@ -1831,11 +1911,12 @@
                             else if (lowerStyleName.includes('heading 10') || lowerStyleName === 'h10') headingKey = 10;
                         }
                         
-                        if (headingKey !== null) {
-                            const option = options[headingKey];
+                        if (headingKey !== null && options[headingKey]) {
+                            const opt = options[headingKey];
+                            let changed = false;
                             
-                            // 0 = No Change, 1 = Title Case, 2 = Sentence Case
-                            if (option !== '0') {
+                            // Apply case conversion if not "No Change"
+                            if (opt.case !== '0') {
                                 let text = para.text;
                                 if (text.endsWith('\r')) {
                                     text = text.slice(0, -1);
@@ -1843,15 +1924,29 @@
                                 
                                 if (text.trim() !== '') {
                                     let converted;
-                                    if (option === '1') {
+                                    if (opt.case === '1') {
                                         converted = convertToTitleCase(text);
                                     } else {
                                         converted = convertToSentenceCase(text);
                                     }
                                     para.insertText(converted, Word.InsertLocation.replace);
-                                    headingCount++;
+                                    changed = true;
                                 }
                             }
+                            
+                            // Apply bold
+                            const fontObj = para.font;
+                            fontObj.bold = (opt.bold === '1');
+                            
+                            // Apply italic
+                            fontObj.italic = (opt.italic === '1');
+                            
+                            // Apply size if specified
+                            if (opt.size !== '0') {
+                                fontObj.size = parseInt(opt.size);
+                            }
+                            
+                            headingCount++;
                         }
                     }
 
@@ -1860,7 +1955,7 @@
                     if (headingCount > 0) {
                         showToast(`Applied to ${headingCount} heading(s)!`, 'success');
                     } else {
-                        showToast('No headings changed', 'error');
+                        showToast('No headings found', 'error');
                     }
                 });
             } catch (error) {
@@ -2449,94 +2544,6 @@
                 });
             } catch (error) {
                 console.error("eCTD Link Style Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-
-        // ============================================
-        // HEADING FORMAT HANDLER (H1=Title, H2-H6=Sentence)
-        // ============================================
-        async function handleHeadingFormat() {
-            try {
-                await Word.run(async (context) => {
-                    const body = context.document.body;
-                    const paragraphs = body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-
-                    let headingCount = 0;
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        para.load("style, text");
-                    }
-                    await context.sync();
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        const styleName = para.style.toLowerCase();
-                        
-                        // Determine heading level (TOC Heading and H1 get Title Case, rest get Sentence Case)
-                        let useTitle = false;
-                        let isHeading = false;
-                        
-                        if (styleName.includes('toc heading') || styleName === 'toc heading') {
-                            isHeading = true;
-                            useTitle = true; // TOC Heading = Title Case
-                        } else if (styleName.includes('heading 1') || styleName === 'h1' || styleName === 'title') {
-                            isHeading = true;
-                            useTitle = true; // H1 = Title Case
-                        } else if (styleName.includes('heading 2') || styleName === 'h2') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 3') || styleName === 'h3') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 4') || styleName === 'h4') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 5') || styleName === 'h5') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 6') || styleName === 'h6') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 7') || styleName === 'h7') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 8') || styleName === 'h8') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 9') || styleName === 'h9') {
-                            isHeading = true;
-                        } else if (styleName.includes('heading 10') || styleName === 'h10') {
-                            isHeading = true;
-                        }
-                        
-                        if (isHeading) {
-                            let text = para.text;
-                            if (text.endsWith('\r')) {
-                                text = text.slice(0, -1);
-                            }
-                            
-                            if (text.trim() !== '') {
-                                let converted;
-                                if (useTitle) {
-                                    // TOC Heading and H1 = Title Case
-                                    converted = convertToTitleCase(text);
-                                } else {
-                                    // H2-H10 = Sentence Case
-                                    converted = convertToSentenceCase(text);
-                                }
-                                para.insertText(converted, Word.InsertLocation.replace);
-                                headingCount++;
-                            }
-                        }
-                    }
-
-                    await context.sync();
-                    
-                    if (headingCount > 0) {
-                        showToast(`Formatted ${headingCount} heading(s)!`, 'success');
-                    } else {
-                        showToast('No headings found', 'error');
-                    }
-                });
-            } catch (error) {
-                console.error("Heading Format Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
