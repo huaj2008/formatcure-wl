@@ -3092,7 +3092,7 @@
                             html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
                             for (let h = 1; h <= 10; h++) {
                                 const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
-                                html += `<option value="H${h}"${selected}>Heading ${h}</option>`;
+                                html += `<option value="H${h}"${selected}>H${h}</option>`;
                             }
                             html += `</select>`;
                             html += `</td>`;
@@ -3372,11 +3372,24 @@
                             }
                             // Handle TOC Heading
                             else if (matchedLevel.toUpperCase() === 'TOC') {
-                                try {
-                                    para.style = 'TOC Heading';
-                                    convertedCount++;
-                                } catch (e) {
-                                    console.log('Could not apply TOC Heading style:', e);
+                                // Try different variations of TOC Heading style name
+                                const tocStyleNames = ['TOC Heading', 'TOCHeading', 'toc heading'];
+                                let applied = false;
+                                
+                                for (const styleName of tocStyleNames) {
+                                    try {
+                                        para.style = styleName;
+                                        convertedCount++;
+                                        applied = true;
+                                        console.log('Applied TOC Heading with style name:', styleName);
+                                        break;
+                                    } catch (e) {
+                                        console.log(`Could not apply "${styleName}":`, e.message);
+                                    }
+                                }
+                                
+                                if (!applied) {
+                                    console.log('Could not apply any TOC Heading style variation');
                                 }
                             } else {
                                 // Get the heading number from H1, H2, etc.
@@ -3779,25 +3792,37 @@
                     fields.load("items");
                     await context.sync();
                     
-                    // Load field codes to find LOT
+                    // Load field codes to find LOT and TOC
                     for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code");
+                        fields.items[i].load("code, result");
                     }
                     await context.sync();
                     
-                    // Find and delete existing LOT field (TOC with \c "Table" switch)
-                    let foundExisting = false;
+                    // Find TOC field to insert after
+                    let tocField = null;
+                    let existingLOTField = null;
+                    
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
+                        
+                        // Find main TOC (has heading levels, not \c switch)
+                        if (code.includes('TOC') && !code.includes('\\C "')) {
+                            tocField = field;
+                        }
+                        
+                        // Find existing LOT
                         if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
-                            field.delete();
-                            foundExisting = true;
-                            break;
+                            existingLOTField = field;
                         }
                     }
                     
-                    // Also try to delete the title paragraph
+                    // Delete existing LOT if found
+                    if (existingLOTField) {
+                        existingLOTField.delete();
+                    }
+                    
+                    // Delete existing "List of Tables" title paragraph
                     const paras = context.document.body.paragraphs;
                     paras.load("items");
                     await context.sync();
@@ -3817,15 +3842,37 @@
                     
                     await context.sync();
                     
-                    // Insert formatted title at cursor
-                    await insertFormattedTitle(context, "List of Tables");
+                    // Determine insertion point
+                    let insertRange;
+                    if (tocField) {
+                        // Insert after TOC
+                        insertRange = tocField.result.getRange(Word.RangeLocation.after);
+                        // Add a paragraph break
+                        insertRange.insertParagraph("", Word.InsertLocation.after);
+                        insertRange = insertRange.getRange(Word.RangeLocation.after);
+                    } else {
+                        // No TOC found, use cursor position
+                        insertRange = context.document.getSelection().getRange();
+                    }
                     
-                    // Get new selection (after title)
-                    const range = context.document.getSelection().getRange();
+                    await context.sync();
+                    
+                    // Insert formatted title
+                    const titlePara = insertRange.insertParagraph("List of Tables", Word.InsertLocation.before);
+                    titlePara.font.name = "Times New Roman";
+                    titlePara.font.size = 12;
+                    titlePara.font.bold = true;
+                    titlePara.alignment = Word.Alignment.centered;
+                    titlePara.spaceAfter = 12;
+                    
+                    await context.sync();
+                    
+                    // Get range after title for field insertion
+                    const fieldRange = titlePara.getRange(Word.RangeLocation.after);
                     
                     // Insert LOT using TOC field with \c "Table" switch
-                    const field = range.insertField(
-                        Word.InsertLocation.replace,
+                    const field = fieldRange.insertField(
+                        Word.InsertLocation.after,
                         Word.FieldType.toc,
                         '\\c "Table"'
                     );
@@ -3840,7 +3887,7 @@
                     lotRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('LOT inserted!', 'success');
+                    showToast('LOT inserted' + (tocField ? ' after TOC' : '') + '!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOT Error:", error);
@@ -3857,30 +3904,48 @@
             
             try {
                 await Word.run(async (context) => {
-                    // First, look for existing LOF field to delete
+                    // First, look for existing fields
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    // Load field codes to find LOF
+                    // Load field codes
                     for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code");
+                        fields.items[i].load("code, result");
                     }
                     await context.sync();
                     
-                    // Find and delete existing LOF field (TOC with \c "Figure" switch)
-                    let foundExisting = false;
+                    // Find TOC, LOT, and existing LOF fields
+                    let tocField = null;
+                    let lotField = null;
+                    let existingLOFField = null;
+                    
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
+                        
+                        // Find main TOC (has heading levels, not \c switch)
+                        if (code.includes('TOC') && !code.includes('\\C "')) {
+                            tocField = field;
+                        }
+                        
+                        // Find LOT
+                        if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
+                            lotField = field;
+                        }
+                        
+                        // Find existing LOF
                         if (code.includes('TOC') && code.includes('\\C "FIGURE"')) {
-                            field.delete();
-                            foundExisting = true;
-                            break;
+                            existingLOFField = field;
                         }
                     }
                     
-                    // Also try to delete the title paragraph
+                    // Delete existing LOF if found
+                    if (existingLOFField) {
+                        existingLOFField.delete();
+                    }
+                    
+                    // Delete existing "List of Figures" title paragraph
                     const paras = context.document.body.paragraphs;
                     paras.load("items");
                     await context.sync();
@@ -3900,15 +3965,45 @@
                     
                     await context.sync();
                     
-                    // Insert formatted title at cursor
-                    await insertFormattedTitle(context, "List of Figures");
+                    // Determine insertion point: after LOT > after TOC > cursor
+                    let insertRange;
+                    let insertAfter = '';
                     
-                    // Get new selection (after title)
-                    const range = context.document.getSelection().getRange();
+                    if (lotField) {
+                        // Insert after LOT
+                        insertRange = lotField.result.getRange(Word.RangeLocation.after);
+                        insertRange.insertParagraph("", Word.InsertLocation.after);
+                        insertRange = insertRange.getRange(Word.RangeLocation.after);
+                        insertAfter = ' after LOT';
+                    } else if (tocField) {
+                        // Insert after TOC
+                        insertRange = tocField.result.getRange(Word.RangeLocation.after);
+                        insertRange.insertParagraph("", Word.InsertLocation.after);
+                        insertRange = insertRange.getRange(Word.RangeLocation.after);
+                        insertAfter = ' after TOC';
+                    } else {
+                        // No TOC/LOT found, use cursor position
+                        insertRange = context.document.getSelection().getRange();
+                    }
+                    
+                    await context.sync();
+                    
+                    // Insert formatted title
+                    const titlePara = insertRange.insertParagraph("List of Figures", Word.InsertLocation.before);
+                    titlePara.font.name = "Times New Roman";
+                    titlePara.font.size = 12;
+                    titlePara.font.bold = true;
+                    titlePara.alignment = Word.Alignment.centered;
+                    titlePara.spaceAfter = 12;
+                    
+                    await context.sync();
+                    
+                    // Get range after title for field insertion
+                    const fieldRange = titlePara.getRange(Word.RangeLocation.after);
                     
                     // Insert LOF using TOC field with \c "Figure" switch
-                    const field = range.insertField(
-                        Word.InsertLocation.replace,
+                    const field = fieldRange.insertField(
+                        Word.InsertLocation.after,
                         Word.FieldType.toc,
                         '\\c "Figure"'
                     );
@@ -3923,7 +4018,7 @@
                     lofRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('LOF inserted!', 'success');
+                    showToast('LOF inserted' + insertAfter + '!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOF Error:", error);
