@@ -573,28 +573,27 @@
     <!-- Main Content - Flat button grid -->
     <div class="main-content">
         <div class="button-grid">
-            <!-- ====== CASE CONVERSION ====== -->
-            <!-- Title Case -->
-            <div class="tooltip-container">
-                <button class="btn primary" id="btnTitleCase">
-                    <div class="btn-icon">Tt</div>
-                    <span class="btn-label">Title Case</span>
+            <!-- ====== US LETTER PAGE SETUP (Prominent) ====== -->
+            <div class="tooltip-container" style="grid-column: span 2;">
+                <button class="btn" id="btnUSLetter" style="background:#d32f2f;color:white;font-size:14px;padding:12px;">
+                    <div class="btn-icon" style="font-size:20px;">📄</div>
+                    <span class="btn-label" style="font-size:13px;font-weight:700;">US Letter</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Title Case</div>
-                    <div class="tooltip-desc">Capitalizes first letter of each word. Preserves pharma acronyms.</div>
+                    <div class="tooltip-title">US Letter Page Setup</div>
+                    <div class="tooltip-desc">Set page to US Letter (8.5" × 11") with 1" margins.</div>
                 </div>
             </div>
-            
-            <!-- Sentence Case -->
+
+            <!-- ====== CUSTOM HEADINGS (Convert non-standard to standard) ====== -->
             <div class="tooltip-container">
-                <button class="btn primary" id="btnSentenceCase">
-                    <div class="btn-icon">Ss</div>
-                    <span class="btn-label">Sentence Case</span>
+                <button class="btn warning" id="btnCustomHeadings">
+                    <div class="btn-icon">🔄</div>
+                    <span class="btn-label">Custom Headings</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Sentence Case</div>
-                    <div class="tooltip-desc">Capitalizes first word of each sentence. Preserves pharma acronyms.</div>
+                    <div class="tooltip-title">Custom Headings → Standard</div>
+                    <div class="tooltip-desc">Scan for non-standard heading styles (Chinese, company templates), map them to Word H1-H10/Normal, and convert.</div>
                 </div>
             </div>
 
@@ -635,31 +634,7 @@
                 </div>
             </div>
 
-            <!-- ====== CUSTOM HEADINGS (Chinese/Company Templates) ====== -->
-            <!-- Scan Custom Headings -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnScanCustomHeadings">
-                    <div class="btn-icon">🔍</div>
-                    <span class="btn-label">Scan Custom</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Scan Custom Headings</div>
-                    <div class="tooltip-desc">Scan document for non-standard heading styles (Chinese, company templates). Shows what's found and lets you map them.</div>
-                </div>
-            </div>
-
-            <!-- Convert Custom to Standard -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnConvertCustomHeadings">
-                    <div class="btn-icon">↔️</div>
-                    <span class="btn-label">Convert Custom</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Convert Custom → Standard</div>
-                    <div class="tooltip-desc">Convert custom heading styles to standard Word H1-H10 based on your mapping. Then use regular heading functions.</div>
-                </div>
-            </div>
-
+            <!-- ====== BODY & TABLE FORMATTING ====== -->
             <!-- Body Format -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnBodyFormat">
@@ -696,163 +671,7 @@
                 </div>
             </div>
 
-            <!-- All Table Caption -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnTableCaption">
-                    <div class="btn-icon">T#</div>
-                    <span class="btn-label">All Table Caption</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format All Table Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
-                </div>
-            </div>
-
-            <!-- All Figure Caption -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnFigureCaption">
-                    <div class="btn-icon">F#</div>
-                    <span class="btn-label">All Figure Caption</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format All Figure Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
-                </div>
-            </div>
-
-            <!-- Cross-Reference Style -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnCrossRef">
-                    <div class="btn-icon">↗</div>
-                    <span class="btn-label">Cross-Ref Style</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Cross-Reference Style</div>
-                    <div class="tooltip-desc">Format selection: Blue, Bold (no underline), TNR 12pt.</div>
-                </div>
-            </div>
-
-            <!-- All Cross-Ref Style -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnAllCrossRef">
-                    <div class="btn-icon">↗↗</div>
-                    <span class="btn-label">All Cross-Ref Style</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format All Cross-References</div>
-                    <div class="tooltip-desc">Find all cross-refs, apply Blue Bold. Skips TOC page numbers.</div>
-                </div>
-            </div>
-
-            <!-- eCTD Link Style -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnEctdLink">
-                    <div class="btn-icon">🔗</div>
-                    <span class="btn-label">eCTD Link</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">eCTD Link Style</div>
-                    <div class="tooltip-desc">Blue only, NOT underlined, NOT bold, TNR 12pt.</div>
-                </div>
-            </div>
-
-            <!-- Special Characters -->
-            <div class="tooltip-container">
-                <button class="btn success" id="btnSpecialChars">
-                    <div class="btn-icon">×℃</div>
-                    <span class="btn-label">Special Chars</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Special Characters</div>
-                    <div class="tooltip-desc">Insert × ℃ ° ∞ ± ≤ ≥ μ α β and more.</div>
-                </div>
-            </div>
-
-            <!-- Scientific Names -->
-            <div class="tooltip-container">
-                <button class="btn success" id="btnScientificNames">
-                    <div class="btn-icon">𝐸𝑐</div>
-                    <span class="btn-label">Scientific Names</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format Scientific Names</div>
-                    <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
-                </div>
-            </div>
-
-            <!-- Custom UPPERCASE (Drug names, etc.) -->
-            <div class="tooltip-container">
-                <button class="btn success" id="btnCustomUppercase">
-                    <div class="btn-icon">AB+</div>
-                    <span class="btn-label">Custom UPPER</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Custom UPPERCASE</div>
-                    <div class="tooltip-desc">Save drug names or terms to auto-convert to UPPERCASE throughout document.</div>
-                </div>
-            </div>
-
-            <!-- WORD-LEVEL FORMAT BUTTONS (Less frequently used) -->
-            <!-- Toggle Bold -->
-            <div class="tooltip-container">
-                <button class="btn" id="btnToggleBold" style="background:#e0e0e0;color:#333;">
-                    <div class="btn-icon"><b>B</b></div>
-                    <span class="btn-label">Bold</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Toggle Bold</div>
-                    <div class="tooltip-desc">Toggle bold on/off for current word or selection.</div>
-                </div>
-            </div>
-
-            <!-- Toggle Italic -->
-            <div class="tooltip-container">
-                <button class="btn" id="btnToggleItalic" style="background:#e0e0e0;color:#333;">
-                    <div class="btn-icon"><i>I</i></div>
-                    <span class="btn-label">Italic</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Toggle Italic</div>
-                    <div class="tooltip-desc">Toggle italic on/off for current word or selection.</div>
-                </div>
-            </div>
-
-            <!-- UPPERCASE -->
-            <div class="tooltip-container">
-                <button class="btn" id="btnUpperCase" style="background:#e0e0e0;color:#333;">
-                    <div class="btn-icon">AB</div>
-                    <span class="btn-label">UPPER</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">UPPERCASE</div>
-                    <div class="tooltip-desc">Convert word/selection to ALL CAPS.</div>
-                </div>
-            </div>
-
-            <!-- lowercase -->
-            <div class="tooltip-container">
-                <button class="btn" id="btnLowerCase" style="background:#e0e0e0;color:#333;">
-                    <div class="btn-icon">ab</div>
-                    <span class="btn-label">lower</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">lowercase</div>
-                    <div class="tooltip-desc">Convert word/selection to all lowercase.</div>
-                </div>
-            </div>
-
-            <!-- Capitalize -->
-            <div class="tooltip-container">
-                <button class="btn" id="btnCapitalize" style="background:#e0e0e0;color:#333;">
-                    <div class="btn-icon">Ab</div>
-                    <span class="btn-label">Capitalize</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Capitalize First Letter</div>
-                    <div class="tooltip-desc">Capitalize first letter only (rest lowercase).</div>
-                </div>
-            </div>
-
+            <!-- ====== TOC / LOT / LOF ====== -->
             <!-- Insert TOC -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnInsertTOC">
@@ -910,6 +729,191 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Custom List of Figures</div>
                     <div class="tooltip-desc">For non-standard figure names (Figure 3.2.S.2.2-1). Enter your prefix pattern.</div>
+                </div>
+            </div>
+
+            <!-- ====== CASE CONVERSION ====== -->
+            <!-- Title Case -->
+            <div class="tooltip-container">
+                <button class="btn primary" id="btnTitleCase">
+                    <div class="btn-icon">Tt</div>
+                    <span class="btn-label">Title Case</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Title Case</div>
+                    <div class="tooltip-desc">Capitalizes first letter of each word. Preserves pharma acronyms.</div>
+                </div>
+            </div>
+            
+            <!-- Sentence Case -->
+            <div class="tooltip-container">
+                <button class="btn primary" id="btnSentenceCase">
+                    <div class="btn-icon">Ss</div>
+                    <span class="btn-label">Sentence Case</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Sentence Case</div>
+                    <div class="tooltip-desc">Capitalizes first word of each sentence. Preserves pharma acronyms.</div>
+                </div>
+            </div>
+
+            <!-- ====== CAPTIONS ====== -->
+            <!-- All Table Caption -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnTableCaption">
+                    <div class="btn-icon">T#</div>
+                    <span class="btn-label">All Table Caption</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format All Table Captions</div>
+                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
+                </div>
+            </div>
+
+            <!-- All Figure Caption -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnFigureCaption">
+                    <div class="btn-icon">F#</div>
+                    <span class="btn-label">All Figure Caption</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format All Figure Captions</div>
+                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
+                </div>
+            </div>
+
+            <!-- ====== CROSS-REFERENCES & LINKS ====== -->
+            <!-- Cross-Reference Style -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnCrossRef">
+                    <div class="btn-icon">↗</div>
+                    <span class="btn-label">Cross-Ref Style</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Cross-Reference Style</div>
+                    <div class="tooltip-desc">Format selection: Blue, Bold (no underline), TNR 12pt.</div>
+                </div>
+            </div>
+
+            <!-- All Cross-Ref Style -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnAllCrossRef">
+                    <div class="btn-icon">↗↗</div>
+                    <span class="btn-label">All Cross-Ref Style</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format All Cross-References</div>
+                    <div class="tooltip-desc">Find all cross-refs, apply Blue Bold. Skips TOC page numbers.</div>
+                </div>
+            </div>
+
+            <!-- eCTD Link Style -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnEctdLink">
+                    <div class="btn-icon">🔗</div>
+                    <span class="btn-label">eCTD Link</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">eCTD Link Style</div>
+                    <div class="tooltip-desc">Blue only, NOT underlined, NOT bold, TNR 12pt.</div>
+                </div>
+            </div>
+
+            <!-- ====== SPECIAL TOOLS ====== -->
+            <!-- Special Characters -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnSpecialChars">
+                    <div class="btn-icon">×℃</div>
+                    <span class="btn-label">Special Chars</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Special Characters</div>
+                    <div class="tooltip-desc">Insert × ℃ ° ∞ ± ≤ ≥ μ α β and more.</div>
+                </div>
+            </div>
+
+            <!-- Scientific Names -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnScientificNames">
+                    <div class="btn-icon">𝐸𝑐</div>
+                    <span class="btn-label">Scientific Names</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Scientific Names</div>
+                    <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
+                </div>
+            </div>
+
+            <!-- Custom UPPERCASE (Drug names, etc.) -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnCustomUppercase">
+                    <div class="btn-icon">AB+</div>
+                    <span class="btn-label">Custom UPPER</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom UPPERCASE</div>
+                    <div class="tooltip-desc">Save drug names or terms to auto-convert to UPPERCASE throughout document.</div>
+                </div>
+            </div>
+
+            <!-- ====== WORD-LEVEL FORMAT BUTTONS ====== -->
+            <!-- Toggle Bold -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnToggleBold" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon"><b>B</b></div>
+                    <span class="btn-label">Bold</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Toggle Bold</div>
+                    <div class="tooltip-desc">Toggle bold on/off for current word or selection.</div>
+                </div>
+            </div>
+
+            <!-- Toggle Italic -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnToggleItalic" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon"><i>I</i></div>
+                    <span class="btn-label">Italic</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Toggle Italic</div>
+                    <div class="tooltip-desc">Toggle italic on/off for current word or selection.</div>
+                </div>
+            </div>
+
+            <!-- UPPERCASE -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnUpperCase" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">AB</div>
+                    <span class="btn-label">UPPER</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">UPPERCASE</div>
+                    <div class="tooltip-desc">Convert word/selection to ALL CAPS.</div>
+                </div>
+            </div>
+
+            <!-- lowercase -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnLowerCase" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">ab</div>
+                    <span class="btn-label">lower</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">lowercase</div>
+                    <div class="tooltip-desc">Convert word/selection to all lowercase.</div>
+                </div>
+            </div>
+
+            <!-- Capitalize -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnCapitalize" style="background:#e0e0e0;color:#333;">
+                    <div class="btn-icon">Ab</div>
+                    <span class="btn-label">Capitalize</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Capitalize First Letter</div>
+                    <div class="tooltip-desc">Capitalize first letter only (rest lowercase).</div>
                 </div>
             </div>
         </div>
@@ -1107,72 +1111,38 @@
         </div>
     </div>
 
-    <!-- Scan Custom Headings Modal -->
-    <div class="modal-overlay" id="scanCustomHeadingsModal">
-        <div class="modal" style="max-width: 600px;">
+    <!-- Custom Headings Modal (Combined Scan & Convert) -->
+    <div class="modal-overlay" id="customHeadingsModal">
+        <div class="modal" style="max-width: 620px;">
             <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Scan & Map Custom Heading Styles</span>
-                <button class="modal-close" id="scanCustomHeadingsClose" style="color:white;">×</button>
+                <span class="modal-title" style="color:white;">Custom Headings → Standard</span>
+                <button class="modal-close" id="customHeadingsClose" style="color:white;">×</button>
             </div>
             <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Scan your document to find non-standard heading styles, then map them to standard Word headings (H1-H10).</p>
+                <p class="modal-desc" style="margin-bottom:12px;">Scan for non-standard heading styles, map them to Word styles, then convert.</p>
                 
                 <div style="margin-bottom:12px;">
-                    <button id="runScanCustomHeadings" style="padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">🔍 Scan Document Now</button>
+                    <button id="runScanCustomHeadings" style="padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">🔍 Scan Document</button>
                 </div>
                 
-                <div id="customHeadingScanResults" style="max-height:280px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;font-size:11px;display:none;background:#fff;">
+                <div id="customHeadingScanResults" style="max-height:250px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;font-size:11px;display:none;background:#fff;">
                     <!-- Results will be populated here as a table -->
                 </div>
                 
-                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+                <div id="savedMappingsSection" style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                        <label style="font-weight:600;font-size:12px;">Saved Mappings:</label>
+                        <label style="font-weight:600;font-size:12px;">Current Mappings:</label>
                         <button id="clearCustomHeadingMappings" style="font-size:10px;padding:2px 6px;background:#f5f5f5;border:1px solid #ccc;border-radius:3px;cursor:pointer;">Clear All</button>
                     </div>
                     <div id="savedHeadingMappings" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
-                        No saved mappings
+                        No mappings saved
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Selected Mappings</button>
-                <button class="modal-btn cancel" id="scanCustomHeadingsCancel">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Convert Custom Headings Modal -->
-    <div class="modal-overlay" id="convertCustomHeadingsModal">
-        <div class="modal" style="max-width: 520px;">
-            <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Convert Custom Headings → Standard</span>
-                <button class="modal-close" id="convertCustomHeadingsClose" style="color:white;">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Convert custom heading styles to standard Word Heading 1-10 styles based on your saved mapping.</p>
-                
-                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
-                    <p style="font-size:11px;margin:0 0 6px 0;"><strong>Current Mapping:</strong></p>
-                    <div id="currentMappingDisplay" style="font-family:monospace;font-size:10px;max-height:100px;overflow-y:auto;">
-                        No mappings saved. Use "Scan Custom" first.
-                    </div>
-                </div>
-                
-                <div style="margin-bottom:12px;">
-                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;">
-                        <input type="checkbox" id="preserveCustomStyle" checked>
-                        Keep original formatting (font, size, etc.) after conversion
-                    </label>
-                </div>
-                
-                <div id="convertPreview" style="padding:10px;background:#f5f5f5;border-radius:4px;font-size:11px;display:none;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="previewConversion" style="background:#2196f3;color:white;">Preview</button>
+                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Mappings</button>
                 <button class="modal-btn apply" id="applyConversion">Convert Now</button>
-                <button class="modal-btn cancel" id="convertCustomHeadingsCancel">Cancel</button>
+                <button class="modal-btn cancel" id="customHeadingsCancel">Close</button>
             </div>
         </div>
     </div>
@@ -1294,6 +1264,9 @@
         // Initialize Office
         Office.onReady(function(info) {
             if (info.host === Office.HostType.Word) {
+                // US Letter Page Setup button
+                document.getElementById('btnUSLetter').addEventListener('click', handleUSLetter);
+                
                 // Text Formatting buttons
                 document.getElementById('btnTitleCase').addEventListener('click', handleTitleCase);
                 document.getElementById('btnSentenceCase').addEventListener('click', handleSentenceCase);
@@ -1303,9 +1276,8 @@
                 document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
                 document.getElementById('btnHeadingFormat').addEventListener('click', handleHeadingFormat);
                 
-                // Custom Heading buttons
-                document.getElementById('btnScanCustomHeadings').addEventListener('click', showScanCustomHeadingsModal);
-                document.getElementById('btnConvertCustomHeadings').addEventListener('click', showConvertCustomHeadingsModal);
+                // Custom Heading button (combined scan & convert)
+                document.getElementById('btnCustomHeadings').addEventListener('click', showCustomHeadingsModal);
                 
                 // Word-level format buttons
                 document.getElementById('btnToggleBold').addEventListener('click', handleToggleBold);
@@ -1377,23 +1349,15 @@
                 // Load saved terms on startup
                 loadSavedTerms();
                 
-                // Scan Custom Headings Modal events
-                document.getElementById('scanCustomHeadingsClose').addEventListener('click', hideScanCustomHeadingsModal);
-                document.getElementById('scanCustomHeadingsCancel').addEventListener('click', hideScanCustomHeadingsModal);
+                // Custom Headings Modal events (combined scan & convert)
+                document.getElementById('customHeadingsClose').addEventListener('click', hideCustomHeadingsModal);
+                document.getElementById('customHeadingsCancel').addEventListener('click', hideCustomHeadingsModal);
                 document.getElementById('runScanCustomHeadings').addEventListener('click', runScanCustomHeadings);
                 document.getElementById('saveCustomHeadingMappings').addEventListener('click', saveCustomHeadingMappings);
                 document.getElementById('clearCustomHeadingMappings').addEventListener('click', clearCustomHeadingMappings);
-                document.getElementById('scanCustomHeadingsModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideScanCustomHeadingsModal();
-                });
-                
-                // Convert Custom Headings Modal events
-                document.getElementById('convertCustomHeadingsClose').addEventListener('click', hideConvertCustomHeadingsModal);
-                document.getElementById('convertCustomHeadingsCancel').addEventListener('click', hideConvertCustomHeadingsModal);
-                document.getElementById('previewConversion').addEventListener('click', previewHeadingConversion);
                 document.getElementById('applyConversion').addEventListener('click', applyHeadingConversion);
-                document.getElementById('convertCustomHeadingsModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideConvertCustomHeadingsModal();
+                document.getElementById('customHeadingsModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideCustomHeadingsModal();
                 });
                 
                 // Custom LOT Modal events
@@ -1441,6 +1405,13 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
+        }
+
+        // ============================================
+        // US LETTER PAGE SETUP
+        // ============================================
+        function handleUSLetter() {
+            showToast('⚠️ Use Layout → Size → Letter, Margins → Normal', 'success');
         }
 
         // ============================================
@@ -2883,22 +2854,13 @@
         let foundCustomStyles = [];
         let customCaptions = { tables: [], figures: [] };
         
-        function showScanCustomHeadingsModal() {
-            document.getElementById('scanCustomHeadingsModal').classList.add('show');
+        function showCustomHeadingsModal() {
+            document.getElementById('customHeadingsModal').classList.add('show');
             loadSavedCustomHeadingMappings();
         }
         
-        function hideScanCustomHeadingsModal() {
-            document.getElementById('scanCustomHeadingsModal').classList.remove('show');
-        }
-        
-        function showConvertCustomHeadingsModal() {
-            document.getElementById('convertCustomHeadingsModal').classList.add('show');
-            displayCurrentMappings();
-        }
-        
-        function hideConvertCustomHeadingsModal() {
-            document.getElementById('convertCustomHeadingsModal').classList.remove('show');
+        function hideCustomHeadingsModal() {
+            document.getElementById('customHeadingsModal').classList.remove('show');
         }
         
         function loadSavedCustomHeadingMappings() {
@@ -2925,34 +2887,6 @@
                 }
             } catch (e) {
                 console.log('Could not load saved mappings:', e);
-            }
-        }
-        
-        function displayCurrentMappings() {
-            try {
-                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
-                const display = document.getElementById('currentMappingDisplay');
-                
-                console.log('displayCurrentMappings - raw saved:', saved);
-                
-                if (saved) {
-                    const mappings = JSON.parse(saved);
-                    console.log('displayCurrentMappings - parsed mappings:', mappings);
-                    if (Object.keys(mappings).length > 0) {
-                        let html = '';
-                        for (const [styleName, headingLevel] of Object.entries(mappings)) {
-                            html += `<div>${styleName} → <strong>${headingLevel}</strong></div>`;
-                        }
-                        display.innerHTML = html;
-                    } else {
-                        display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
-                    }
-                } else {
-                    display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
-                }
-            } catch (e) {
-                console.error('displayCurrentMappings error:', e);
-                display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
             }
         }
         
@@ -3079,6 +3013,7 @@
                             html += `<td style="padding:6px;">`;
                             html += `<select class="custom-heading-select" data-style="${escapedStyle}" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;width:100%;">`;
                             html += `<option value="">-- Skip --</option>`;
+                            html += `<option value="Normal"${existingLevel === 'Normal' || suggestedLevel === 'Normal' ? ' selected' : ''}>Normal</option>`;
                             html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
                             for (let h = 1; h <= 10; h++) {
                                 const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
@@ -3228,66 +3163,6 @@
             return null;
         }
         
-        // Preview the heading conversion
-        async function previewHeadingConversion() {
-            const mappings = getCustomHeadingStyleMappings();
-            
-            if (Object.keys(mappings).length === 0) {
-                showToast('No mappings saved. Use "Scan Custom" first.', 'error');
-                return;
-            }
-            
-            try {
-                await Word.run(async (context) => {
-                    const paragraphs = context.document.body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text");
-                    }
-                    await context.sync();
-                    
-                    let previewData = {};
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const style = paragraphs.items[i].style;
-                        const text = paragraphs.items[i].text || '';
-                        
-                        for (const [customStyle, headingLevel] of Object.entries(mappings)) {
-                            if (style === customStyle || style.toLowerCase() === customStyle.toLowerCase()) {
-                                if (!previewData[headingLevel]) {
-                                    previewData[headingLevel] = [];
-                                }
-                                previewData[headingLevel].push(text.trim().substring(0, 40) + (text.length > 40 ? '...' : ''));
-                            }
-                        }
-                    }
-                    
-                    const previewDiv = document.getElementById('convertPreview');
-                    
-                    if (Object.keys(previewData).length > 0) {
-                        let html = '<strong>Preview of conversions:</strong><br>';
-                        for (const [level, texts] of Object.entries(previewData)) {
-                            html += `<div style="margin-top:6px;"><strong style="color:#ff9800;">${level}</strong> (${texts.length} items):</div>`;
-                            html += texts.slice(0, 3).map(t => `<div style="font-size:10px;color:#666;padding-left:10px;">"${t}"</div>`).join('');
-                            if (texts.length > 3) {
-                                html += `<div style="font-size:10px;color:#999;padding-left:10px;">... and ${texts.length - 3} more</div>`;
-                            }
-                        }
-                        previewDiv.innerHTML = html;
-                        previewDiv.style.display = 'block';
-                    } else {
-                        previewDiv.innerHTML = '<p style="color:#666;">No matching paragraphs found.</p>';
-                        previewDiv.style.display = 'block';
-                    }
-                });
-            } catch (error) {
-                console.error("Preview Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-        
         // Apply the heading conversion - convert custom styles to standard Word headings
         async function applyHeadingConversion() {
             // Test if localStorage is working at all
@@ -3411,8 +3286,17 @@
                         }
                         
                         if (matchedLevel) {
+                            // Handle Normal
+                            if (matchedLevel.toUpperCase() === 'NORMAL') {
+                                try {
+                                    para.style = 'Normal';
+                                    convertedCount++;
+                                } catch (e) {
+                                    console.log('Could not apply Normal style:', e);
+                                }
+                            }
                             // Handle TOC Heading
-                            if (matchedLevel.toUpperCase() === 'TOC') {
+                            else if (matchedLevel.toUpperCase() === 'TOC') {
                                 try {
                                     para.style = 'TOC Heading';
                                     convertedCount++;
@@ -3441,10 +3325,10 @@
                     console.log('Matched styles:', [...matchedStyles]);
                     console.log('Converted count:', convertedCount);
                     
-                    hideConvertCustomHeadingsModal();
+                    hideCustomHeadingsModal();
                     
                     if (convertedCount > 0) {
-                        showToast(`Converted ${convertedCount} paragraph(s) to standard headings!`, 'success');
+                        showToast(`Converted ${convertedCount} paragraph(s) to standard styles!`, 'success');
                     } else {
                         // Show more helpful error with the actual styles found
                         console.log('No matches found. Document styles vs mappings:');
