@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #49</span>
+        <span class="build-num">Build #50</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -684,7 +684,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Cross-Reference Style</div>
-                    <div class="tooltip-desc">Format selection: Blue, Bold, Underlined, TNR 12pt.</div>
+                    <div class="tooltip-desc">Format selection: Blue, Bold (no underline), TNR 12pt.</div>
                 </div>
             </div>
 
@@ -696,7 +696,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Cross-References</div>
-                    <div class="tooltip-desc">Find all refs to Tables/Figures/Headings, apply Blue Bold Underlined.</div>
+                    <div class="tooltip-desc">Find all cross-refs, apply Blue Bold. Skips TOC page numbers.</div>
                 </div>
             </div>
 
@@ -1093,7 +1093,7 @@
 
         const LOWERCASE_WORDS = [
             'a', 'an', 'the', 'at', 'by', 'for', 'in', 'of', 'on', 'to', 'up',
-            'and', 'as', 'but', 'or', 'nor', 'so', 'yet'
+            'and', 'as', 'but', 'or', 'nor', 'so', 'yet', 'be'
         ];
 
         // Initialize Office
@@ -2088,12 +2088,12 @@
                         return;
                     }
 
-                    // Apply cross-reference style: Blue, Bold, Underlined, NOT italic
+                    // Apply cross-reference style: Blue, Bold, NO underline, NOT italic
                     selection.font.name = "Times New Roman";
                     selection.font.size = 12;
                     selection.font.bold = true;
                     selection.font.italic = false;
-                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.underline = Word.UnderlineType.none;
                     selection.font.color = "#0000FF"; // Blue
 
                     await context.sync();
@@ -2109,47 +2109,74 @@
         // ALL CROSS-REFERENCE STYLE HANDLER
         // Finds all REF fields (Word cross-references)
         // These are created via References → Cross-reference
+        // Skips PAGEREF fields inside TOC/LOT/LOF (page numbers)
         // ============================================
         async function handleAllCrossRefStyle() {
             try {
                 showToast('Finding cross-references...', 'success');
                 await Word.run(async (context) => {
                     let totalFormatted = 0;
+                    let skippedTocPageRefs = 0;
                     
                     // Get all fields in the document
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    // Format each REF field (cross-reference)
+                    // Load all field codes
+                    for (let i = 0; i < fields.items.length; i++) {
+                        fields.items[i].load("code, result");
+                    }
+                    await context.sync();
+                    
+                    // Format each REF field (cross-reference), skip TOC page numbers
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
-                        field.load("code, result");
-                        await context.sync();
-                        
-                        // Check if this is a REF field (cross-reference)
-                        // REF fields have codes like " REF _Ref123456 \h "
                         const fieldCode = field.code || "";
-                        if (fieldCode.toUpperCase().includes('REF ') || 
-                            fieldCode.toUpperCase().includes('PAGEREF ') ||
-                            fieldCode.toUpperCase().includes('NOTEREF ')) {
-                            
-                            // Get the result range and format it
-                            const resultRange = field.result;
-                            resultRange.font.name = "Times New Roman";
-                            resultRange.font.size = 12;
-                            resultRange.font.bold = true;
-                            resultRange.font.italic = false;
-                            resultRange.font.underline = Word.UnderlineType.single;
-                            resultRange.font.color = "#0000FF";
-                            totalFormatted++;
+                        const upperCode = fieldCode.toUpperCase();
+                        
+                        // Check if this is a REF/PAGEREF/NOTEREF field
+                        const isRefField = upperCode.includes('REF ') || 
+                                           upperCode.includes('PAGEREF ') ||
+                                           upperCode.includes('NOTEREF ');
+                        
+                        if (!isRefField) continue;
+                        
+                        // Skip PAGEREF fields inside TOC (page numbers)
+                        // TOC page refs use _Toc bookmarks, cross-refs use _Ref bookmarks
+                        const isTocPageRef = upperCode.includes('PAGEREF ') && 
+                                             (fieldCode.includes('_Toc') || fieldCode.includes('_TOC'));
+                        
+                        if (isTocPageRef) {
+                            skippedTocPageRefs++;
+                            continue;
                         }
+                        
+                        // Also skip PAGEREF without _Ref (likely TOC page number)
+                        if (upperCode.includes('PAGEREF ') && !fieldCode.includes('_Ref')) {
+                            skippedTocPageRefs++;
+                            continue;
+                        }
+                        
+                        // Get the result range and format it
+                        const resultRange = field.result;
+                        resultRange.font.name = "Times New Roman";
+                        resultRange.font.size = 12;
+                        resultRange.font.bold = true;
+                        resultRange.font.italic = false;
+                        resultRange.font.underline = Word.UnderlineType.none;
+                        resultRange.font.color = "#0000FF";
+                        totalFormatted++;
                     }
                     
                     await context.sync();
                     
                     if (totalFormatted > 0) {
-                        showToast(`Formatted ${totalFormatted} cross-reference(s)!`, 'success');
+                        let msg = `Formatted ${totalFormatted} cross-reference(s)!`;
+                        if (skippedTocPageRefs > 0) {
+                            msg += ` (skipped ${skippedTocPageRefs} TOC page numbers)`;
+                        }
+                        showToast(msg, 'success');
                     } else {
                         showToast('No cross-references found (insert via References → Cross-reference)', 'error');
                     }
@@ -2953,7 +2980,32 @@
 
         // ============================================
         // INSERT TOC/LOT/LOF (WordApi 1.5+)
+        // With formatted titles (matches VBA behavior)
         // ============================================
+        
+        // Helper function to insert a formatted title
+        async function insertFormattedTitle(context, titleText) {
+            const selection = context.document.getSelection();
+            
+            // Insert title paragraph
+            const titlePara = selection.insertParagraph(titleText, Word.InsertLocation.before);
+            
+            // Format title: TNR 12pt Bold, Centered, 12pt space after
+            titlePara.font.name = "Times New Roman";
+            titlePara.font.size = 12;
+            titlePara.font.bold = true;
+            titlePara.alignment = Word.Alignment.centered;
+            titlePara.spaceAfter = 12;
+            
+            // Move selection after the title for TOC insertion
+            const titleRange = titlePara.getRange(Word.RangeLocation.after);
+            titleRange.select();
+            
+            await context.sync();
+            
+            return titleRange;
+        }
+
         async function handleInsertTOC() {
             // Check if insertField is supported (WordApi 1.5+)
             if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
@@ -2963,6 +3015,10 @@
             
             try {
                 await Word.run(async (context) => {
+                    // Insert formatted title
+                    await insertFormattedTitle(context, "Table of Contents");
+                    
+                    // Get new selection (after title)
                     const range = context.document.getSelection().getRange();
                     
                     // Insert TOC with hyperlinks, showing heading levels 1-3
@@ -2975,8 +3031,14 @@
                     // Update the field to populate it
                     field.updateResult();
                     
+                    // Format TOC entries: TNR 12pt, not bold
+                    const tocRange = field.result;
+                    tocRange.font.name = "Times New Roman";
+                    tocRange.font.size = 12;
+                    tocRange.font.bold = false;
+                    
                     await context.sync();
-                    showToast('Table of Contents inserted!', 'success');
+                    showToast('Table of Contents inserted with title!', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
@@ -2993,6 +3055,10 @@
             
             try {
                 await Word.run(async (context) => {
+                    // Insert formatted title
+                    await insertFormattedTitle(context, "List of Tables");
+                    
+                    // Get new selection (after title)
                     const range = context.document.getSelection().getRange();
                     
                     // Insert LOT using TOC field with \c "Table" switch
@@ -3005,8 +3071,14 @@
                     // Update the field to populate it
                     field.updateResult();
                     
+                    // Format LOT entries: TNR 12pt, not bold
+                    const lotRange = field.result;
+                    lotRange.font.name = "Times New Roman";
+                    lotRange.font.size = 12;
+                    lotRange.font.bold = false;
+                    
                     await context.sync();
-                    showToast('List of Tables inserted!', 'success');
+                    showToast('List of Tables inserted with title!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOT Error:", error);
@@ -3023,6 +3095,10 @@
             
             try {
                 await Word.run(async (context) => {
+                    // Insert formatted title
+                    await insertFormattedTitle(context, "List of Figures");
+                    
+                    // Get new selection (after title)
                     const range = context.document.getSelection().getRange();
                     
                     // Insert LOF using TOC field with \c "Figure" switch
@@ -3035,8 +3111,14 @@
                     // Update the field to populate it
                     field.updateResult();
                     
+                    // Format LOF entries: TNR 12pt, not bold
+                    const lofRange = field.result;
+                    lofRange.font.name = "Times New Roman";
+                    lofRange.font.size = 12;
+                    lofRange.font.bold = false;
+                    
                     await context.sync();
-                    showToast('List of Figures inserted!', 'success');
+                    showToast('List of Figures inserted with title!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOF Error:", error);
