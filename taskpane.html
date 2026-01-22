@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #63</span>
+        <span class="build-num">Build #64</span>
     </div>
 
     <!-- IMPORTANT: US Letter Margin Reminder -->
@@ -777,6 +777,18 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format Scientific Names</div>
                     <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
+                </div>
+            </div>
+
+            <!-- Custom UPPERCASE (Drug names, etc.) -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnCustomUppercase">
+                    <div class="btn-icon">AB+</div>
+                    <span class="btn-label">Custom UPPER</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom UPPERCASE</div>
+                    <div class="tooltip-desc">Save drug names or terms to auto-convert to UPPERCASE throughout document.</div>
                 </div>
             </div>
 
@@ -1345,6 +1357,7 @@
                 // Document Tools buttons
                 document.getElementById('btnSpecialChars').addEventListener('click', showSpecialCharsModal);
                 document.getElementById('btnScientificNames').addEventListener('click', showScientificNamesModal);
+                document.getElementById('btnCustomUppercase').addEventListener('click', showCustomUppercaseModal);
                 document.getElementById('btnCustomUppercaseEdit').addEventListener('click', showCustomUppercaseModal);
                 
                 // Insert TOC/LOT/LOF buttons
@@ -3370,14 +3383,39 @@
                     let convertedCount = 0;
                     let matchedStyles = new Set();
                     
-                    // Create mapping arrays for matching
-                    const mappingEntries = Object.entries(mappings).map(([customStyle, headingLevel]) => ({
-                        original: customStyle,
-                        lower: customStyle.toLowerCase().trim(),
-                        level: headingLevel
-                    }));
+                    // Create a list of all document styles for debugging
+                    const allDocStyles = new Set();
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        if (paragraphs.items[i].style) {
+                            allDocStyles.add(paragraphs.items[i].style);
+                        }
+                    }
+                    console.log('All styles in document:', [...allDocStyles]);
                     
-                    console.log('Mappings to apply:', mappingEntries);
+                    // Normalize style names for comparison
+                    // Handle HTML entity decoding and Unicode normalization
+                    function normalizeStyleName(str) {
+                        if (!str) return '';
+                        // Decode HTML entities
+                        const txt = document.createElement('textarea');
+                        txt.innerHTML = str;
+                        let decoded = txt.value;
+                        // Normalize Unicode
+                        decoded = decoded.normalize('NFC');
+                        // Trim and lowercase
+                        return decoded.toLowerCase().trim();
+                    }
+                    
+                    // Create mapping lookup with normalized keys
+                    const normalizedMappings = {};
+                    for (const [customStyle, headingLevel] of Object.entries(mappings)) {
+                        const normalizedKey = normalizeStyleName(customStyle);
+                        normalizedMappings[normalizedKey] = {
+                            original: customStyle,
+                            level: headingLevel
+                        };
+                        console.log(`Mapping: "${customStyle}" (normalized: "${normalizedKey}") → ${headingLevel}`);
+                    }
                     
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
@@ -3385,27 +3423,32 @@
                         
                         if (!style) continue;
                         
-                        const lowerStyle = style.toLowerCase().trim();
+                        const normalizedStyle = normalizeStyleName(style);
                         
-                        // Try to match - exact match first, then contains match
-                        let matchedMapping = null;
+                        // Try to match - exact match first
+                        let matchedLevel = null;
                         
-                        // Exact match (case-insensitive)
-                        matchedMapping = mappingEntries.find(m => m.lower === lowerStyle);
-                        
-                        // If no exact match, try contains match (for locale variations)
-                        if (!matchedMapping) {
-                            matchedMapping = mappingEntries.find(m => 
-                                lowerStyle.includes(m.lower) || m.lower.includes(lowerStyle)
-                            );
+                        if (normalizedMappings[normalizedStyle]) {
+                            matchedLevel = normalizedMappings[normalizedStyle].level;
+                            matchedStyles.add(style);
                         }
                         
-                        if (matchedMapping) {
-                            matchedStyles.add(style);
-                            const headingLevel = matchedMapping.level;
-                            
+                        // If no exact match, try partial/contains match
+                        if (!matchedLevel) {
+                            for (const [normKey, mapping] of Object.entries(normalizedMappings)) {
+                                // Both directions of contains matching
+                                if (normalizedStyle.includes(normKey) || normKey.includes(normalizedStyle)) {
+                                    matchedLevel = mapping.level;
+                                    matchedStyles.add(style);
+                                    console.log(`Partial match: "${style}" contains or is contained by "${mapping.original}"`);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (matchedLevel) {
                             // Handle TOC Heading
-                            if (headingLevel.toUpperCase() === 'TOC') {
+                            if (matchedLevel.toUpperCase() === 'TOC') {
                                 try {
                                     para.style = 'TOC Heading';
                                     convertedCount++;
@@ -3414,7 +3457,7 @@
                                 }
                             } else {
                                 // Get the heading number from H1, H2, etc.
-                                const levelMatch = headingLevel.match(/H(\d+)/i);
+                                const levelMatch = matchedLevel.match(/H(\d+)/i);
                                 if (levelMatch) {
                                     const level = parseInt(levelMatch[1], 10);
                                     try {
@@ -3440,13 +3483,9 @@
                         showToast(`Converted ${convertedCount} paragraph(s) to standard headings!`, 'success');
                     } else {
                         // Show more helpful error with the actual styles found
-                        const stylesInDoc = new Set();
-                        for (let i = 0; i < Math.min(paragraphs.items.length, 100); i++) {
-                            if (paragraphs.items[i].style) {
-                                stylesInDoc.add(paragraphs.items[i].style);
-                            }
-                        }
-                        console.log('Styles in document:', [...stylesInDoc]);
+                        console.log('No matches found. Document styles vs mappings:');
+                        console.log('Document styles:', [...allDocStyles]);
+                        console.log('Mapping keys:', Object.keys(mappings));
                         showToast('No matching paragraphs found. Try scanning again to refresh style names.', 'error');
                     }
                 });
@@ -4238,6 +4277,71 @@
             
             try {
                 await Word.run(async (context) => {
+                    // First, look for existing TOC field to replace
+                    const fields = context.document.body.fields;
+                    fields.load("items");
+                    await context.sync();
+                    
+                    let existingTocField = null;
+                    let existingTocTitlePara = null;
+                    
+                    // Load field codes to find TOC
+                    for (let i = 0; i < fields.items.length; i++) {
+                        fields.items[i].load("code, result");
+                    }
+                    await context.sync();
+                    
+                    // Find existing TOC field (not LOT/LOF which use \c switch)
+                    for (let i = 0; i < fields.items.length; i++) {
+                        const field = fields.items[i];
+                        const code = (field.code || "").toUpperCase();
+                        // TOC field without \c (tables/figures) switch
+                        if (code.includes('TOC') && !code.includes('\\C "')) {
+                            existingTocField = field;
+                            break;
+                        }
+                    }
+                    
+                    let insertRange;
+                    
+                    if (existingTocField) {
+                        // Delete existing TOC field and its title
+                        // Get the range before the TOC to find the title
+                        const tocRange = existingTocField.result;
+                        tocRange.load("text");
+                        await context.sync();
+                        
+                        // Try to find and delete the "Table of Contents" title paragraph above
+                        const paras = context.document.body.paragraphs;
+                        paras.load("items");
+                        await context.sync();
+                        
+                        for (let i = 0; i < paras.items.length; i++) {
+                            paras.items[i].load("text, style");
+                        }
+                        await context.sync();
+                        
+                        // Find title paragraph just before TOC
+                        for (let i = 0; i < paras.items.length; i++) {
+                            const text = (paras.items[i].text || "").trim().toLowerCase();
+                            if (text === "table of contents" || text === "table of contents\r") {
+                                // Delete the title paragraph
+                                paras.items[i].delete();
+                                break;
+                            }
+                        }
+                        
+                        // Get the range of the existing TOC to replace
+                        insertRange = existingTocField.getRange(Word.RangeLocation.whole);
+                        existingTocField.delete();
+                        await context.sync();
+                        
+                        showToast('Replacing existing TOC...', 'success');
+                    } else {
+                        // No existing TOC, insert at cursor
+                        insertRange = context.document.getSelection().getRange();
+                    }
+                    
                     // Insert formatted title
                     await insertFormattedTitle(context, "Table of Contents");
                     
@@ -4278,6 +4382,56 @@
             
             try {
                 await Word.run(async (context) => {
+                    // First, look for existing LOT field to replace
+                    const fields = context.document.body.fields;
+                    fields.load("items");
+                    await context.sync();
+                    
+                    let existingLotField = null;
+                    
+                    // Load field codes to find LOT
+                    for (let i = 0; i < fields.items.length; i++) {
+                        fields.items[i].load("code, result");
+                    }
+                    await context.sync();
+                    
+                    // Find existing LOT field (TOC with \c "Table" switch)
+                    for (let i = 0; i < fields.items.length; i++) {
+                        const field = fields.items[i];
+                        const code = (field.code || "").toUpperCase();
+                        if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
+                            existingLotField = field;
+                            break;
+                        }
+                    }
+                    
+                    if (existingLotField) {
+                        // Try to find and delete the "List of Tables" title paragraph
+                        const paras = context.document.body.paragraphs;
+                        paras.load("items");
+                        await context.sync();
+                        
+                        for (let i = 0; i < paras.items.length; i++) {
+                            paras.items[i].load("text, style");
+                        }
+                        await context.sync();
+                        
+                        // Find and delete title paragraph
+                        for (let i = 0; i < paras.items.length; i++) {
+                            const text = (paras.items[i].text || "").trim().toLowerCase();
+                            if (text === "list of tables" || text === "list of tables\r") {
+                                paras.items[i].delete();
+                                break;
+                            }
+                        }
+                        
+                        // Delete existing LOT field
+                        existingLotField.delete();
+                        await context.sync();
+                        
+                        showToast('Replacing existing LOT...', 'success');
+                    }
+                    
                     // Insert formatted title
                     await insertFormattedTitle(context, "List of Tables");
                     
@@ -4318,6 +4472,56 @@
             
             try {
                 await Word.run(async (context) => {
+                    // First, look for existing LOF field to replace
+                    const fields = context.document.body.fields;
+                    fields.load("items");
+                    await context.sync();
+                    
+                    let existingLofField = null;
+                    
+                    // Load field codes to find LOF
+                    for (let i = 0; i < fields.items.length; i++) {
+                        fields.items[i].load("code, result");
+                    }
+                    await context.sync();
+                    
+                    // Find existing LOF field (TOC with \c "Figure" switch)
+                    for (let i = 0; i < fields.items.length; i++) {
+                        const field = fields.items[i];
+                        const code = (field.code || "").toUpperCase();
+                        if (code.includes('TOC') && code.includes('\\C "FIGURE"')) {
+                            existingLofField = field;
+                            break;
+                        }
+                    }
+                    
+                    if (existingLofField) {
+                        // Try to find and delete the "List of Figures" title paragraph
+                        const paras = context.document.body.paragraphs;
+                        paras.load("items");
+                        await context.sync();
+                        
+                        for (let i = 0; i < paras.items.length; i++) {
+                            paras.items[i].load("text, style");
+                        }
+                        await context.sync();
+                        
+                        // Find and delete title paragraph
+                        for (let i = 0; i < paras.items.length; i++) {
+                            const text = (paras.items[i].text || "").trim().toLowerCase();
+                            if (text === "list of figures" || text === "list of figures\r") {
+                                paras.items[i].delete();
+                                break;
+                            }
+                        }
+                        
+                        // Delete existing LOF field
+                        existingLofField.delete();
+                        await context.sync();
+                        
+                        showToast('Replacing existing LOF...', 'success');
+                    }
+                    
                     // Insert formatted title
                     await insertFormattedTitle(context, "List of Figures");
                     
