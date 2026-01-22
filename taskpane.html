@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #62</span>
+        <span class="build-num">Build #63</span>
     </div>
 
     <!-- IMPORTANT: US Letter Margin Reminder -->
@@ -2752,8 +2752,13 @@
                 const displayBar = document.getElementById('customUppercaseDisplay');
                 const termsDisplay = document.getElementById('customUppercaseTermsDisplay');
                 
+                console.log('loadSavedTerms - raw saved:', saved);
+                console.log('loadSavedTerms - displayBar element:', displayBar);
+                console.log('loadSavedTerms - termsDisplay element:', termsDisplay);
+                
                 if (saved) {
                     const terms = JSON.parse(saved);
+                    console.log('loadSavedTerms - parsed terms:', terms);
                     if (terms.length > 0) {
                         // Update modal list
                         if (savedList) {
@@ -2769,6 +2774,7 @@
                             } else {
                                 termsDisplay.textContent = terms.slice(0, 5).join(', ') + ` ... (+${terms.length - 5} more)`;
                             }
+                            console.log('loadSavedTerms - displayBar shown');
                         }
                     } else {
                         if (savedList) {
@@ -2991,8 +2997,11 @@
                 const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
                 const display = document.getElementById('currentMappingDisplay');
                 
+                console.log('displayCurrentMappings - raw saved:', saved);
+                
                 if (saved) {
                     const mappings = JSON.parse(saved);
+                    console.log('displayCurrentMappings - parsed mappings:', mappings);
                     if (Object.keys(mappings).length > 0) {
                         let html = '';
                         for (const [styleName, headingLevel] of Object.entries(mappings)) {
@@ -3006,6 +3015,7 @@
                     display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
                 }
             } catch (e) {
+                console.error('displayCurrentMappings error:', e);
                 display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
             }
         }
@@ -3163,17 +3173,22 @@
         }
         
         function saveCustomHeadingMappings() {
-            // Get all dropdown selections
+            // Get all dropdown selections from the scan results
             const selects = document.querySelectorAll('.custom-heading-select');
+            console.log('Found select elements:', selects.length);
+            
             const newMappings = {};
             
             selects.forEach(select => {
                 const styleName = select.dataset.style;
                 const headingLevel = select.value;
+                console.log('Select:', styleName, '→', headingLevel);
                 if (styleName && headingLevel) {
                     newMappings[styleName] = headingLevel;
                 }
             });
+            
+            console.log('New mappings to save:', newMappings);
             
             if (Object.keys(newMappings).length === 0) {
                 showToast('Select at least one heading level to save', 'error');
@@ -3190,11 +3205,16 @@
                 
                 // Save
                 localStorage.setItem(CUSTOM_HEADING_STYLES_KEY, JSON.stringify(allMappings));
+                console.log('Saved to localStorage:', allMappings);
                 
-                // Update display
+                // Verify save
+                const verify = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                console.log('Verification read:', verify);
+                
+                // Update display in scan modal
                 loadSavedCustomHeadingMappings();
                 
-                showToast(`Saved ${Object.keys(newMappings).length} mapping(s)!`, 'success');
+                showToast(`Saved ${Object.keys(newMappings).length} mapping(s)! Total: ${Object.keys(allMappings).length}`, 'success');
             } catch (e) {
                 console.error('Could not save mappings:', e);
                 showToast('Could not save (localStorage not available)', 'error');
@@ -3322,6 +3342,9 @@
         // Apply the heading conversion - convert custom styles to standard Word headings
         async function applyHeadingConversion() {
             const mappings = getCustomHeadingStyleMappings();
+            
+            console.log('applyHeadingConversion - mappings from localStorage:', mappings);
+            console.log('applyHeadingConversion - mappings count:', Object.keys(mappings).length);
             
             if (Object.keys(mappings).length === 0) {
                 showToast('No mappings saved. Use "Scan Custom" first.', 'error');
