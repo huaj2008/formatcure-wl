@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #65</span>
+        <span class="build-num">Build #66</span>
     </div>
 
     <!-- IMPORTANT: US Letter Margin Reminder -->
@@ -3186,6 +3186,8 @@
         }
         
         function saveCustomHeadingMappings() {
+            console.log('=== saveCustomHeadingMappings called ===');
+            
             // Get all dropdown selections from the scan results
             const selects = document.querySelectorAll('.custom-heading-select');
             console.log('Found select elements:', selects.length);
@@ -3208,21 +3210,32 @@
                 return;
             }
             
+            const storageKey = 'formatcure_custom_heading_styles';
+            
             try {
+                // Test localStorage first
+                localStorage.setItem('test_save', 'test');
+                console.log('localStorage test write: SUCCESS');
+                localStorage.removeItem('test_save');
+                
                 // Get existing saved mappings and merge
-                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                const saved = localStorage.getItem(storageKey);
+                console.log('Existing saved data:', saved);
                 let existingMappings = saved ? JSON.parse(saved) : {};
                 
                 // Merge (new mappings override existing)
                 const allMappings = { ...existingMappings, ...newMappings };
                 
                 // Save
-                localStorage.setItem(CUSTOM_HEADING_STYLES_KEY, JSON.stringify(allMappings));
-                console.log('Saved to localStorage:', allMappings);
+                const jsonString = JSON.stringify(allMappings);
+                console.log('About to save:', jsonString);
+                localStorage.setItem(storageKey, jsonString);
+                console.log('Saved to localStorage with key:', storageKey);
                 
                 // Verify save
-                const verify = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                const verify = localStorage.getItem(storageKey);
                 console.log('Verification read:', verify);
+                console.log('Save successful:', verify === jsonString);
                 
                 // Update display in scan modal
                 loadSavedCustomHeadingMappings();
@@ -3230,7 +3243,7 @@
                 showToast(`Saved ${Object.keys(newMappings).length} mapping(s)! Total: ${Object.keys(allMappings).length}`, 'success');
             } catch (e) {
                 console.error('Could not save mappings:', e);
-                showToast('Could not save (localStorage not available)', 'error');
+                showToast('Could not save (localStorage error: ' + e.message + ')', 'error');
             }
         }
         
@@ -3354,12 +3367,27 @@
         
         // Apply the heading conversion - convert custom styles to standard Word headings
         async function applyHeadingConversion() {
+            // Test if localStorage is working at all
+            try {
+                localStorage.setItem('test_key', 'test_value');
+                const testRead = localStorage.getItem('test_key');
+                console.log('localStorage test:', testRead === 'test_value' ? 'WORKING' : 'FAILED');
+                localStorage.removeItem('test_key');
+            } catch (e) {
+                console.error('localStorage not available:', e);
+                showToast('localStorage not available in this environment', 'error');
+                return;
+            }
+            
             // Direct localStorage access with detailed logging
             let mappings = {};
+            const storageKey = 'formatcure_custom_heading_styles';
+            
             try {
-                const savedRaw = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                const savedRaw = localStorage.getItem(storageKey);
+                console.log('applyHeadingConversion - storage key:', storageKey);
                 console.log('applyHeadingConversion - raw localStorage:', savedRaw);
-                console.log('applyHeadingConversion - storage key:', CUSTOM_HEADING_STYLES_KEY);
+                console.log('applyHeadingConversion - all keys in localStorage:', Object.keys(localStorage));
                 
                 if (savedRaw) {
                     mappings = JSON.parse(savedRaw);
@@ -3372,8 +3400,6 @@
             console.log('applyHeadingConversion - mappings count:', Object.keys(mappings).length);
             
             if (Object.keys(mappings).length === 0) {
-                // Show what's in localStorage for debugging
-                console.log('All localStorage keys:', Object.keys(localStorage));
                 showToast('No mappings saved. Use "Scan Custom" first to scan and save mappings.', 'error');
                 return;
             }
@@ -4336,10 +4362,6 @@
                     
                     await context.sync();
                     
-                    if (foundExisting) {
-                        showToast('Replacing existing TOC...', 'success');
-                    }
-                    
                     // Insert formatted title at cursor
                     await insertFormattedTitle(context, "Table of Contents");
                     
@@ -4363,7 +4385,7 @@
                     tocRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('Table of Contents inserted!', 'success');
+                    showToast('TOC inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
@@ -4423,10 +4445,6 @@
                     
                     await context.sync();
                     
-                    if (foundExisting) {
-                        showToast('Replacing existing LOT...', 'success');
-                    }
-                    
                     // Insert formatted title at cursor
                     await insertFormattedTitle(context, "List of Tables");
                     
@@ -4450,7 +4468,7 @@
                     lotRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('List of Tables inserted!', 'success');
+                    showToast('LOT inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOT Error:", error);
@@ -4510,10 +4528,6 @@
                     
                     await context.sync();
                     
-                    if (foundExisting) {
-                        showToast('Replacing existing LOF...', 'success');
-                    }
-                    
                     // Insert formatted title at cursor
                     await insertFormattedTitle(context, "List of Figures");
                     
@@ -4537,7 +4551,7 @@
                     lofRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('List of Figures inserted!', 'success');
+                    showToast('LOF inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOF Error:", error);
