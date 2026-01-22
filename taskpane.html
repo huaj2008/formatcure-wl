@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #64</span>
+        <span class="build-num">Build #65</span>
     </div>
 
     <!-- IMPORTANT: US Letter Margin Reminder -->
@@ -3354,13 +3354,27 @@
         
         // Apply the heading conversion - convert custom styles to standard Word headings
         async function applyHeadingConversion() {
-            const mappings = getCustomHeadingStyleMappings();
+            // Direct localStorage access with detailed logging
+            let mappings = {};
+            try {
+                const savedRaw = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                console.log('applyHeadingConversion - raw localStorage:', savedRaw);
+                console.log('applyHeadingConversion - storage key:', CUSTOM_HEADING_STYLES_KEY);
+                
+                if (savedRaw) {
+                    mappings = JSON.parse(savedRaw);
+                }
+            } catch (e) {
+                console.error('Error reading localStorage:', e);
+            }
             
-            console.log('applyHeadingConversion - mappings from localStorage:', mappings);
+            console.log('applyHeadingConversion - parsed mappings:', mappings);
             console.log('applyHeadingConversion - mappings count:', Object.keys(mappings).length);
             
             if (Object.keys(mappings).length === 0) {
-                showToast('No mappings saved. Use "Scan Custom" first.', 'error');
+                // Show what's in localStorage for debugging
+                console.log('All localStorage keys:', Object.keys(localStorage));
+                showToast('No mappings saved. Use "Scan Custom" first to scan and save mappings.', 'error');
                 return;
             }
             
@@ -3391,6 +3405,7 @@
                         }
                     }
                     console.log('All styles in document:', [...allDocStyles]);
+                    console.log('Mapping keys:', Object.keys(mappings));
                     
                     // Normalize style names for comparison
                     // Handle HTML entity decoding and Unicode normalization
@@ -3486,7 +3501,7 @@
                         console.log('No matches found. Document styles vs mappings:');
                         console.log('Document styles:', [...allDocStyles]);
                         console.log('Mapping keys:', Object.keys(mappings));
-                        showToast('No matching paragraphs found. Try scanning again to refresh style names.', 'error');
+                        showToast('No matching paragraphs found. Check console for details.', 'error');
                     }
                 });
             } catch (error) {
@@ -4277,72 +4292,55 @@
             
             try {
                 await Word.run(async (context) => {
-                    // First, look for existing TOC field to replace
+                    // First, look for existing TOC field to delete
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    let existingTocField = null;
-                    let existingTocTitlePara = null;
-                    
                     // Load field codes to find TOC
                     for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code, result");
+                        fields.items[i].load("code");
                     }
                     await context.sync();
                     
-                    // Find existing TOC field (not LOT/LOF which use \c switch)
+                    // Find and delete existing TOC field (not LOT/LOF which use \c switch)
+                    let foundExisting = false;
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
                         // TOC field without \c (tables/figures) switch
                         if (code.includes('TOC') && !code.includes('\\C "')) {
-                            existingTocField = field;
+                            field.delete();
+                            foundExisting = true;
                             break;
                         }
                     }
                     
-                    let insertRange;
+                    // Also try to delete the title paragraph
+                    const paras = context.document.body.paragraphs;
+                    paras.load("items");
+                    await context.sync();
                     
-                    if (existingTocField) {
-                        // Delete existing TOC field and its title
-                        // Get the range before the TOC to find the title
-                        const tocRange = existingTocField.result;
-                        tocRange.load("text");
-                        await context.sync();
-                        
-                        // Try to find and delete the "Table of Contents" title paragraph above
-                        const paras = context.document.body.paragraphs;
-                        paras.load("items");
-                        await context.sync();
-                        
-                        for (let i = 0; i < paras.items.length; i++) {
-                            paras.items[i].load("text, style");
+                    for (let i = 0; i < paras.items.length; i++) {
+                        paras.items[i].load("text");
+                    }
+                    await context.sync();
+                    
+                    for (let i = 0; i < paras.items.length; i++) {
+                        const text = (paras.items[i].text || "").trim().toLowerCase();
+                        if (text === "table of contents" || text === "table of contents\r") {
+                            paras.items[i].delete();
+                            break;
                         }
-                        await context.sync();
-                        
-                        // Find title paragraph just before TOC
-                        for (let i = 0; i < paras.items.length; i++) {
-                            const text = (paras.items[i].text || "").trim().toLowerCase();
-                            if (text === "table of contents" || text === "table of contents\r") {
-                                // Delete the title paragraph
-                                paras.items[i].delete();
-                                break;
-                            }
-                        }
-                        
-                        // Get the range of the existing TOC to replace
-                        insertRange = existingTocField.getRange(Word.RangeLocation.whole);
-                        existingTocField.delete();
-                        await context.sync();
-                        
-                        showToast('Replacing existing TOC...', 'success');
-                    } else {
-                        // No existing TOC, insert at cursor
-                        insertRange = context.document.getSelection().getRange();
                     }
                     
-                    // Insert formatted title
+                    await context.sync();
+                    
+                    if (foundExisting) {
+                        showToast('Replacing existing TOC...', 'success');
+                    }
+                    
+                    // Insert formatted title at cursor
                     await insertFormattedTitle(context, "Table of Contents");
                     
                     // Get new selection (after title)
@@ -4365,7 +4363,7 @@
                     tocRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('Table of Contents inserted with title!', 'success');
+                    showToast('Table of Contents inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
@@ -4382,57 +4380,54 @@
             
             try {
                 await Word.run(async (context) => {
-                    // First, look for existing LOT field to replace
+                    // First, look for existing LOT field to delete
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    let existingLotField = null;
-                    
                     // Load field codes to find LOT
                     for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code, result");
+                        fields.items[i].load("code");
                     }
                     await context.sync();
                     
-                    // Find existing LOT field (TOC with \c "Table" switch)
+                    // Find and delete existing LOT field (TOC with \c "Table" switch)
+                    let foundExisting = false;
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
                         if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
-                            existingLotField = field;
+                            field.delete();
+                            foundExisting = true;
                             break;
                         }
                     }
                     
-                    if (existingLotField) {
-                        // Try to find and delete the "List of Tables" title paragraph
-                        const paras = context.document.body.paragraphs;
-                        paras.load("items");
-                        await context.sync();
-                        
-                        for (let i = 0; i < paras.items.length; i++) {
-                            paras.items[i].load("text, style");
+                    // Also try to delete the title paragraph
+                    const paras = context.document.body.paragraphs;
+                    paras.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paras.items.length; i++) {
+                        paras.items[i].load("text");
+                    }
+                    await context.sync();
+                    
+                    for (let i = 0; i < paras.items.length; i++) {
+                        const text = (paras.items[i].text || "").trim().toLowerCase();
+                        if (text === "list of tables" || text === "list of tables\r") {
+                            paras.items[i].delete();
+                            break;
                         }
-                        await context.sync();
-                        
-                        // Find and delete title paragraph
-                        for (let i = 0; i < paras.items.length; i++) {
-                            const text = (paras.items[i].text || "").trim().toLowerCase();
-                            if (text === "list of tables" || text === "list of tables\r") {
-                                paras.items[i].delete();
-                                break;
-                            }
-                        }
-                        
-                        // Delete existing LOT field
-                        existingLotField.delete();
-                        await context.sync();
-                        
+                    }
+                    
+                    await context.sync();
+                    
+                    if (foundExisting) {
                         showToast('Replacing existing LOT...', 'success');
                     }
                     
-                    // Insert formatted title
+                    // Insert formatted title at cursor
                     await insertFormattedTitle(context, "List of Tables");
                     
                     // Get new selection (after title)
@@ -4455,7 +4450,7 @@
                     lotRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('List of Tables inserted with title!', 'success');
+                    showToast('List of Tables inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOT Error:", error);
@@ -4472,57 +4467,54 @@
             
             try {
                 await Word.run(async (context) => {
-                    // First, look for existing LOF field to replace
+                    // First, look for existing LOF field to delete
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    let existingLofField = null;
-                    
                     // Load field codes to find LOF
                     for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code, result");
+                        fields.items[i].load("code");
                     }
                     await context.sync();
                     
-                    // Find existing LOF field (TOC with \c "Figure" switch)
+                    // Find and delete existing LOF field (TOC with \c "Figure" switch)
+                    let foundExisting = false;
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
                         if (code.includes('TOC') && code.includes('\\C "FIGURE"')) {
-                            existingLofField = field;
+                            field.delete();
+                            foundExisting = true;
                             break;
                         }
                     }
                     
-                    if (existingLofField) {
-                        // Try to find and delete the "List of Figures" title paragraph
-                        const paras = context.document.body.paragraphs;
-                        paras.load("items");
-                        await context.sync();
-                        
-                        for (let i = 0; i < paras.items.length; i++) {
-                            paras.items[i].load("text, style");
+                    // Also try to delete the title paragraph
+                    const paras = context.document.body.paragraphs;
+                    paras.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paras.items.length; i++) {
+                        paras.items[i].load("text");
+                    }
+                    await context.sync();
+                    
+                    for (let i = 0; i < paras.items.length; i++) {
+                        const text = (paras.items[i].text || "").trim().toLowerCase();
+                        if (text === "list of figures" || text === "list of figures\r") {
+                            paras.items[i].delete();
+                            break;
                         }
-                        await context.sync();
-                        
-                        // Find and delete title paragraph
-                        for (let i = 0; i < paras.items.length; i++) {
-                            const text = (paras.items[i].text || "").trim().toLowerCase();
-                            if (text === "list of figures" || text === "list of figures\r") {
-                                paras.items[i].delete();
-                                break;
-                            }
-                        }
-                        
-                        // Delete existing LOF field
-                        existingLofField.delete();
-                        await context.sync();
-                        
+                    }
+                    
+                    await context.sync();
+                    
+                    if (foundExisting) {
                         showToast('Replacing existing LOF...', 'success');
                     }
                     
-                    // Insert formatted title
+                    // Insert formatted title at cursor
                     await insertFormattedTitle(context, "List of Figures");
                     
                     // Get new selection (after title)
@@ -4545,7 +4537,7 @@
                     lofRange.font.bold = false;
                     
                     await context.sync();
-                    showToast('List of Figures inserted with title!', 'success');
+                    showToast('List of Figures inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert LOF Error:", error);
