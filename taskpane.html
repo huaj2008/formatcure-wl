@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #59</span>
+        <span class="build-num">Build #61</span>
     </div>
 
     <!-- IMPORTANT: US Letter Margin Reminder -->
@@ -745,6 +745,19 @@
                 </div>
             </div>
 
+            <!-- Custom Uppercase - MOVED TO TOP of tools section -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnCustomUppercase" style="position:relative;">
+                    <div class="btn-icon">AB</div>
+                    <span class="btn-label">Custom UPPERCASE</span>
+                    <span id="customUppercaseBadge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ff5722;color:white;border-radius:50%;width:18px;height:18px;font-size:10px;line-height:18px;text-align:center;"></span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom UPPERCASE Terms</div>
+                    <div class="tooltip-desc">Enter terms to convert to ALL CAPS throughout document (e.g., drug names). <span id="customUppercaseTooltipCount"></span></div>
+                </div>
+            </div>
+
             <!-- Special Characters -->
             <div class="tooltip-container">
                 <button class="btn success" id="btnSpecialChars">
@@ -766,18 +779,6 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format Scientific Names</div>
                     <div class="tooltip-desc">Italicize and format genus/species names (e.g., Escherichia coli).</div>
-                </div>
-            </div>
-
-            <!-- Custom Uppercase -->
-            <div class="tooltip-container">
-                <button class="btn success" id="btnCustomUppercase">
-                    <div class="btn-icon">AB</div>
-                    <span class="btn-label">Custom UPPERCASE</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Custom UPPERCASE Terms</div>
-                    <div class="tooltip-desc">Enter terms to convert to ALL CAPS throughout document (e.g., drug names).</div>
                 </div>
             </div>
 
@@ -1138,29 +1139,20 @@
 
     <!-- Scan Custom Headings Modal -->
     <div class="modal-overlay" id="scanCustomHeadingsModal">
-        <div class="modal" style="max-width: 550px;">
+        <div class="modal" style="max-width: 600px;">
             <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Scan Custom Heading Styles</span>
+                <span class="modal-title" style="color:white;">Scan & Map Custom Heading Styles</span>
                 <button class="modal-close" id="scanCustomHeadingsClose" style="color:white;">×</button>
             </div>
             <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Scan your document to find non-standard heading styles. Then create a mapping to convert them to standard Word headings.</p>
+                <p class="modal-desc" style="margin-bottom:12px;">Scan your document to find non-standard heading styles, then map them to standard Word headings (H1-H10).</p>
                 
                 <div style="margin-bottom:12px;">
                     <button id="runScanCustomHeadings" style="padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">🔍 Scan Document Now</button>
                 </div>
                 
-                <div id="customHeadingScanResults" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:10px;font-size:11px;display:none;background:#f9f9f9;">
-                </div>
-                
-                <div style="margin-top:12px;padding:10px;background:#fff3e0;border-radius:4px;display:none;" id="mappingInstructions">
-                    <p style="font-size:11px;margin:0 0 8px 0;"><strong>📝 Create your mapping below:</strong></p>
-                    <p style="font-size:10px;color:#666;margin:0;">Click a style above to add it, then set which H level it should become.</p>
-                </div>
-                
-                <div style="margin-top:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Style Mapping (StyleName=H1, H2, etc.):</label>
-                    <textarea id="customHeadingMappingInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:11px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="一级标题 EN CTD=H1&#10;二级标题 EN CTD=H2&#10;三级标题 EN CTD=H3&#10;C-Heading 1=H1"></textarea>
+                <div id="customHeadingScanResults" style="max-height:280px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;font-size:11px;display:none;background:#fff;">
+                    <!-- Results will be populated here as a table -->
                 </div>
                 
                 <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
@@ -1174,7 +1166,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Mappings</button>
+                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Selected Mappings</button>
                 <button class="modal-btn cancel" id="scanCustomHeadingsCancel">Close</button>
             </div>
         </div>
@@ -1456,6 +1448,9 @@
                 
                 // Load saved custom heading mappings on startup
                 loadSavedCustomHeadingMappings();
+                
+                // Update Custom UPPERCASE badge on startup
+                updateCustomUppercaseBadge();
                 
                 // Style Scanner events
                 document.getElementById('btnStyleScanner').addEventListener('click', runStyleScanner);
@@ -2771,23 +2766,49 @@
             try {
                 const saved = localStorage.getItem(SAVED_TERMS_KEY);
                 const savedList = document.getElementById('savedTermsList');
+                const badge = document.getElementById('customUppercaseBadge');
+                const tooltipCount = document.getElementById('customUppercaseTooltipCount');
                 
                 if (saved) {
                     const terms = JSON.parse(saved);
                     if (terms.length > 0) {
-                        savedList.innerHTML = terms.map(t => `<span style="background:#e3f2fd;padding:1px 4px;border-radius:2px;margin:1px;">${t}</span>`).join(' ');
-                        savedList.style.color = '#333';
+                        if (savedList) {
+                            savedList.innerHTML = terms.map(t => `<span style="background:#e3f2fd;padding:1px 4px;border-radius:2px;margin:1px;">${t}</span>`).join(' ');
+                            savedList.style.color = '#333';
+                        }
+                        // Update badge
+                        if (badge) {
+                            badge.textContent = terms.length;
+                            badge.style.display = 'block';
+                        }
+                        // Update tooltip
+                        if (tooltipCount) {
+                            tooltipCount.textContent = `(${terms.length} term${terms.length > 1 ? 's' : ''} saved)`;
+                        }
                     } else {
+                        if (savedList) {
+                            savedList.innerHTML = 'No saved terms';
+                            savedList.style.color = '#666';
+                        }
+                        if (badge) badge.style.display = 'none';
+                        if (tooltipCount) tooltipCount.textContent = '';
+                    }
+                } else {
+                    if (savedList) {
                         savedList.innerHTML = 'No saved terms';
                         savedList.style.color = '#666';
                     }
-                } else {
-                    savedList.innerHTML = 'No saved terms';
-                    savedList.style.color = '#666';
+                    if (badge) badge.style.display = 'none';
+                    if (tooltipCount) tooltipCount.textContent = '';
                 }
             } catch (e) {
                 console.log('Could not load saved terms:', e);
             }
+        }
+        
+        // Update badge on page load
+        function updateCustomUppercaseBadge() {
+            loadSavedTerms();
         }
         
         function saveCustomTerms() {
@@ -2819,7 +2840,7 @@
                 // Save
                 localStorage.setItem(SAVED_TERMS_KEY, JSON.stringify(allTerms));
                 
-                // Update display
+                // Update display and badge
                 loadSavedTerms();
                 
                 // Clear input
@@ -2836,7 +2857,7 @@
             if (confirm('Clear all saved uppercase terms?')) {
                 try {
                     localStorage.removeItem(SAVED_TERMS_KEY);
-                    loadSavedTerms();
+                    loadSavedTerms(); // This will also update the badge
                     showToast('Saved terms cleared', 'success');
                 } catch (e) {
                     console.error('Could not clear terms:', e);
@@ -3006,6 +3027,31 @@
             }
         }
         
+        // Helper function to detect heading level from style name
+        function detectHeadingLevel(styleName) {
+            const lower = styleName.toLowerCase();
+            
+            // Chinese numbers: 一级=1, 二级=2, 三级=3, etc.
+            const chineseNums = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10};
+            for (const [char, num] of Object.entries(chineseNums)) {
+                if (styleName.includes(char + '级')) return num;
+            }
+            
+            // Look for numbers in style name: "Heading 1", "Level 2", "H3", "1级", etc.
+            const numMatch = lower.match(/(?:heading|level|h|lv|第)\s*(\d+)/i) || 
+                            lower.match(/(\d+)\s*(?:级|层|level)/i) ||
+                            lower.match(/^(\d+)\./);
+            if (numMatch) return parseInt(numMatch[1], 10);
+            
+            // Check for "title" or "toc" suggesting top level
+            if (lower.includes('title') || lower.includes('toc') || lower.includes('标题')) return 0;
+            
+            // Check for sub/child indicators
+            if (lower.includes('sub') || lower.includes('child') || lower.includes('子')) return 99;
+            
+            return 50; // Unknown - put in middle
+        }
+        
         async function runScanCustomHeadings() {
             try {
                 showToast('Scanning for custom heading styles...', 'success');
@@ -3020,12 +3066,13 @@
                     }
                     await context.sync();
                     
-                    // Collect styles that are NOT standard Word headings
-                    const standardHeadings = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
-                                              'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
-                                              'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
-                                              'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc heading', 'caption',
-                                              'header', 'footer', 'list paragraph'];
+                    // Collect styles that are NOT standard Word headings or common styles
+                    const skipStyles = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
+                                        'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
+                                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
+                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 
+                                        'caption', 'header', 'footer', 'list paragraph', 'table of figures',
+                                        'footnote', 'endnote', 'body text', 'default paragraph font'];
                     
                     const styleData = {};
                     foundCustomStyles = [];
@@ -3035,8 +3082,8 @@
                         const text = paragraphs.items[i].text || '';
                         const lowerStyle = style ? style.toLowerCase() : '';
                         
-                        // Skip standard styles
-                        if (!style || standardHeadings.some(s => lowerStyle.includes(s))) {
+                        // Skip standard/common styles
+                        if (!style || skipStyles.some(s => lowerStyle.includes(s))) {
                             continue;
                         }
                         
@@ -3044,52 +3091,85 @@
                         if (!styleData[style]) {
                             styleData[style] = {
                                 count: 0,
-                                samples: []
+                                samples: [],
+                                detectedLevel: detectHeadingLevel(style)
                             };
                         }
                         styleData[style].count++;
-                        if (styleData[style].samples.length < 3) {
-                            const sampleText = text.trim().substring(0, 50);
+                        if (styleData[style].samples.length < 2) {
+                            const sampleText = text.trim().substring(0, 40);
                             if (sampleText) {
-                                styleData[style].samples.push(sampleText + (text.length > 50 ? '...' : ''));
+                                styleData[style].samples.push(sampleText + (text.length > 40 ? '...' : ''));
                             }
                         }
                     }
                     
                     foundCustomStyles = Object.keys(styleData);
                     
-                    // Display results
+                    // Get existing saved mappings to pre-select dropdowns
+                    const existingMappings = getCustomHeadingStyleMappings();
+                    
+                    // Display results as a table with dropdowns
                     const resultsDiv = document.getElementById('customHeadingScanResults');
-                    const instructionsDiv = document.getElementById('mappingInstructions');
                     
                     if (foundCustomStyles.length > 0) {
-                        let html = `<strong>Found ${foundCustomStyles.length} custom style(s):</strong><br><br>`;
+                        let html = `<table style="width:100%;border-collapse:collapse;font-size:11px;">`;
+                        html += `<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd;">`;
+                        html += `<th style="padding:8px;text-align:left;width:45%;">Style Name</th>`;
+                        html += `<th style="padding:8px;text-align:center;width:15%;">Count</th>`;
+                        html += `<th style="padding:8px;text-align:left;width:40%;">Map To</th>`;
+                        html += `</tr></thead><tbody>`;
                         
-                        for (const [style, data] of Object.entries(styleData)) {
-                            html += `<div style="margin-bottom:8px;padding:6px;background:#fff;border:1px solid #ddd;border-radius:4px;">`;
-                            html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
-                            html += `<strong style="color:#ff9800;cursor:pointer;" onclick="addStyleToMapping('${style.replace(/'/g, "\\'")}')">${style}</strong>`;
-                            html += `<span style="background:#e3f2fd;padding:2px 6px;border-radius:3px;font-size:10px;">${data.count}x</span>`;
-                            html += `</div>`;
-                            if (data.samples.length > 0) {
-                                html += `<div style="font-size:10px;color:#666;margin-top:4px;">`;
-                                html += data.samples.map(s => `"${s}"`).join('<br>');
-                                html += `</div>`;
+                        // Sort by detected heading level (potential order), then by count
+                        const sortedStyles = Object.entries(styleData).sort((a, b) => {
+                            const levelDiff = a[1].detectedLevel - b[1].detectedLevel;
+                            if (levelDiff !== 0) return levelDiff;
+                            return b[1].count - a[1].count; // Secondary: more used first
+                        });
+                        
+                        for (const [style, data] of sortedStyles) {
+                            const escapedStyle = style.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                            const existingLevel = existingMappings[style] || '';
+                            
+                            // Suggest a heading level based on detection
+                            let suggestedLevel = '';
+                            if (!existingLevel && data.detectedLevel >= 1 && data.detectedLevel <= 10) {
+                                suggestedLevel = `H${data.detectedLevel}`;
+                            } else if (!existingLevel && data.detectedLevel === 0) {
+                                suggestedLevel = 'TOC';
                             }
-                            html += `</div>`;
+                            
+                            html += `<tr style="border-bottom:1px solid #eee;">`;
+                            html += `<td style="padding:6px;">`;
+                            html += `<div style="font-weight:600;color:#333;">${style}</div>`;
+                            if (data.samples.length > 0) {
+                                html += `<div style="font-size:9px;color:#888;margin-top:2px;">"${data.samples[0]}"</div>`;
+                            }
+                            html += `</td>`;
+                            html += `<td style="padding:6px;text-align:center;"><span style="background:#e3f2fd;padding:2px 8px;border-radius:10px;">${data.count}</span></td>`;
+                            html += `<td style="padding:6px;">`;
+                            html += `<select class="custom-heading-select" data-style="${escapedStyle}" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;width:100%;">`;
+                            html += `<option value="">-- Skip --</option>`;
+                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
+                            for (let h = 1; h <= 10; h++) {
+                                const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
+                                html += `<option value="H${h}"${selected}>Heading ${h}</option>`;
+                            }
+                            html += `</select>`;
+                            html += `</td>`;
+                            html += `</tr>`;
                         }
                         
-                        html += `<p style="font-size:10px;color:#666;margin-top:8px;">💡 Click a style name to add it to the mapping input</p>`;
+                        html += `</tbody></table>`;
+                        html += `<p style="font-size:10px;color:#666;margin-top:8px;padding:4px;">💡 Styles sorted by detected level. Adjust as needed, then click "Save Selected Mappings"</p>`;
                         
                         resultsDiv.innerHTML = html;
                         resultsDiv.style.display = 'block';
-                        instructionsDiv.style.display = 'block';
                         
                         showToast(`Found ${foundCustomStyles.length} custom style(s)!`, 'success');
                     } else {
-                        resultsDiv.innerHTML = '<p style="color:#666;">No custom heading styles found. Document uses standard Word headings.</p>';
+                        resultsDiv.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No custom heading styles found.<br>Document uses standard Word headings.</div>';
                         resultsDiv.style.display = 'block';
-                        instructionsDiv.style.display = 'none';
                         showToast('No custom styles found', 'success');
                     }
                 });
@@ -3099,36 +3179,21 @@
             }
         }
         
-        // Helper function to add a style to the mapping input
-        window.addStyleToMapping = function(styleName) {
-            const input = document.getElementById('customHeadingMappingInput');
-            input.value += styleName + '=H1\n';
-            input.focus();
-        };
-        
         function saveCustomHeadingMappings() {
-            const input = document.getElementById('customHeadingMappingInput').value.trim();
-            
-            if (!input) {
-                showToast('Enter style mappings first', 'error');
-                return;
-            }
-            
-            // Parse input - format is "StyleName=H1" per line
-            const lines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            // Get all dropdown selections
+            const selects = document.querySelectorAll('.custom-heading-select');
             const newMappings = {};
             
-            for (const line of lines) {
-                const match = line.match(/^(.+?)\s*=\s*(H\d+)$/i);
-                if (match) {
-                    const styleName = match[1].trim();
-                    const headingLevel = match[2].toUpperCase();
+            selects.forEach(select => {
+                const styleName = select.dataset.style;
+                const headingLevel = select.value;
+                if (styleName && headingLevel) {
                     newMappings[styleName] = headingLevel;
                 }
-            }
+            });
             
             if (Object.keys(newMappings).length === 0) {
-                showToast('No valid mappings found. Use format: StyleName=H1', 'error');
+                showToast('Select at least one heading level to save', 'error');
                 return;
             }
             
@@ -3306,14 +3371,19 @@
                         
                         for (const [customStyle, headingLevel] of Object.entries(mappings)) {
                             if (style === customStyle || style.toLowerCase() === customStyle.toLowerCase()) {
-                                // Get the heading number from H1, H2, etc.
-                                const levelMatch = headingLevel.match(/H(\d+)/i);
-                                if (levelMatch) {
-                                    const level = parseInt(levelMatch[1], 10);
-                                    
-                                    // Apply the standard Word heading style
-                                    para.style = `Heading ${level}`;
+                                // Handle TOC Heading
+                                if (headingLevel.toUpperCase() === 'TOC') {
+                                    para.style = 'TOC Heading';
                                     convertedCount++;
+                                } else {
+                                    // Get the heading number from H1, H2, etc.
+                                    const levelMatch = headingLevel.match(/H(\d+)/i);
+                                    if (levelMatch) {
+                                        const level = parseInt(levelMatch[1], 10);
+                                        // Apply the standard Word heading style
+                                        para.style = `Heading ${level}`;
+                                        convertedCount++;
+                                    }
                                 }
                                 break;
                             }
@@ -3380,6 +3450,7 @@
                     paragraphs.load("items");
                     await context.sync();
                     
+                    // Load text for all paragraphs
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         paragraphs.items[i].load("text");
                     }
@@ -3397,6 +3468,7 @@
                     }
                     
                     const found = [];
+                    const captionParas = [];
                     
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const text = paragraphs.items[i].text || '';
@@ -3408,9 +3480,25 @@
                             found.push({
                                 number: captionNum,
                                 text: captionText || '(no title)',
-                                fullText: text.trim()
+                                fullText: text.trim(),
+                                paraIndex: i,
+                                pageNumber: null // Will be populated
                             });
+                            captionParas.push(paragraphs.items[i]);
                         }
+                    }
+                    
+                    // Try to get page numbers for each caption
+                    // Note: Word JS API doesn't have direct page number access
+                    // We'll try using the range's page property (may not work in all versions)
+                    try {
+                        for (let i = 0; i < captionParas.length; i++) {
+                            const range = captionParas[i].getRange();
+                            // Try to get section/page info - this is limited in Word JS
+                            // Fall back to using paragraph position estimate
+                        }
+                    } catch (e) {
+                        console.log('Page number detection not available:', e);
                     }
                     
                     // Store for later insertion
@@ -3425,14 +3513,16 @@
                     
                     if (found.length > 0) {
                         let html = `<strong>Found ${found.length} ${captionType.toLowerCase()}(s):</strong><br>`;
-                        html += '<table style="width:100%;border-collapse:collapse;margin-top:6px;">';
+                        html += '<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px;">';
+                        html += '<tr style="background:#f5f5f5;"><th style="padding:4px;text-align:left;">Number</th><th style="padding:4px;text-align:left;">Caption</th></tr>';
                         found.forEach((item, idx) => {
                             html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:3px;font-weight:600;white-space:nowrap;">${item.number}</td>`;
-                            html += `<td style="padding:3px;color:#666;">${item.text.substring(0, 40)}${item.text.length > 40 ? '...' : ''}</td>`;
+                            html += `<td style="padding:4px;font-weight:600;white-space:nowrap;">${item.number}</td>`;
+                            html += `<td style="padding:4px;color:#666;">${item.text.substring(0, 35)}${item.text.length > 35 ? '...' : ''}</td>`;
                             html += `</tr>`;
                         });
                         html += '</table>';
+                        html += `<p style="font-size:10px;color:#888;margin-top:6px;">⚠️ Page numbers will show as "—" (Word API limitation). Update manually after insertion.</p>`;
                         
                         previewDiv.innerHTML = html;
                         previewDiv.style.display = 'block';
@@ -3471,18 +3561,44 @@
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
                     
-                    // Build the LOT/LOF as a formatted table
-                    let lotText = `List of ${captionType}s\n\n`;
+                    // Insert title with centered, bold formatting
+                    const titlePara = selection.insertParagraph(`List of ${captionType}s`, Word.InsertLocation.before);
+                    titlePara.font.name = "Times New Roman";
+                    titlePara.font.size = 12;
+                    titlePara.font.bold = true;
+                    titlePara.alignment = Word.Alignment.centered;
+                    titlePara.spaceAfter = 12;
                     
-                    items.forEach((item, idx) => {
-                        // Format: Table Number [tab] Caption Text [tab] Page (placeholder)
-                        lotText += `${item.number}\t${item.text}\t[page]\n`;
-                    });
+                    await context.sync();
                     
-                    lotText += '\n(Note: Page numbers need manual update or use Word\'s built-in LOT/LOF for automatic page numbers)\n';
+                    // Insert each entry as a paragraph with "Table of Figures" style
+                    // This matches Word's built-in LOT/LOF format
+                    let lastPara = titlePara;
                     
-                    // Insert the text
-                    selection.insertText(lotText, Word.InsertLocation.replace);
+                    for (const item of items) {
+                        // Format: "Table Number<tab>Caption Text<tab>Page"
+                        const entryText = `${item.number}\t${item.text}\t—`;
+                        const entryPara = lastPara.insertParagraph(entryText, Word.InsertLocation.after);
+                        
+                        // Apply "Table of Figures" style (Word's built-in LOT/LOF style)
+                        try {
+                            entryPara.style = "Table of Figures";
+                        } catch (styleErr) {
+                            // If style doesn't exist, apply manual formatting
+                            entryPara.font.name = "Times New Roman";
+                            entryPara.font.size = 12;
+                            entryPara.font.bold = false;
+                        }
+                        
+                        lastPara = entryPara;
+                    }
+                    
+                    // Add note about page numbers
+                    const notePara = lastPara.insertParagraph("", Word.InsertLocation.after);
+                    const noteText = notePara.insertParagraph("(Page numbers show as '—'. Replace manually or use Find & Replace.)", Word.InsertLocation.after);
+                    noteText.font.size = 9;
+                    noteText.font.italic = true;
+                    noteText.font.color = "#666666";
                     
                     await context.sync();
                     
@@ -3497,7 +3613,31 @@
                 });
             } catch (error) {
                 console.error(`Insert Custom L${captionType === 'Table' ? 'OT' : 'OF'} Error:`, error);
-                showToast('Error: ' + error.message, 'error');
+                // Fallback to simple text insertion if paragraph method fails
+                try {
+                    await Word.run(async (context) => {
+                        const selection = context.document.getSelection();
+                        
+                        let lotText = `List of ${captionType}s\n\n`;
+                        items.forEach((item) => {
+                            lotText += `${item.number}\t${item.text}\t—\n`;
+                        });
+                        lotText += '\n(Page numbers need manual update)\n';
+                        
+                        selection.insertText(lotText, Word.InsertLocation.replace);
+                        await context.sync();
+                        
+                        if (captionType === 'Table') {
+                            hideCustomLOTModal();
+                        } else {
+                            hideCustomLOFModal();
+                        }
+                        
+                        showToast(`Inserted List of ${captionType}s (text format)!`, 'success');
+                    });
+                } catch (e2) {
+                    showToast('Error: ' + error.message, 'error');
+                }
             }
         }
 
@@ -4164,149 +4304,100 @@
         // ============================================
         async function handleUpdateAll() {
             try {
-                showToast('Updating...', 'success');
+                showToast('Updating fields...', 'success');
                 
                 await Word.run(async (context) => {
                     const body = context.document.body;
                     
-                    // 1. Load fields and paragraphs in ONE sync
+                    // Step 1: Update all fields first
                     const fields = body.fields;
-                    const paragraphs = body.paragraphs;
                     fields.load("items");
+                    await context.sync();
+                    
+                    // Update fields in smaller batches to avoid crashes
+                    const fieldCount = fields.items.length;
+                    const batchSize = 10; // Smaller batch size for safety
+                    
+                    for (let i = 0; i < fieldCount; i += batchSize) {
+                        const end = Math.min(i + batchSize, fieldCount);
+                        for (let j = i; j < end; j++) {
+                            try {
+                                fields.items[j].updateResult();
+                            } catch (e) {
+                                console.log('Field update skipped:', j);
+                            }
+                        }
+                        await context.sync();
+                    }
+                    
+                    showToast('Formatting TOC/LOT/LOF...', 'success');
+                    
+                    // Step 2: Format paragraphs (separate Word.run to avoid memory issues)
+                });
+                
+                // Separate Word.run for formatting to reduce memory pressure
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
                     paragraphs.load("items");
                     await context.sync();
                     
-                    // 2. Update all fields (batch - no sync needed between)
-                    let fieldCount = fields.items.length;
-                    for (let i = 0; i < fieldCount; i++) {
-                        fields.items[i].updateResult();
-                    }
-                    
-                    // 3. Load all paragraph properties in ONE sync
+                    // Load paragraph details in batches
                     const paraCount = paragraphs.items.length;
-                    for (let i = 0; i < paraCount; i++) {
-                        paragraphs.items[i].load("style, text");
-                    }
-                    await context.sync();
-                    
-                    // 4. Analyze paragraphs (no sync needed - just reading)
-                    let hasLOTTitle = false;
-                    let hasLOFTitle = false;
-                    let firstLOTEntryIndex = -1;
-                    let firstLOFEntryIndex = -1;
+                    const batchSize = 50;
                     let formattedCount = 0;
                     
-                    // Collect paragraphs to format
-                    const tocTitles = [];
-                    const tocEntries = [];
-                    const lotLofEntries = [];
-                    
-                    for (let i = 0; i < paraCount; i++) {
-                        const para = paragraphs.items[i];
-                        const text = para.text.trim().toLowerCase();
-                        const styleName = para.style.toLowerCase();
+                    for (let batch = 0; batch < paraCount; batch += batchSize) {
+                        const end = Math.min(batch + batchSize, paraCount);
                         
-                        // Check for existing titles
-                        if (text === 'list of tables' || text.startsWith('list of tables')) {
-                            hasLOTTitle = true;
-                            tocTitles.push(para);
-                        } else if (text === 'list of figures' || text.startsWith('list of figures')) {
-                            hasLOFTitle = true;
-                            tocTitles.push(para);
-                        } else if (text === 'table of contents' || text.startsWith('table of contents')) {
-                            tocTitles.push(para);
+                        // Load this batch
+                        for (let i = batch; i < end; i++) {
+                            paragraphs.items[i].load("style, text");
                         }
+                        await context.sync();
                         
-                        // Check TOC entries
-                        let tocLevel = 0;
-                        if (styleName === 'toc 1' || styleName === 'toc1') tocLevel = 1;
-                        else if (styleName === 'toc 2' || styleName === 'toc2') tocLevel = 2;
-                        else if (styleName === 'toc 3' || styleName === 'toc3') tocLevel = 3;
-                        else if (styleName === 'toc 4' || styleName === 'toc4') tocLevel = 4;
-                        else if (styleName === 'toc 5' || styleName === 'toc5') tocLevel = 5;
-                        else if (styleName === 'toc 6' || styleName === 'toc6') tocLevel = 6;
-                        
-                        if (tocLevel > 0) {
-                            tocEntries.push({ para, level: tocLevel });
-                        }
-                        
-                        // Check LOT/LOF entries
-                        if (styleName.includes('table of figures')) {
-                            lotLofEntries.push(para);
-                            const entryText = para.text.trim().toLowerCase();
-                            if (entryText.startsWith('table') && firstLOTEntryIndex === -1) {
-                                firstLOTEntryIndex = i;
+                        // Format this batch
+                        for (let i = batch; i < end; i++) {
+                            const para = paragraphs.items[i];
+                            const text = (para.text || '').trim().toLowerCase();
+                            const styleName = (para.style || '').toLowerCase();
+                            
+                            // Format titles (Table of Contents, List of Tables, List of Figures) - BOLD
+                            if (text === 'table of contents' || text === 'list of tables' || text === 'list of figures') {
+                                para.font.name = "Times New Roman";
+                                para.font.size = 12;
+                                para.font.bold = true;
+                                para.alignment = Word.Alignment.centered;
+                                formattedCount++;
+                                continue;
                             }
-                            if (entryText.startsWith('figure') && firstLOFEntryIndex === -1) {
-                                firstLOFEntryIndex = i;
+                            
+                            // Format TOC entries (TOC 1, TOC 2, etc.) - NOT bold
+                            if (styleName.startsWith('toc ') || styleName.startsWith('toc')) {
+                                para.font.name = "Times New Roman";
+                                para.font.size = 12;
+                                para.font.bold = false;
+                                formattedCount++;
+                                continue;
+                            }
+                            
+                            // Format LOT/LOF entries (Table of Figures style) - NOT bold
+                            if (styleName.includes('table of figures')) {
+                                para.font.name = "Times New Roman";
+                                para.font.size = 12;
+                                para.font.bold = false;
+                                formattedCount++;
+                                continue;
                             }
                         }
+                        
+                        await context.sync();
                     }
                     
-                    // 5. Insert missing titles (batch)
-                    let titlesAdded = 0;
-                    
-                    if (!hasLOFTitle && firstLOFEntryIndex !== -1) {
-                        const titlePara = paragraphs.items[firstLOFEntryIndex].insertParagraph("List of Figures", Word.InsertLocation.before);
-                        titlePara.font.name = "Times New Roman";
-                        titlePara.font.size = 12;
-                        titlePara.font.bold = true;
-                        titlePara.alignment = Word.Alignment.centered;
-                        titlePara.spaceAfter = 12;
-                        titlesAdded++;
-                    }
-                    
-                    if (!hasLOTTitle && firstLOTEntryIndex !== -1) {
-                        const titlePara = paragraphs.items[firstLOTEntryIndex].insertParagraph("List of Tables", Word.InsertLocation.before);
-                        titlePara.font.name = "Times New Roman";
-                        titlePara.font.size = 12;
-                        titlePara.font.bold = true;
-                        titlePara.alignment = Word.Alignment.centered;
-                        titlePara.spaceAfter = 12;
-                        titlesAdded++;
-                    }
-                    
-                    // 6. Apply formatting (batch - no sync between)
-                    // Format titles
-                    for (const para of tocTitles) {
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = true;
-                        para.alignment = Word.Alignment.centered;
-                        para.leftIndent = 0;
-                        formattedCount++;
-                    }
-                    
-                    // Format TOC entries with indentation
-                    for (const { para, level } of tocEntries) {
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = false;
-                        para.leftIndent = (level - 1) * 18;
-                        formattedCount++;
-                    }
-                    
-                    // Format LOT/LOF entries
-                    for (const para of lotLofEntries) {
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = false;
-                        para.leftIndent = 0;
-                        formattedCount++;
-                    }
-                    
-                    // 7. Single final sync
-                    await context.sync();
-                    
-                    let message = `Updated ${fieldCount} field(s), formatted ${formattedCount} entries`;
-                    if (titlesAdded > 0) {
-                        message += `, added ${titlesAdded} title(s)`;
-                    }
-                    showToast(message + '!', 'success');
+                    showToast(`Formatted ${formattedCount} TOC/LOT/LOF entries!`, 'success');
                 });
             } catch (error) {
                 console.error("Update TOC/LOT/LOF Error:", error);
-                showToast('Error: ' + error.message, 'error');
+                showToast('Error: ' + error.message + '. Try Ctrl+A then F9 manually.', 'error');
             }
         }
 
