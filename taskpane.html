@@ -945,9 +945,9 @@
                 </div>
                 
                 <div style="max-height:280px;overflow-y:auto;">
-                    <!-- TOC Heading -->
+                    <!-- Title -->
                     <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">TOC</label>
+                        <label style="font-size:11px;font-weight:600;">Title</label>
                         <select id="hTocCase" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1" selected>Title</option>
@@ -1945,12 +1945,12 @@
                         const styleName = para.style;
                         const lowerStyleName = styleName.toLowerCase();
                         
-                        // Determine heading level (standard or custom) or TOC Heading
+                        // Determine heading level (standard or custom) or Title
                         let headingKey = getHeadingLevelForStyle(styleName);
                         
-                        // Fall back to legacy detection for TOC and standard headings
+                        // Fall back to legacy detection for Title and standard headings
                         if (headingKey === null) {
-                            if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
+                            if (lowerStyleName === 'title') {
                                 headingKey = 'toc';
                             } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
                             else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
@@ -3008,7 +3008,7 @@
                     const skipStyles = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
                                         'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
                                         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
-                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 
+                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 'title',
                                         'caption', 'header', 'footer', 'list paragraph', 'table of figures',
                                         'footnote', 'endnote', 'body text', 'default paragraph font'];
                     
@@ -3089,7 +3089,7 @@
                             html += `<select class="custom-heading-select" data-style="${escapedStyle}" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;width:100%;">`;
                             html += `<option value="">-- Skip --</option>`;
                             html += `<option value="Normal"${existingLevel === 'Normal' || suggestedLevel === 'Normal' ? ' selected' : ''}>Normal</option>`;
-                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
+                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>Title</option>`;
                             for (let h = 1; h <= 10; h++) {
                                 const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
                                 html += `<option value="H${h}"${selected}>H${h}</option>`;
@@ -3220,7 +3220,7 @@
             if (lowerStyle.includes('heading 8') || lowerStyle === 'h8') return 8;
             if (lowerStyle.includes('heading 9') || lowerStyle === 'h9') return 9;
             if (lowerStyle.includes('heading 10') || lowerStyle === 'h10') return 10;
-            if (lowerStyle.includes('toc heading')) return 'toc';
+            if (lowerStyle === 'title') return 'toc';
             
             // Then, check custom style mappings
             const customMappings = getCustomHeadingStyleMappings();
@@ -3370,18 +3370,18 @@
                                     console.log('Could not apply Normal style:', e);
                                 }
                             }
-                            // Handle TOC Heading
+                            // Handle Title
                             else if (matchedLevel.toUpperCase() === 'TOC') {
-                                // Try different variations of TOC Heading style name
-                                const tocStyleNames = ['TOC Heading', 'TOCHeading', 'toc heading'];
+                                // Try different variations of Title style name
+                                const titleStyleNames = ['Title', 'title'];
                                 let applied = false;
                                 
-                                for (const styleName of tocStyleNames) {
+                                for (const styleName of titleStyleNames) {
                                     try {
                                         para.style = styleName;
                                         convertedCount++;
                                         applied = true;
-                                        console.log('Applied TOC Heading with style name:', styleName);
+                                        console.log('Applied Title with style name:', styleName);
                                         break;
                                     } catch (e) {
                                         console.log(`Could not apply "${styleName}":`, e.message);
@@ -3389,7 +3389,7 @@
                                 }
                                 
                                 if (!applied) {
-                                    console.log('Could not apply any TOC Heading style variation');
+                                    console.log('Could not apply any Title style variation');
                                 }
                             } else {
                                 // Get the heading number from H1, H2, etc.
