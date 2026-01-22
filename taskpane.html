@@ -550,36 +550,19 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #57</span>
+        <span class="build-num">Build #59</span>
+    </div>
+
+    <!-- IMPORTANT: US Letter Margin Reminder -->
+    <div style="background:#ffebee;border-left:4px solid #f44336;padding:8px 12px;margin:8px 12px 0 12px;border-radius:0 4px 4px 0;font-size:11px;">
+        <strong style="color:#c62828;">⚠️ Before formatting:</strong>
+        <span style="color:#b71c1c;">Set page to US Letter with 1" margins (Layout → Size → Letter, Margins → Normal)</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
     <div class="main-content">
         <div class="button-grid">
-            <!-- US Letter Page Setup - FIRST -->
-            <div class="tooltip-container full-width">
-                <button class="btn primary full-btn" id="btnPageSetup">
-                    <div class="btn-icon">📄</div>
-                    <span class="btn-label">US Letter Page Setup (1" margins)</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">US Letter Page Setup</div>
-                    <div class="tooltip-desc">Set page to US Letter (8.5" × 11") with 1" margins on all sides.</div>
-                </div>
-            </div>
-
-            <!-- Convert Numbered Lines to Headings -->
-            <div class="tooltip-container full-width">
-                <button class="btn accent full-btn" id="btnConvertToHeadings">
-                    <div class="btn-icon">H#</div>
-                    <span class="btn-label">Convert Numbered Lines to Headings</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Convert to Headings</div>
-                    <div class="tooltip-desc">Intelligently convert numbered lists (1., 1.1, 1.1.1) to real Heading styles. Supports CTD prefixes.</div>
-                </div>
-            </div>
-
+            <!-- ====== CASE CONVERSION ====== -->
             <!-- Title Case -->
             <div class="tooltip-container">
                 <button class="btn primary" id="btnTitleCase">
@@ -604,6 +587,7 @@
                 </div>
             </div>
 
+            <!-- ====== STANDARD HEADINGS (H1-H10) ====== -->
             <!-- Title Case All Headings -->
             <div class="tooltip-container">
                 <button class="btn secondary" id="btnTitleAllHeadings">
@@ -612,7 +596,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Title Case All Headings</div>
-                    <div class="tooltip-desc">Apply Title Case to all headings (H1-H6) in document.</div>
+                    <div class="tooltip-desc">Apply Title Case to all standard Word headings (H1-H10).</div>
                 </div>
             </div>
 
@@ -624,7 +608,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Heading Case Dialog</div>
-                    <div class="tooltip-desc">Choose Title/Sentence Case for each heading level (1-6).</div>
+                    <div class="tooltip-desc">Choose Title/Sentence Case for each standard heading level (1-10).</div>
                 </div>
             </div>
 
@@ -636,7 +620,32 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Heading Format</div>
-                    <div class="tooltip-desc">H1 = Title Case, H2-H6 = Sentence Case.</div>
+                    <div class="tooltip-desc">H1 = Title Case, H2-H10 = Sentence Case (standard headings only).</div>
+                </div>
+            </div>
+
+            <!-- ====== CUSTOM HEADINGS (Chinese/Company Templates) ====== -->
+            <!-- Scan Custom Headings -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnScanCustomHeadings">
+                    <div class="btn-icon">🔍</div>
+                    <span class="btn-label">Scan Custom</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Scan Custom Headings</div>
+                    <div class="tooltip-desc">Scan document for non-standard heading styles (Chinese, company templates). Shows what's found and lets you map them.</div>
+                </div>
+            </div>
+
+            <!-- Convert Custom to Standard -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnConvertCustomHeadings">
+                    <div class="btn-icon">↔️</div>
+                    <span class="btn-label">Convert Custom</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Convert Custom → Standard</div>
+                    <div class="tooltip-desc">Convert custom heading styles to standard Word H1-H10 based on your mapping. Then use regular heading functions.</div>
                 </div>
             </div>
 
@@ -853,7 +862,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Insert List of Tables</div>
-                    <div class="tooltip-desc">Insert LOT at cursor. Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-desc">Standard LOT (Table 1, 2, 3...). Requires Office 2019+ or M365.</div>
                 </div>
             </div>
 
@@ -865,7 +874,31 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Insert List of Figures</div>
-                    <div class="tooltip-desc">Insert LOF at cursor. Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-desc">Standard LOF (Figure 1, 2, 3...). Requires Office 2019+ or M365.</div>
+                </div>
+            </div>
+
+            <!-- Custom LOT (with prefix) -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnCustomLOT">
+                    <div class="btn-icon">📋+</div>
+                    <span class="btn-label">Custom LOT</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom List of Tables</div>
+                    <div class="tooltip-desc">For non-standard table names (Table 3.2.S.2.2-1). Enter your prefix pattern.</div>
+                </div>
+            </div>
+
+            <!-- Custom LOF (with prefix) -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnCustomLOF">
+                    <div class="btn-icon">🖼️+</div>
+                    <span class="btn-label">Custom LOF</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Custom List of Figures</div>
+                    <div class="tooltip-desc">For non-standard figure names (Figure 3.2.S.2.2-1). Enter your prefix pattern.</div>
                 </div>
             </div>
 
@@ -1103,65 +1136,143 @@
         </div>
     </div>
 
-    <!-- Convert to Headings Modal -->
-    <div class="modal-overlay" id="convertHeadingsModal">
-        <div class="modal" style="max-width: 520px;">
-            <div class="modal-header" style="background:#7c3aed;">
-                <span class="modal-title" style="color:white;">Convert Numbered Lines to Headings</span>
-                <button class="modal-close" id="convertHeadingsClose" style="color:white;">×</button>
+    <!-- Scan Custom Headings Modal -->
+    <div class="modal-overlay" id="scanCustomHeadingsModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header" style="background:#ff9800;">
+                <span class="modal-title" style="color:white;">Scan Custom Heading Styles</span>
+                <button class="modal-close" id="scanCustomHeadingsClose" style="color:white;">×</button>
             </div>
             <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Convert numbered list items to real Heading styles.</p>
+                <p class="modal-desc" style="margin-bottom:12px;">Scan your document to find non-standard heading styles. Then create a mapping to convert them to standard Word headings.</p>
                 
                 <div style="margin-bottom:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Prefix (optional, for CTD modules):</label>
-                    <input type="text" id="headingPrefix" placeholder="e.g., 3.2.S.2.3." style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
-                    <p style="font-size:10px;color:#666;margin-top:4px;">Leave empty for standard numbering (1., 1.1, 1.1.1)</p>
+                    <button id="runScanCustomHeadings" style="padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">🔍 Scan Document Now</button>
                 </div>
                 
-                <div style="margin-bottom:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Pattern Preview:</label>
-                    <div id="patternPreview" style="background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:8px;font-family:monospace;font-size:11px;">
-                        <div>1 or 1. → Heading 1</div>
-                        <div>1.1 → Heading 2</div>
-                        <div>1.1.1 → Heading 3</div>
-                        <div>1.1.1.1 → Heading 4</div>
-                        <div>1.1.1.1.1 → Heading 5</div>
+                <div id="customHeadingScanResults" style="max-height:200px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:10px;font-size:11px;display:none;background:#f9f9f9;">
+                </div>
+                
+                <div style="margin-top:12px;padding:10px;background:#fff3e0;border-radius:4px;display:none;" id="mappingInstructions">
+                    <p style="font-size:11px;margin:0 0 8px 0;"><strong>📝 Create your mapping below:</strong></p>
+                    <p style="font-size:10px;color:#666;margin:0;">Click a style above to add it, then set which H level it should become.</p>
+                </div>
+                
+                <div style="margin-top:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Style Mapping (StyleName=H1, H2, etc.):</label>
+                    <textarea id="customHeadingMappingInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:11px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="一级标题 EN CTD=H1&#10;二级标题 EN CTD=H2&#10;三级标题 EN CTD=H3&#10;C-Heading 1=H1"></textarea>
+                </div>
+                
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label style="font-weight:600;font-size:12px;">Saved Mappings:</label>
+                        <button id="clearCustomHeadingMappings" style="font-size:10px;padding:2px 6px;background:#f5f5f5;border:1px solid #ccc;border-radius:3px;cursor:pointer;">Clear All</button>
                     </div>
-                </div>
-                
-                <div style="margin-bottom:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Options:</label>
-                    <div style="font-size:12px;">
-                        <label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                            <input type="checkbox" id="optRemoveNumber"> Remove number prefix after converting
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                            <input type="checkbox" id="optSkipTables" checked> Skip lines inside tables
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;">
-                            <input type="checkbox" id="optSkipShort" checked> Skip if text &lt; 3 characters
-                        </label>
+                    <div id="savedHeadingMappings" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
+                        No saved mappings
                     </div>
-                </div>
-                
-                <div style="margin-bottom:8px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Max heading text length:</label>
-                    <input type="number" id="maxHeadingLength" value="150" min="20" max="500" style="width:80px;padding:6px;font-size:12px;border:1px solid #ccc;border-radius:4px;">
-                    <span style="font-size:11px;color:#666;margin-left:8px;">characters (skip longer lines)</span>
-                </div>
-                
-                <div id="scanStatus" style="padding:8px;background:#e3f2fd;border-radius:4px;font-size:11px;margin-top:12px;display:none;">
-                    Scanning...
-                </div>
-                
-                <div id="previewResults" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;margin-top:12px;display:none;">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="modal-btn" id="convertHeadingsScan" style="background:#2196f3;color:white;">Scan Document</button>
-                <button class="modal-btn cancel" id="convertHeadingsCancel">Cancel</button>
-                <button class="modal-btn apply" id="convertHeadingsApply" disabled>Convert</button>
+                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Mappings</button>
+                <button class="modal-btn cancel" id="scanCustomHeadingsCancel">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Convert Custom Headings Modal -->
+    <div class="modal-overlay" id="convertCustomHeadingsModal">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header" style="background:#ff9800;">
+                <span class="modal-title" style="color:white;">Convert Custom Headings → Standard</span>
+                <button class="modal-close" id="convertCustomHeadingsClose" style="color:white;">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" style="margin-bottom:12px;">Convert custom heading styles to standard Word Heading 1-10 styles based on your saved mapping.</p>
+                
+                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
+                    <p style="font-size:11px;margin:0 0 6px 0;"><strong>Current Mapping:</strong></p>
+                    <div id="currentMappingDisplay" style="font-family:monospace;font-size:10px;max-height:100px;overflow-y:auto;">
+                        No mappings saved. Use "Scan Custom" first.
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12px;">
+                        <input type="checkbox" id="preserveCustomStyle" checked>
+                        Keep original formatting (font, size, etc.) after conversion
+                    </label>
+                </div>
+                
+                <div id="convertPreview" style="padding:10px;background:#f5f5f5;border-radius:4px;font-size:11px;display:none;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="previewConversion" style="background:#2196f3;color:white;">Preview</button>
+                <button class="modal-btn apply" id="applyConversion">Convert Now</button>
+                <button class="modal-btn cancel" id="convertCustomHeadingsCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom LOT Modal -->
+    <div class="modal-overlay" id="customLOTModal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header" style="background:#ff9800;">
+                <span class="modal-title" style="color:white;">Custom List of Tables</span>
+                <button class="modal-close" id="customLOTClose" style="color:white;">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" style="margin-bottom:12px;">Generate a List of Tables for non-standard table naming (e.g., Table 3.2.S.2.2-1).</p>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Table name prefix pattern:</label>
+                    <input type="text" id="customLOTPrefix" placeholder="e.g., Table 3.2.S.2.2-" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
+                    <p style="font-size:10px;color:#666;margin-top:4px;">Enter the prefix that appears before the table number. Leave empty to detect all "Table X" patterns.</p>
+                </div>
+                
+                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
+                    <p style="font-size:11px;margin:0;"><strong>💡 How it works:</strong> This scans your document for captions matching the pattern and builds a custom LOT at the cursor position.</p>
+                </div>
+                
+                <div id="customLOTPreview" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:11px;display:none;background:#f9f9f9;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="scanCustomLOT" style="background:#2196f3;color:white;">Scan Tables</button>
+                <button class="modal-btn apply" id="insertCustomLOT" disabled>Insert LOT</button>
+                <button class="modal-btn cancel" id="customLOTCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom LOF Modal -->
+    <div class="modal-overlay" id="customLOFModal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header" style="background:#ff9800;">
+                <span class="modal-title" style="color:white;">Custom List of Figures</span>
+                <button class="modal-close" id="customLOFClose" style="color:white;">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" style="margin-bottom:12px;">Generate a List of Figures for non-standard figure naming (e.g., Figure 3.2.S.2.2-1).</p>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Figure name prefix pattern:</label>
+                    <input type="text" id="customLOFPrefix" placeholder="e.g., Figure 3.2.S.2.2-" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
+                    <p style="font-size:10px;color:#666;margin-top:4px;">Enter the prefix that appears before the figure number. Leave empty to detect all "Figure X" patterns.</p>
+                </div>
+                
+                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
+                    <p style="font-size:11px;margin:0;"><strong>💡 How it works:</strong> This scans your document for captions matching the pattern and builds a custom LOF at the cursor position.</p>
+                </div>
+                
+                <div id="customLOFPreview" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:11px;display:none;background:#f9f9f9;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="scanCustomLOF" style="background:#2196f3;color:white;">Scan Figures</button>
+                <button class="modal-btn apply" id="insertCustomLOF" disabled>Insert LOF</button>
+                <button class="modal-btn cancel" id="customLOFCancel">Cancel</button>
             </div>
         </div>
     </div>
@@ -1198,6 +1309,9 @@
         // Storage key for user-saved uppercase terms
         const SAVED_TERMS_KEY = 'formatcure_custom_uppercase_terms';
         
+        // Storage key for custom heading style mappings
+        const CUSTOM_HEADING_STYLES_KEY = 'formatcure_custom_heading_styles';
+        
         // Function to get ALL preserved terms (built-in + user-saved)
         function getAllPreservedTerms() {
             let allTerms = [...PRESERVED_TERMS];
@@ -1218,18 +1332,18 @@
         // Initialize Office
         Office.onReady(function(info) {
             if (info.host === Office.HostType.Word) {
-                // Page Setup button
-                document.getElementById('btnPageSetup').addEventListener('click', handlePageSetup);
-                
-                // Convert to Headings button
-                document.getElementById('btnConvertToHeadings').addEventListener('click', showConvertHeadingsModal);
-                
                 // Text Formatting buttons
                 document.getElementById('btnTitleCase').addEventListener('click', handleTitleCase);
                 document.getElementById('btnSentenceCase').addEventListener('click', handleSentenceCase);
+                
+                // Standard Heading buttons
                 document.getElementById('btnTitleAllHeadings').addEventListener('click', handleTitleAllHeadings);
                 document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
                 document.getElementById('btnHeadingFormat').addEventListener('click', handleHeadingFormat);
+                
+                // Custom Heading buttons
+                document.getElementById('btnScanCustomHeadings').addEventListener('click', showScanCustomHeadingsModal);
+                document.getElementById('btnConvertCustomHeadings').addEventListener('click', showConvertCustomHeadingsModal);
                 
                 // Word-level format buttons
                 document.getElementById('btnToggleBold').addEventListener('click', handleToggleBold);
@@ -1259,6 +1373,8 @@
                 document.getElementById('btnInsertTOC').addEventListener('click', handleInsertTOC);
                 document.getElementById('btnInsertLOT').addEventListener('click', handleInsertLOT);
                 document.getElementById('btnInsertLOF').addEventListener('click', handleInsertLOF);
+                document.getElementById('btnCustomLOT').addEventListener('click', showCustomLOTModal);
+                document.getElementById('btnCustomLOF').addEventListener('click', showCustomLOFModal);
                 
                 // Document Updates button
                 document.getElementById('btnUpdateAll').addEventListener('click', handleUpdateAll);
@@ -1301,6 +1417,46 @@
                 // Load saved terms on startup
                 loadSavedTerms();
                 
+                // Scan Custom Headings Modal events
+                document.getElementById('scanCustomHeadingsClose').addEventListener('click', hideScanCustomHeadingsModal);
+                document.getElementById('scanCustomHeadingsCancel').addEventListener('click', hideScanCustomHeadingsModal);
+                document.getElementById('runScanCustomHeadings').addEventListener('click', runScanCustomHeadings);
+                document.getElementById('saveCustomHeadingMappings').addEventListener('click', saveCustomHeadingMappings);
+                document.getElementById('clearCustomHeadingMappings').addEventListener('click', clearCustomHeadingMappings);
+                document.getElementById('scanCustomHeadingsModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideScanCustomHeadingsModal();
+                });
+                
+                // Convert Custom Headings Modal events
+                document.getElementById('convertCustomHeadingsClose').addEventListener('click', hideConvertCustomHeadingsModal);
+                document.getElementById('convertCustomHeadingsCancel').addEventListener('click', hideConvertCustomHeadingsModal);
+                document.getElementById('previewConversion').addEventListener('click', previewHeadingConversion);
+                document.getElementById('applyConversion').addEventListener('click', applyHeadingConversion);
+                document.getElementById('convertCustomHeadingsModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideConvertCustomHeadingsModal();
+                });
+                
+                // Custom LOT Modal events
+                document.getElementById('customLOTClose').addEventListener('click', hideCustomLOTModal);
+                document.getElementById('customLOTCancel').addEventListener('click', hideCustomLOTModal);
+                document.getElementById('scanCustomLOT').addEventListener('click', scanCustomLOT);
+                document.getElementById('insertCustomLOT').addEventListener('click', insertCustomLOT);
+                document.getElementById('customLOTModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideCustomLOTModal();
+                });
+                
+                // Custom LOF Modal events
+                document.getElementById('customLOFClose').addEventListener('click', hideCustomLOFModal);
+                document.getElementById('customLOFCancel').addEventListener('click', hideCustomLOFModal);
+                document.getElementById('scanCustomLOF').addEventListener('click', scanCustomLOF);
+                document.getElementById('insertCustomLOF').addEventListener('click', insertCustomLOF);
+                document.getElementById('customLOFModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideCustomLOFModal();
+                });
+                
+                // Load saved custom heading mappings on startup
+                loadSavedCustomHeadingMappings();
+                
                 // Style Scanner events
                 document.getElementById('btnStyleScanner').addEventListener('click', runStyleScanner);
                 document.getElementById('styleScannerClose').addEventListener('click', hideStyleScannerModal);
@@ -1308,16 +1464,6 @@
                 document.getElementById('styleScannerModal').addEventListener('click', function(e) {
                     if (e.target === this) hideStyleScannerModal();
                 });
-                
-                // Convert to Headings Modal events
-                document.getElementById('convertHeadingsClose').addEventListener('click', hideConvertHeadingsModal);
-                document.getElementById('convertHeadingsCancel').addEventListener('click', hideConvertHeadingsModal);
-                document.getElementById('convertHeadingsScan').addEventListener('click', scanForHeadingCandidates);
-                document.getElementById('convertHeadingsApply').addEventListener('click', applyHeadingConversion);
-                document.getElementById('convertHeadingsModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideConvertHeadingsModal();
-                });
-                document.getElementById('headingPrefix').addEventListener('input', updatePatternPreview);
                 
                 // Show ready state
                 showToast('FormatCure WL ready!', 'success');
@@ -1693,15 +1839,19 @@
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
-                        const styleName = para.style.toLowerCase();
+                        const styleName = para.style;
+                        const lowerStyleName = styleName.toLowerCase();
                         
-                        // Check if it's a heading style (including TOC Heading and H1-H10)
-                        if (styleName.includes('heading') || 
-                            styleName.includes('toc heading') ||
-                            styleName.match(/^h[1-9]$/) ||
-                            styleName === 'h10' ||
-                            styleName === 'title') {
-                            
+                        // Check if it's a heading style (standard or custom)
+                        const headingLevel = getHeadingLevelForStyle(styleName);
+                        const isHeading = headingLevel !== null || 
+                                          lowerStyleName.includes('heading') || 
+                                          lowerStyleName.includes('toc heading') ||
+                                          lowerStyleName.match(/^h[1-9]$/) ||
+                                          lowerStyleName === 'h10' ||
+                                          lowerStyleName === 'title';
+                        
+                        if (isHeading) {
                             let text = para.text;
                             if (text.endsWith('\r')) {
                                 text = text.slice(0, -1);
@@ -1774,22 +1924,27 @@
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
-                        const styleName = para.style.toLowerCase();
+                        const styleName = para.style;
+                        const lowerStyleName = styleName.toLowerCase();
                         
-                        // Determine heading level or TOC Heading
-                        let headingKey = null;
-                        if (styleName.includes('toc heading') || styleName === 'toc heading') {
-                            headingKey = 'toc';
-                        } else if (styleName.includes('heading 1') || styleName === 'h1') headingKey = 1;
-                        else if (styleName.includes('heading 2') || styleName === 'h2') headingKey = 2;
-                        else if (styleName.includes('heading 3') || styleName === 'h3') headingKey = 3;
-                        else if (styleName.includes('heading 4') || styleName === 'h4') headingKey = 4;
-                        else if (styleName.includes('heading 5') || styleName === 'h5') headingKey = 5;
-                        else if (styleName.includes('heading 6') || styleName === 'h6') headingKey = 6;
-                        else if (styleName.includes('heading 7') || styleName === 'h7') headingKey = 7;
-                        else if (styleName.includes('heading 8') || styleName === 'h8') headingKey = 8;
-                        else if (styleName.includes('heading 9') || styleName === 'h9') headingKey = 9;
-                        else if (styleName.includes('heading 10') || styleName === 'h10') headingKey = 10;
+                        // Determine heading level (standard or custom) or TOC Heading
+                        let headingKey = getHeadingLevelForStyle(styleName);
+                        
+                        // Fall back to legacy detection for TOC and standard headings
+                        if (headingKey === null) {
+                            if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
+                                headingKey = 'toc';
+                            } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
+                            else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
+                            else if (lowerStyleName.includes('heading 3') || lowerStyleName === 'h3') headingKey = 3;
+                            else if (lowerStyleName.includes('heading 4') || lowerStyleName === 'h4') headingKey = 4;
+                            else if (lowerStyleName.includes('heading 5') || lowerStyleName === 'h5') headingKey = 5;
+                            else if (lowerStyleName.includes('heading 6') || lowerStyleName === 'h6') headingKey = 6;
+                            else if (lowerStyleName.includes('heading 7') || lowerStyleName === 'h7') headingKey = 7;
+                            else if (lowerStyleName.includes('heading 8') || lowerStyleName === 'h8') headingKey = 8;
+                            else if (lowerStyleName.includes('heading 9') || lowerStyleName === 'h9') headingKey = 9;
+                            else if (lowerStyleName.includes('heading 10') || lowerStyleName === 'h10') headingKey = 10;
+                        }
                         
                         if (headingKey !== null) {
                             const option = options[headingKey];
@@ -2196,8 +2351,10 @@
 
                     let formattedCount = 0;
                     
-                    // Match "Table" or "Figure" followed by space(s) and number(s)
-                    const captionRegex = new RegExp(`^(${captionType}\\s*\\d+)(.*)`, 'i');
+                    // Match "Table" or "Figure" followed by space(s) and complex numbering
+                    // Supports: Table 1, Table 3.2.S.2.2-1, Table 3.2.S.2.2- 1, Figure 2.1, etc.
+                    // Pattern: "Table" + optional space + alphanumeric/dot/dash sequence
+                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
@@ -2214,7 +2371,7 @@
                             continue;
                         }
 
-                        const prefix = match[1]; // "Table 4" or "Table4"
+                        const prefix = match[1].trim(); // "Table 4" or "Table 3.2.S.2.2-1"
                         let afterPrefix = match[2]; // everything after
                         
                         // Remove any leading separator (tab, colon, space, or nothing)
@@ -2772,6 +2929,579 @@
         }
 
         // ============================================
+        // CUSTOM HEADING STYLES - Scan & Convert Functions
+        // For non-standard heading styles (Chinese, company templates)
+        // ============================================
+        
+        // Store found custom styles for later use
+        let foundCustomStyles = [];
+        let customCaptions = { tables: [], figures: [] };
+        
+        function showScanCustomHeadingsModal() {
+            document.getElementById('scanCustomHeadingsModal').classList.add('show');
+            loadSavedCustomHeadingMappings();
+        }
+        
+        function hideScanCustomHeadingsModal() {
+            document.getElementById('scanCustomHeadingsModal').classList.remove('show');
+        }
+        
+        function showConvertCustomHeadingsModal() {
+            document.getElementById('convertCustomHeadingsModal').classList.add('show');
+            displayCurrentMappings();
+        }
+        
+        function hideConvertCustomHeadingsModal() {
+            document.getElementById('convertCustomHeadingsModal').classList.remove('show');
+        }
+        
+        function loadSavedCustomHeadingMappings() {
+            try {
+                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                const savedList = document.getElementById('savedHeadingMappings');
+                
+                if (saved) {
+                    const mappings = JSON.parse(saved);
+                    if (Object.keys(mappings).length > 0) {
+                        let html = '';
+                        for (const [styleName, headingLevel] of Object.entries(mappings)) {
+                            html += `<div style="margin-bottom:2px;"><span style="background:#fff3e0;padding:1px 4px;border-radius:2px;">${styleName}</span> → <strong style="color:#ff9800;">${headingLevel}</strong></div>`;
+                        }
+                        savedList.innerHTML = html;
+                        savedList.style.color = '#333';
+                    } else {
+                        savedList.innerHTML = 'No saved mappings';
+                        savedList.style.color = '#666';
+                    }
+                } else {
+                    savedList.innerHTML = 'No saved mappings';
+                    savedList.style.color = '#666';
+                }
+            } catch (e) {
+                console.log('Could not load saved mappings:', e);
+            }
+        }
+        
+        function displayCurrentMappings() {
+            try {
+                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                const display = document.getElementById('currentMappingDisplay');
+                
+                if (saved) {
+                    const mappings = JSON.parse(saved);
+                    if (Object.keys(mappings).length > 0) {
+                        let html = '';
+                        for (const [styleName, headingLevel] of Object.entries(mappings)) {
+                            html += `<div>${styleName} → <strong>${headingLevel}</strong></div>`;
+                        }
+                        display.innerHTML = html;
+                    } else {
+                        display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
+                    }
+                } else {
+                    display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
+                }
+            } catch (e) {
+                display.innerHTML = 'No mappings saved. Use "Scan Custom" first.';
+            }
+        }
+        
+        async function runScanCustomHeadings() {
+            try {
+                showToast('Scanning for custom heading styles...', 'success');
+                
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text");
+                    }
+                    await context.sync();
+                    
+                    // Collect styles that are NOT standard Word headings
+                    const standardHeadings = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
+                                              'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
+                                              'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
+                                              'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc heading', 'caption',
+                                              'header', 'footer', 'list paragraph'];
+                    
+                    const styleData = {};
+                    foundCustomStyles = [];
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const style = paragraphs.items[i].style;
+                        const text = paragraphs.items[i].text || '';
+                        const lowerStyle = style ? style.toLowerCase() : '';
+                        
+                        // Skip standard styles
+                        if (!style || standardHeadings.some(s => lowerStyle.includes(s))) {
+                            continue;
+                        }
+                        
+                        // Track this custom style
+                        if (!styleData[style]) {
+                            styleData[style] = {
+                                count: 0,
+                                samples: []
+                            };
+                        }
+                        styleData[style].count++;
+                        if (styleData[style].samples.length < 3) {
+                            const sampleText = text.trim().substring(0, 50);
+                            if (sampleText) {
+                                styleData[style].samples.push(sampleText + (text.length > 50 ? '...' : ''));
+                            }
+                        }
+                    }
+                    
+                    foundCustomStyles = Object.keys(styleData);
+                    
+                    // Display results
+                    const resultsDiv = document.getElementById('customHeadingScanResults');
+                    const instructionsDiv = document.getElementById('mappingInstructions');
+                    
+                    if (foundCustomStyles.length > 0) {
+                        let html = `<strong>Found ${foundCustomStyles.length} custom style(s):</strong><br><br>`;
+                        
+                        for (const [style, data] of Object.entries(styleData)) {
+                            html += `<div style="margin-bottom:8px;padding:6px;background:#fff;border:1px solid #ddd;border-radius:4px;">`;
+                            html += `<div style="display:flex;justify-content:space-between;align-items:center;">`;
+                            html += `<strong style="color:#ff9800;cursor:pointer;" onclick="addStyleToMapping('${style.replace(/'/g, "\\'")}')">${style}</strong>`;
+                            html += `<span style="background:#e3f2fd;padding:2px 6px;border-radius:3px;font-size:10px;">${data.count}x</span>`;
+                            html += `</div>`;
+                            if (data.samples.length > 0) {
+                                html += `<div style="font-size:10px;color:#666;margin-top:4px;">`;
+                                html += data.samples.map(s => `"${s}"`).join('<br>');
+                                html += `</div>`;
+                            }
+                            html += `</div>`;
+                        }
+                        
+                        html += `<p style="font-size:10px;color:#666;margin-top:8px;">💡 Click a style name to add it to the mapping input</p>`;
+                        
+                        resultsDiv.innerHTML = html;
+                        resultsDiv.style.display = 'block';
+                        instructionsDiv.style.display = 'block';
+                        
+                        showToast(`Found ${foundCustomStyles.length} custom style(s)!`, 'success');
+                    } else {
+                        resultsDiv.innerHTML = '<p style="color:#666;">No custom heading styles found. Document uses standard Word headings.</p>';
+                        resultsDiv.style.display = 'block';
+                        instructionsDiv.style.display = 'none';
+                        showToast('No custom styles found', 'success');
+                    }
+                });
+            } catch (error) {
+                console.error("Scan Custom Headings Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Helper function to add a style to the mapping input
+        window.addStyleToMapping = function(styleName) {
+            const input = document.getElementById('customHeadingMappingInput');
+            input.value += styleName + '=H1\n';
+            input.focus();
+        };
+        
+        function saveCustomHeadingMappings() {
+            const input = document.getElementById('customHeadingMappingInput').value.trim();
+            
+            if (!input) {
+                showToast('Enter style mappings first', 'error');
+                return;
+            }
+            
+            // Parse input - format is "StyleName=H1" per line
+            const lines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            const newMappings = {};
+            
+            for (const line of lines) {
+                const match = line.match(/^(.+?)\s*=\s*(H\d+)$/i);
+                if (match) {
+                    const styleName = match[1].trim();
+                    const headingLevel = match[2].toUpperCase();
+                    newMappings[styleName] = headingLevel;
+                }
+            }
+            
+            if (Object.keys(newMappings).length === 0) {
+                showToast('No valid mappings found. Use format: StyleName=H1', 'error');
+                return;
+            }
+            
+            try {
+                // Get existing saved mappings and merge
+                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                let existingMappings = saved ? JSON.parse(saved) : {};
+                
+                // Merge (new mappings override existing)
+                const allMappings = { ...existingMappings, ...newMappings };
+                
+                // Save
+                localStorage.setItem(CUSTOM_HEADING_STYLES_KEY, JSON.stringify(allMappings));
+                
+                // Update display
+                loadSavedCustomHeadingMappings();
+                
+                // Clear input
+                document.getElementById('customHeadingMappingInput').value = '';
+                
+                showToast(`Saved ${Object.keys(newMappings).length} mapping(s)!`, 'success');
+            } catch (e) {
+                console.error('Could not save mappings:', e);
+                showToast('Could not save (localStorage not available)', 'error');
+            }
+        }
+        
+        function clearCustomHeadingMappings() {
+            if (confirm('Clear all saved custom heading mappings?')) {
+                try {
+                    localStorage.removeItem(CUSTOM_HEADING_STYLES_KEY);
+                    loadSavedCustomHeadingMappings();
+                    showToast('Mappings cleared', 'success');
+                } catch (e) {
+                    console.error('Could not clear mappings:', e);
+                }
+            }
+        }
+        
+        // Get custom heading styles from localStorage
+        function getCustomHeadingStyleMappings() {
+            try {
+                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
+                return saved ? JSON.parse(saved) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+        
+        // Check if a style name should be treated as a heading
+        // Returns heading level number (1-10) or null if not a heading
+        function getHeadingLevelForStyle(styleName) {
+            if (!styleName) return null;
+            
+            const lowerStyle = styleName.toLowerCase();
+            
+            // First, check standard Word heading styles
+            if (lowerStyle.includes('heading 1') || lowerStyle === 'h1') return 1;
+            if (lowerStyle.includes('heading 2') || lowerStyle === 'h2') return 2;
+            if (lowerStyle.includes('heading 3') || lowerStyle === 'h3') return 3;
+            if (lowerStyle.includes('heading 4') || lowerStyle === 'h4') return 4;
+            if (lowerStyle.includes('heading 5') || lowerStyle === 'h5') return 5;
+            if (lowerStyle.includes('heading 6') || lowerStyle === 'h6') return 6;
+            if (lowerStyle.includes('heading 7') || lowerStyle === 'h7') return 7;
+            if (lowerStyle.includes('heading 8') || lowerStyle === 'h8') return 8;
+            if (lowerStyle.includes('heading 9') || lowerStyle === 'h9') return 9;
+            if (lowerStyle.includes('heading 10') || lowerStyle === 'h10') return 10;
+            if (lowerStyle.includes('toc heading')) return 'toc';
+            
+            // Then, check custom style mappings
+            const customMappings = getCustomHeadingStyleMappings();
+            for (const [customStyle, headingLevel] of Object.entries(customMappings)) {
+                // Case-insensitive comparison
+                if (styleName.toLowerCase() === customStyle.toLowerCase() || 
+                    styleName === customStyle) {
+                    const match = headingLevel.match(/H(\d+)/i);
+                    if (match) {
+                        return parseInt(match[1], 10);
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        // Preview the heading conversion
+        async function previewHeadingConversion() {
+            const mappings = getCustomHeadingStyleMappings();
+            
+            if (Object.keys(mappings).length === 0) {
+                showToast('No mappings saved. Use "Scan Custom" first.', 'error');
+                return;
+            }
+            
+            try {
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text");
+                    }
+                    await context.sync();
+                    
+                    let previewData = {};
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const style = paragraphs.items[i].style;
+                        const text = paragraphs.items[i].text || '';
+                        
+                        for (const [customStyle, headingLevel] of Object.entries(mappings)) {
+                            if (style === customStyle || style.toLowerCase() === customStyle.toLowerCase()) {
+                                if (!previewData[headingLevel]) {
+                                    previewData[headingLevel] = [];
+                                }
+                                previewData[headingLevel].push(text.trim().substring(0, 40) + (text.length > 40 ? '...' : ''));
+                            }
+                        }
+                    }
+                    
+                    const previewDiv = document.getElementById('convertPreview');
+                    
+                    if (Object.keys(previewData).length > 0) {
+                        let html = '<strong>Preview of conversions:</strong><br>';
+                        for (const [level, texts] of Object.entries(previewData)) {
+                            html += `<div style="margin-top:6px;"><strong style="color:#ff9800;">${level}</strong> (${texts.length} items):</div>`;
+                            html += texts.slice(0, 3).map(t => `<div style="font-size:10px;color:#666;padding-left:10px;">"${t}"</div>`).join('');
+                            if (texts.length > 3) {
+                                html += `<div style="font-size:10px;color:#999;padding-left:10px;">... and ${texts.length - 3} more</div>`;
+                            }
+                        }
+                        previewDiv.innerHTML = html;
+                        previewDiv.style.display = 'block';
+                    } else {
+                        previewDiv.innerHTML = '<p style="color:#666;">No matching paragraphs found.</p>';
+                        previewDiv.style.display = 'block';
+                    }
+                });
+            } catch (error) {
+                console.error("Preview Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Apply the heading conversion - convert custom styles to standard Word headings
+        async function applyHeadingConversion() {
+            const mappings = getCustomHeadingStyleMappings();
+            
+            if (Object.keys(mappings).length === 0) {
+                showToast('No mappings saved. Use "Scan Custom" first.', 'error');
+                return;
+            }
+            
+            const preserveFormatting = document.getElementById('preserveCustomStyle').checked;
+            
+            try {
+                showToast('Converting custom headings...', 'success');
+                
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text, font");
+                    }
+                    await context.sync();
+                    
+                    let convertedCount = 0;
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        const style = para.style;
+                        
+                        for (const [customStyle, headingLevel] of Object.entries(mappings)) {
+                            if (style === customStyle || style.toLowerCase() === customStyle.toLowerCase()) {
+                                // Get the heading number from H1, H2, etc.
+                                const levelMatch = headingLevel.match(/H(\d+)/i);
+                                if (levelMatch) {
+                                    const level = parseInt(levelMatch[1], 10);
+                                    
+                                    // Apply the standard Word heading style
+                                    para.style = `Heading ${level}`;
+                                    convertedCount++;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    await context.sync();
+                    
+                    hideConvertCustomHeadingsModal();
+                    
+                    if (convertedCount > 0) {
+                        showToast(`Converted ${convertedCount} paragraph(s) to standard headings!`, 'success');
+                    } else {
+                        showToast('No matching paragraphs found to convert', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Conversion Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // CUSTOM LOT/LOF - Modal Functions
+        // For non-standard table/figure naming
+        // ============================================
+        
+        function showCustomLOTModal() {
+            document.getElementById('customLOTModal').classList.add('show');
+            document.getElementById('customLOTPreview').style.display = 'none';
+            document.getElementById('insertCustomLOT').disabled = true;
+        }
+        
+        function hideCustomLOTModal() {
+            document.getElementById('customLOTModal').classList.remove('show');
+        }
+        
+        function showCustomLOFModal() {
+            document.getElementById('customLOFModal').classList.add('show');
+            document.getElementById('customLOFPreview').style.display = 'none';
+            document.getElementById('insertCustomLOF').disabled = true;
+        }
+        
+        function hideCustomLOFModal() {
+            document.getElementById('customLOFModal').classList.remove('show');
+        }
+        
+        async function scanCustomLOT() {
+            await scanCustomCaptions('Table', 'customLOTPrefix', 'customLOTPreview', 'insertCustomLOT');
+        }
+        
+        async function scanCustomLOF() {
+            await scanCustomCaptions('Figure', 'customLOFPrefix', 'customLOFPreview', 'insertCustomLOF');
+        }
+        
+        async function scanCustomCaptions(captionType, prefixInputId, previewDivId, insertBtnId) {
+            const prefix = document.getElementById(prefixInputId).value.trim();
+            
+            try {
+                showToast(`Scanning for ${captionType.toLowerCase()} captions...`, 'success');
+                
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("text");
+                    }
+                    await context.sync();
+                    
+                    // Build regex based on prefix
+                    let regex;
+                    if (prefix) {
+                        // Escape special regex characters in prefix
+                        const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        regex = new RegExp(`^(${escapedPrefix}[\\d\\s]*)(.*)`, 'i');
+                    } else {
+                        // Default: match any "Table X" or "Figure X" pattern
+                        regex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
+                    }
+                    
+                    const found = [];
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const text = paragraphs.items[i].text || '';
+                        const match = text.match(regex);
+                        
+                        if (match) {
+                            const captionNum = match[1].trim();
+                            const captionText = match[2].replace(/^[\t:\s]*/, '').trim();
+                            found.push({
+                                number: captionNum,
+                                text: captionText || '(no title)',
+                                fullText: text.trim()
+                            });
+                        }
+                    }
+                    
+                    // Store for later insertion
+                    if (captionType === 'Table') {
+                        customCaptions.tables = found;
+                    } else {
+                        customCaptions.figures = found;
+                    }
+                    
+                    const previewDiv = document.getElementById(previewDivId);
+                    const insertBtn = document.getElementById(insertBtnId);
+                    
+                    if (found.length > 0) {
+                        let html = `<strong>Found ${found.length} ${captionType.toLowerCase()}(s):</strong><br>`;
+                        html += '<table style="width:100%;border-collapse:collapse;margin-top:6px;">';
+                        found.forEach((item, idx) => {
+                            html += `<tr style="border-bottom:1px solid #eee;">`;
+                            html += `<td style="padding:3px;font-weight:600;white-space:nowrap;">${item.number}</td>`;
+                            html += `<td style="padding:3px;color:#666;">${item.text.substring(0, 40)}${item.text.length > 40 ? '...' : ''}</td>`;
+                            html += `</tr>`;
+                        });
+                        html += '</table>';
+                        
+                        previewDiv.innerHTML = html;
+                        previewDiv.style.display = 'block';
+                        insertBtn.disabled = false;
+                        
+                        showToast(`Found ${found.length} ${captionType.toLowerCase()}(s)!`, 'success');
+                    } else {
+                        previewDiv.innerHTML = `<p style="color:#666;">No ${captionType.toLowerCase()} captions found matching the pattern.</p>`;
+                        previewDiv.style.display = 'block';
+                        insertBtn.disabled = true;
+                        
+                        showToast(`No ${captionType.toLowerCase()}s found`, 'error');
+                    }
+                });
+            } catch (error) {
+                console.error(`Scan ${captionType} Error:`, error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function insertCustomLOT() {
+            await insertCustomList('Table', customCaptions.tables);
+        }
+        
+        async function insertCustomLOF() {
+            await insertCustomList('Figure', customCaptions.figures);
+        }
+        
+        async function insertCustomList(captionType, items) {
+            if (!items || items.length === 0) {
+                showToast(`No ${captionType.toLowerCase()}s to insert. Scan first.`, 'error');
+                return;
+            }
+            
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    
+                    // Build the LOT/LOF as a formatted table
+                    let lotText = `List of ${captionType}s\n\n`;
+                    
+                    items.forEach((item, idx) => {
+                        // Format: Table Number [tab] Caption Text [tab] Page (placeholder)
+                        lotText += `${item.number}\t${item.text}\t[page]\n`;
+                    });
+                    
+                    lotText += '\n(Note: Page numbers need manual update or use Word\'s built-in LOT/LOF for automatic page numbers)\n';
+                    
+                    // Insert the text
+                    selection.insertText(lotText, Word.InsertLocation.replace);
+                    
+                    await context.sync();
+                    
+                    // Close modal
+                    if (captionType === 'Table') {
+                        hideCustomLOTModal();
+                    } else {
+                        hideCustomLOFModal();
+                    }
+                    
+                    showToast(`Inserted List of ${captionType}s with ${items.length} entries!`, 'success');
+                });
+            } catch (error) {
+                console.error(`Insert Custom L${captionType === 'Table' ? 'OT' : 'OF'} Error:`, error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
         // STYLE SCANNER (QC) - Build #49 Fixed
         // Fixes: 1) Table checking via cell fonts
         //        2) Navigation keeps modal open
@@ -2823,7 +3553,7 @@
                         totalParagraphs: paragraphs.items.length,
                         totalTables: tables.items.length,
                         tablesChecked: 0,
-                        headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, h7: 0, h8: 0, h9: 0, h10: 0, other: 0 },
+                        headings: { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0, h7: 0, h8: 0, h9: 0, h10: 0, other: 0, custom: 0 },
                         bodyText: 0,
                         captions: { table: 0, figure: 0 },
                         tocEntries: 0,
@@ -2846,7 +3576,8 @@
                     // Scan paragraphs
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
-                        const style = (para.style || '').toLowerCase();
+                        const originalStyle = para.style || '';
+                        const style = originalStyle.toLowerCase();
                         const text = para.text || '';
                         
                         // Count empty paragraphs
@@ -2855,45 +3586,57 @@
                             continue;
                         }
                         
+                        // Check for custom heading styles first
+                        const customHeadingLevel = getHeadingLevelForStyle(originalStyle);
+                        
                         // Count headings and store text for case check
-                        if (style.includes('heading 1') || style === 'h1') {
+                        if (customHeadingLevel === 1 || style.includes('heading 1') || style === 'h1') {
                             stats.headings.h1++;
+                            if (customHeadingLevel) stats.headings.custom++;
                             headingTexts.h1.push({ text: text.trim(), searchText: text.trim().substring(0, 40) });
-                        } else if (style.includes('heading 2') || style === 'h2') {
+                        } else if (customHeadingLevel === 2 || style.includes('heading 2') || style === 'h2') {
                             stats.headings.h2++;
+                            if (customHeadingLevel) stats.headings.custom++;
                             headingTexts.h2.push({ text: text.trim(), searchText: text.trim().substring(0, 40) });
-                        } else if (style.includes('heading 3') || style === 'h3') {
+                        } else if (customHeadingLevel === 3 || style.includes('heading 3') || style === 'h3') {
                             stats.headings.h3++;
+                            if (customHeadingLevel) stats.headings.custom++;
                             headingTexts.h3.push({ text: text.trim(), searchText: text.trim().substring(0, 40) });
-                        } else if (style.includes('heading 4') || style === 'h4') {
+                        } else if (customHeadingLevel === 4 || style.includes('heading 4') || style === 'h4') {
                             stats.headings.h4++;
-                        } else if (style.includes('heading 5') || style === 'h5') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 5 || style.includes('heading 5') || style === 'h5') {
                             stats.headings.h5++;
-                        } else if (style.includes('heading 6') || style === 'h6') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 6 || style.includes('heading 6') || style === 'h6') {
                             stats.headings.h6++;
-                        } else if (style.includes('heading 7') || style === 'h7') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 7 || style.includes('heading 7') || style === 'h7') {
                             stats.headings.h7++;
-                        } else if (style.includes('heading 8') || style === 'h8') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 8 || style.includes('heading 8') || style === 'h8') {
                             stats.headings.h8++;
-                        } else if (style.includes('heading 9') || style === 'h9') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 9 || style.includes('heading 9') || style === 'h9') {
                             stats.headings.h9++;
-                        } else if (style.includes('heading 10') || style === 'h10') {
+                            if (customHeadingLevel) stats.headings.custom++;
+                        } else if (customHeadingLevel === 10 || style.includes('heading 10') || style === 'h10') {
                             stats.headings.h10++;
                         } else if (style.includes('heading')) {
                             stats.headings.other++;
                         }
                         
-                        // Count and check captions
-                        const tableMatch = text.match(/^(Table\s+\d+[\.\-]?\d*)/i);
-                        const figureMatch = text.match(/^(Figure\s+\d+[\.\-]?\d*)/i);
+                        // Count and check captions - supports complex numbering like Table 3.2.S.2.2-1
+                        const tableMatch = text.match(/^(Table\s*[\d\.\-\w]+[\-\s]*\d*)/i);
+                        const figureMatch = text.match(/^(Figure\s*[\d\.\-\w]+[\-\s]*\d*)/i);
                         
                         if (tableMatch || style === 'caption') {
                             stats.captions.table++;
-                            captionTexts.push({ type: 'Table', text: text, searchText: text.substring(0, 30) });
+                            captionTexts.push({ type: 'Table', text: text, searchText: text.substring(0, 50) });
                         }
                         if (figureMatch) {
                             stats.captions.figure++;
-                            captionTexts.push({ type: 'Figure', text: text, searchText: text.substring(0, 30) });
+                            captionTexts.push({ type: 'Figure', text: text, searchText: text.substring(0, 50) });
                         }
                         
                         // Count TOC entries
@@ -3115,6 +3858,9 @@
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 3</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.headings.h3}</b></td></tr>`;
                     const h4plus = stats.headings.h4 + stats.headings.h5 + stats.headings.h6 + stats.headings.h7 + stats.headings.h8 + stats.headings.h9 + stats.headings.h10 + stats.headings.other;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Heading 4-10+</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${h4plus}</b></td></tr>`;
+                    if (stats.headings.custom > 0) {
+                        html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;color:#0d47a1;">↳ Custom Styles</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;color:#0d47a1;"><b>${stats.headings.custom}</b></td></tr>`;
+                    }
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Body Paragraphs</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.bodyText}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Table Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.table}</b></td></tr>`;
                     html += `<tr><td style="padding:4px;border-bottom:1px solid #eee;">Figure Captions</td><td style="padding:4px;border-bottom:1px solid #eee;text-align:right;"><b>${stats.captions.figure}</b></td></tr>`;
@@ -3568,64 +4314,49 @@
         // PAGE SETUP - US LETTER WITH 1" MARGINS
         // ============================================
         async function handlePageSetup() {
-            try {
-                await Word.run(async (context) => {
-                    // Get all sections
-                    const sections = context.document.sections;
-                    sections.load("items");
-                    await context.sync();
+            // Word JS API does NOT support setting page size or margins
+            // This is a known limitation - show instructions instead
+            const instructions = `
+                <div style="text-align:left;">
+                    <p style="margin-bottom:12px;"><b>⚠️ Word JS API Limitation:</b><br>
+                    The Word JavaScript API cannot set page size or margins.</p>
                     
-                    if (sections.items.length === 0) {
-                        showToast('No sections found in document', 'error');
-                        return;
-                    }
+                    <p style="margin-bottom:8px;"><b>To set US Letter (8.5" × 11") with 1" margins:</b></p>
                     
-                    let success = false;
+                    <ol style="margin-left:20px;margin-bottom:12px;">
+                        <li>Go to <b>Layout</b> tab</li>
+                        <li>Click <b>Size</b> → Select <b>Letter</b></li>
+                        <li>Click <b>Margins</b> → Select <b>Normal</b> (1" all sides)</li>
+                    </ol>
                     
-                    // Try to set page setup on first section
-                    const section = sections.items[0];
+                    <p style="margin-bottom:8px;"><b>Or use keyboard shortcut:</b></p>
+                    <p style="margin-left:20px;font-family:monospace;">Alt → P → SZ → L (for Letter)<br>
+                    Alt → P → M → N (for Normal margins)</p>
                     
-                    try {
-                        // US Letter size: 8.5" x 11" (in points: 72 points = 1 inch)
-                        section.pageWidth = 612;   // 8.5 * 72
-                        section.pageHeight = 792;  // 11 * 72
-                        
-                        // 1" margins on all sides
-                        section.marginTop = 72;
-                        section.marginBottom = 72;
-                        section.marginLeft = 72;
-                        section.marginRight = 72;
-                        
-                        await context.sync();
-                        success = true;
-                        
-                        // Apply to remaining sections if any
-                        for (let i = 1; i < sections.items.length; i++) {
-                            const sect = sections.items[i];
-                            sect.pageWidth = 612;
-                            sect.pageHeight = 792;
-                            sect.marginTop = 72;
-                            sect.marginBottom = 72;
-                            sect.marginLeft = 72;
-                            sect.marginRight = 72;
-                        }
-                        await context.sync();
-                        
-                    } catch (propError) {
-                        console.error("Section property error:", propError);
-                        // The API might not support setting these properties
-                        showToast('Page setup not supported in this Word version. Use Layout > Size/Margins manually.', 'error');
-                        return;
-                    }
-                    
-                    if (success) {
-                        showToast(`US Letter + 1" margins applied to ${sections.items.length} section(s)!`, 'success');
-                    }
-                });
-            } catch (error) {
-                console.error("Page Setup Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
+                    <p style="margin-top:12px;font-size:11px;color:#666;">
+                    💡 VBA can do this - see FormatCure VBA macros.</p>
+                </div>
+            `;
+            
+            // Show in a simple alert or create a modal
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:8px;padding:20px;max-width:350px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <span style="font-weight:600;font-size:14px;">📄 US Letter Page Setup</span>
+                        <button onclick="this.closest('div').parentElement.remove()" style="border:none;background:none;font-size:20px;cursor:pointer;">×</button>
+                    </div>
+                    ${instructions}
+                    <div style="text-align:right;margin-top:16px;">
+                        <button onclick="this.closest('div').parentElement.remove()" style="padding:8px 16px;background:#1976d2;color:white;border:none;border-radius:4px;cursor:pointer;">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) modal.remove();
+            });
         }
 
         // ============================================
