@@ -550,12 +550,36 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #50</span>
+        <span class="build-num">Build #54</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
     <div class="main-content">
         <div class="button-grid">
+            <!-- US Letter Page Setup - FIRST -->
+            <div class="tooltip-container full-width">
+                <button class="btn primary full-btn" id="btnPageSetup">
+                    <div class="btn-icon">📄</div>
+                    <span class="btn-label">US Letter Page Setup (1" margins)</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">US Letter Page Setup</div>
+                    <div class="tooltip-desc">Set page to US Letter (8.5" × 11") with 1" margins on all sides.</div>
+                </div>
+            </div>
+
+            <!-- Convert Numbered Lines to Headings -->
+            <div class="tooltip-container full-width">
+                <button class="btn accent full-btn" id="btnConvertToHeadings">
+                    <div class="btn-icon">H#</div>
+                    <span class="btn-label">Convert Numbered Lines to Headings</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Convert to Headings</div>
+                    <div class="tooltip-desc">Intelligently convert numbered lists (1., 1.1, 1.1.1) to real Heading styles. Supports CTD prefixes.</div>
+                </div>
+            </div>
+
             <!-- Title Case -->
             <div class="tooltip-container">
                 <button class="btn primary" id="btnTitleCase">
@@ -1067,6 +1091,69 @@
         </div>
     </div>
 
+    <!-- Convert to Headings Modal -->
+    <div class="modal-overlay" id="convertHeadingsModal">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header" style="background:#7c3aed;">
+                <span class="modal-title" style="color:white;">Convert Numbered Lines to Headings</span>
+                <button class="modal-close" id="convertHeadingsClose" style="color:white;">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" style="margin-bottom:12px;">Convert numbered list items to real Heading styles.</p>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Prefix (optional, for CTD modules):</label>
+                    <input type="text" id="headingPrefix" placeholder="e.g., 3.2.S.2.3." style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
+                    <p style="font-size:10px;color:#666;margin-top:4px;">Leave empty for standard numbering (1., 1.1, 1.1.1)</p>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Pattern Preview:</label>
+                    <div id="patternPreview" style="background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:8px;font-family:monospace;font-size:11px;">
+                        <div>1 or 1. → Heading 1</div>
+                        <div>1.1 → Heading 2</div>
+                        <div>1.1.1 → Heading 3</div>
+                        <div>1.1.1.1 → Heading 4</div>
+                        <div>1.1.1.1.1 → Heading 5</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:12px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Options:</label>
+                    <div style="font-size:12px;">
+                        <label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                            <input type="checkbox" id="optRemoveNumber"> Remove number prefix after converting
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                            <input type="checkbox" id="optSkipTables" checked> Skip lines inside tables
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;">
+                            <input type="checkbox" id="optSkipShort" checked> Skip if text &lt; 3 characters
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:8px;">
+                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Max heading text length:</label>
+                    <input type="number" id="maxHeadingLength" value="150" min="20" max="500" style="width:80px;padding:6px;font-size:12px;border:1px solid #ccc;border-radius:4px;">
+                    <span style="font-size:11px;color:#666;margin-left:8px;">characters (skip longer lines)</span>
+                </div>
+                
+                <div id="scanStatus" style="padding:8px;background:#e3f2fd;border-radius:4px;font-size:11px;margin-top:12px;display:none;">
+                    Scanning...
+                </div>
+                
+                <div id="previewResults" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;margin-top:12px;display:none;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="convertHeadingsScan" style="background:#2196f3;color:white;">Scan Document</button>
+                <button class="modal-btn cancel" id="convertHeadingsCancel">Cancel</button>
+                <button class="modal-btn apply" id="convertHeadingsApply" disabled>Convert</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast" id="toast">
         <span class="toast-icon">✓</span>
@@ -1099,6 +1186,12 @@
         // Initialize Office
         Office.onReady(function(info) {
             if (info.host === Office.HostType.Word) {
+                // Page Setup button
+                document.getElementById('btnPageSetup').addEventListener('click', handlePageSetup);
+                
+                // Convert to Headings button
+                document.getElementById('btnConvertToHeadings').addEventListener('click', showConvertHeadingsModal);
+                
                 // Text Formatting buttons
                 document.getElementById('btnTitleCase').addEventListener('click', handleTitleCase);
                 document.getElementById('btnSentenceCase').addEventListener('click', handleSentenceCase);
@@ -1179,6 +1272,16 @@
                     if (e.target === this) hideStyleScannerModal();
                 });
                 
+                // Convert to Headings Modal events
+                document.getElementById('convertHeadingsClose').addEventListener('click', hideConvertHeadingsModal);
+                document.getElementById('convertHeadingsCancel').addEventListener('click', hideConvertHeadingsModal);
+                document.getElementById('convertHeadingsScan').addEventListener('click', scanForHeadingCandidates);
+                document.getElementById('convertHeadingsApply').addEventListener('click', applyHeadingConversion);
+                document.getElementById('convertHeadingsModal').addEventListener('click', function(e) {
+                    if (e.target === this) hideConvertHeadingsModal();
+                });
+                document.getElementById('headingPrefix').addEventListener('input', updatePatternPreview);
+                
                 // Show ready state
                 showToast('FormatCure WL ready!', 'success');
             }
@@ -1222,15 +1325,24 @@
                         await context.sync();
 
                         if (paragraphs.items.length > 0) {
-                            targetRange = paragraphs.items[0].getRange();
-                            targetRange.load("text");
+                            const para = paragraphs.items[0];
+                            para.load("text");
                             await context.sync();
-                            textToConvert = targetRange.text;
                             
-                            // Remove trailing paragraph mark
+                            textToConvert = para.text;
+                            
+                            // Remove trailing paragraph mark/carriage return
                             if (textToConvert.endsWith('\r')) {
                                 textToConvert = textToConvert.slice(0, -1);
                             }
+                            
+                            // Get range excluding the paragraph mark
+                            targetRange = para.getRange(Word.RangeLocation.content);
+                        }
+                    } else {
+                        // Selection exists - remove trailing CR if present
+                        if (textToConvert.endsWith('\r')) {
+                            textToConvert = textToConvert.slice(0, -1);
                         }
                     }
 
@@ -1273,15 +1385,23 @@
 
                         if (paragraphs.items.length > 0) {
                             para = paragraphs.items[0];
-                            targetRange = para.getRange();
-                            targetRange.load("text");
+                            para.load("text");
                             await context.sync();
-                            textToConvert = targetRange.text;
                             
-                            // Remove trailing paragraph mark
+                            textToConvert = para.text;
+                            
+                            // Remove trailing paragraph mark/carriage return
                             if (textToConvert.endsWith('\r')) {
                                 textToConvert = textToConvert.slice(0, -1);
                             }
+                            
+                            // Get range excluding the paragraph mark
+                            targetRange = para.getRange(Word.RangeLocation.content);
+                        }
+                    } else {
+                        // Selection exists - remove trailing CR if present
+                        if (textToConvert.endsWith('\r')) {
+                            textToConvert = textToConvert.slice(0, -1);
                         }
                     }
 
@@ -1770,7 +1890,7 @@
                     // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
-                    // Set cell padding for entire table (if supported)
+                    // Set table-level default cell padding (if supported)
                     if (paddingSupported) {
                         try {
                             table.setCellPadding("Top", 3);
@@ -1778,7 +1898,7 @@
                             table.setCellPadding("Left", 5);
                             table.setCellPadding("Right", 5);
                         } catch (padErr) {
-                            console.log('Cell padding error:', padErr);
+                            console.log('Table padding error:', padErr);
                         }
                     }
                     
@@ -1792,7 +1912,7 @@
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
                     
-                    // Format header cells - left align, clear shading
+                    // Format header cells - left align, clear shading, set cell padding
                     const headerCells = headerRow.cells;
                     headerCells.load("items");
                     await context.sync();
@@ -1800,6 +1920,15 @@
                     for (let i = 0; i < headerCells.items.length; i++) {
                         // Set cell shading to white (clear any color)
                         headerCells.items[i].shadingColor = "FFFFFF";
+                        // Set cell-level padding to override any existing settings
+                        if (paddingSupported) {
+                            try {
+                                headerCells.items[i].setCellPadding("Top", 3);
+                                headerCells.items[i].setCellPadding("Bottom", 3);
+                                headerCells.items[i].setCellPadding("Left", 5);
+                                headerCells.items[i].setCellPadding("Right", 5);
+                            } catch (e) { /* ignore */ }
+                        }
                         headerCells.items[i].body.paragraphs.load("items");
                     }
                     await context.sync();
@@ -1832,6 +1961,15 @@
                         for (let c = 0; c < cells.items.length; c++) {
                             // Clear body cell shading
                             cells.items[c].shadingColor = "FFFFFF";
+                            // Set cell-level padding to override any existing settings
+                            if (paddingSupported) {
+                                try {
+                                    cells.items[c].setCellPadding("Top", 3);
+                                    cells.items[c].setCellPadding("Bottom", 3);
+                                    cells.items[c].setCellPadding("Left", 5);
+                                    cells.items[c].setCellPadding("Right", 5);
+                                } catch (e) { /* ignore */ }
+                            }
                             cells.items[c].body.paragraphs.load("items");
                         }
                         await context.sync();
@@ -1884,7 +2022,7 @@
                     for (let t = 0; t < tables.items.length; t++) {
                         const table = tables.items[t];
                         
-                        // Set cell padding for entire table (if supported)
+                        // Set table-level default cell padding (if supported)
                         if (paddingSupported) {
                             try {
                                 table.setCellPadding("Top", 3);
@@ -1892,7 +2030,7 @@
                                 table.setCellPadding("Left", 5);
                                 table.setCellPadding("Right", 5);
                             } catch (padErr) {
-                                console.log('Cell padding error:', padErr);
+                                console.log('Table padding error:', padErr);
                             }
                         }
                         
@@ -1916,6 +2054,15 @@
                             for (let i = 0; i < headerCells.items.length; i++) {
                                 // Set cell shading to white
                                 headerCells.items[i].shadingColor = "FFFFFF";
+                                // Set cell-level padding to override any existing settings
+                                if (paddingSupported) {
+                                    try {
+                                        headerCells.items[i].setCellPadding("Top", 3);
+                                        headerCells.items[i].setCellPadding("Bottom", 3);
+                                        headerCells.items[i].setCellPadding("Left", 5);
+                                        headerCells.items[i].setCellPadding("Right", 5);
+                                    } catch (e) { /* ignore */ }
+                                }
                                 headerCells.items[i].body.paragraphs.load("items");
                             }
                             await context.sync();
@@ -1941,6 +2088,15 @@
                                 for (let c = 0; c < cells.items.length; c++) {
                                     // Set body cell shading to white
                                     cells.items[c].shadingColor = "FFFFFF";
+                                    // Set cell-level padding to override any existing settings
+                                    if (paddingSupported) {
+                                        try {
+                                            cells.items[c].setCellPadding("Top", 3);
+                                            cells.items[c].setCellPadding("Bottom", 3);
+                                            cells.items[c].setCellPadding("Left", 5);
+                                            cells.items[c].setCellPadding("Right", 5);
+                                        } catch (e) { /* ignore */ }
+                                    }
                                     cells.items[c].body.paragraphs.load("items");
                                 }
                                 await context.sync();
@@ -3273,6 +3429,283 @@
                 });
             } catch (error) {
                 console.error("Update TOC/LOT/LOF Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // PAGE SETUP - US LETTER WITH 1" MARGINS
+        // ============================================
+        async function handlePageSetup() {
+            try {
+                await Word.run(async (context) => {
+                    const sections = context.document.sections;
+                    sections.load("items");
+                    await context.sync();
+                    
+                    // Apply to all sections
+                    for (let i = 0; i < sections.items.length; i++) {
+                        const section = sections.items[i];
+                        
+                        // US Letter size: 8.5" x 11" (in points: 612 x 792)
+                        section.pageWidth = 612;  // 8.5 inches * 72 points/inch
+                        section.pageHeight = 792; // 11 inches * 72 points/inch
+                        
+                        // 1" margins on all sides (72 points = 1 inch)
+                        section.marginTop = 72;
+                        section.marginBottom = 72;
+                        section.marginLeft = 72;
+                        section.marginRight = 72;
+                    }
+                    
+                    await context.sync();
+                    showToast(`Page setup applied: US Letter, 1" margins (${sections.items.length} section(s))`, 'success');
+                });
+            } catch (error) {
+                console.error("Page Setup Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // CONVERT TO HEADINGS - Modal Functions
+        // ============================================
+        
+        // Store scan results for conversion
+        let headingCandidates = [];
+        
+        function showConvertHeadingsModal() {
+            document.getElementById('convertHeadingsModal').style.display = 'flex';
+            document.getElementById('headingPrefix').value = '';
+            document.getElementById('previewResults').style.display = 'none';
+            document.getElementById('scanStatus').style.display = 'none';
+            document.getElementById('convertHeadingsApply').disabled = true;
+            headingCandidates = [];
+            updatePatternPreview();
+        }
+        
+        function hideConvertHeadingsModal() {
+            document.getElementById('convertHeadingsModal').style.display = 'none';
+            headingCandidates = [];
+        }
+        
+        function updatePatternPreview() {
+            const prefix = document.getElementById('headingPrefix').value.trim();
+            const preview = document.getElementById('patternPreview');
+            
+            if (prefix) {
+                preview.innerHTML = `
+                    <div>${prefix}1 → Heading 1</div>
+                    <div>${prefix}1.1 → Heading 2</div>
+                    <div>${prefix}1.1.1 → Heading 3</div>
+                    <div>${prefix}1.1.1.1 → Heading 4</div>
+                    <div>${prefix}1.1.1.1.1 → Heading 5</div>
+                `;
+            } else {
+                preview.innerHTML = `
+                    <div>1 or 1. → Heading 1</div>
+                    <div>1.1 → Heading 2</div>
+                    <div>1.1.1 → Heading 3</div>
+                    <div>1.1.1.1 → Heading 4</div>
+                    <div>1.1.1.1.1 → Heading 5</div>
+                `;
+            }
+        }
+        
+        function detectHeadingLevel(text, prefix) {
+            // Remove leading/trailing whitespace
+            text = text.trim();
+            
+            let numberPart = '';
+            let restOfText = '';
+            
+            if (prefix) {
+                // With prefix: look for prefix followed by numbers
+                // e.g., "3.2.S.2.3.1 Introduction" with prefix "3.2.S.2.3."
+                if (!text.startsWith(prefix)) {
+                    return null;
+                }
+                const afterPrefix = text.substring(prefix.length);
+                // Match: digits followed by optional (.digits)* then space/tab
+                const match = afterPrefix.match(/^(\d+(?:\.\d+)*)\s+(.+)/);
+                if (!match) return null;
+                numberPart = match[1];
+                restOfText = match[2];
+            } else {
+                // No prefix: standard numbering (1., 1.1, 1.1.1, etc.)
+                // Match: digits followed by optional (.digits)* then optional dot, then space/tab
+                const match = text.match(/^(\d+(?:\.\d+)*)\.?\s+(.+)/);
+                if (!match) return null;
+                numberPart = match[1];
+                restOfText = match[2];
+            }
+            
+            // Count the dots to determine heading level
+            // "1" = level 1, "1.1" = level 2, "1.1.1" = level 3, etc.
+            const dotCount = (numberPart.match(/\./g) || []).length;
+            const level = dotCount + 1;
+            
+            // Cap at heading level 5
+            if (level > 5) return null;
+            
+            return {
+                level: level,
+                numberPart: prefix ? prefix + numberPart : numberPart,
+                textPart: restOfText,
+                fullMatch: prefix ? prefix + numberPart : numberPart
+            };
+        }
+        
+        async function scanForHeadingCandidates() {
+            const prefix = document.getElementById('headingPrefix').value.trim();
+            const skipTables = document.getElementById('optSkipTables').checked;
+            const skipShort = document.getElementById('optSkipShort').checked;
+            const maxLength = parseInt(document.getElementById('maxHeadingLength').value) || 150;
+            
+            const scanStatus = document.getElementById('scanStatus');
+            const previewResults = document.getElementById('previewResults');
+            const applyBtn = document.getElementById('convertHeadingsApply');
+            
+            scanStatus.style.display = 'block';
+            scanStatus.innerHTML = 'Scanning document...';
+            previewResults.style.display = 'none';
+            applyBtn.disabled = true;
+            headingCandidates = [];
+            
+            try {
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    // Load paragraph properties
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("text, style, parentTableOrNullObject");
+                    }
+                    await context.sync();
+                    
+                    const candidates = [];
+                    
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        const text = para.text.trim();
+                        const styleName = para.style.toLowerCase();
+                        
+                        // Skip if already a heading
+                        if (styleName.includes('heading')) continue;
+                        
+                        // Skip if inside table (if option checked)
+                        if (skipTables && !para.parentTableOrNullObject.isNullObject) continue;
+                        
+                        // Skip TOC/LOT/LOF styles
+                        if (styleName.includes('toc') || styleName.includes('table of')) continue;
+                        
+                        // Detect heading level
+                        const detection = detectHeadingLevel(text, prefix);
+                        if (!detection) continue;
+                        
+                        // Skip if text part too short
+                        if (skipShort && detection.textPart.length < 3) continue;
+                        
+                        // Skip if text part too long (probably body text)
+                        if (detection.textPart.length > maxLength) continue;
+                        
+                        candidates.push({
+                            index: i,
+                            text: text,
+                            level: detection.level,
+                            numberPart: detection.numberPart,
+                            textPart: detection.textPart
+                        });
+                    }
+                    
+                    headingCandidates = candidates;
+                    
+                    // Update UI
+                    if (candidates.length > 0) {
+                        scanStatus.innerHTML = `Found <b>${candidates.length}</b> lines to convert`;
+                        scanStatus.style.background = '#e8f5e9';
+                        
+                        // Show preview (max 10 items)
+                        let previewHtml = '<table style="width:100%;font-size:11px;border-collapse:collapse;">';
+                        previewHtml += '<tr style="background:#f5f5f5;"><th style="padding:4px;text-align:left;">Line</th><th style="padding:4px;text-align:left;">→</th><th style="padding:4px;text-align:left;">Style</th></tr>';
+                        
+                        const showCount = Math.min(candidates.length, 10);
+                        for (let i = 0; i < showCount; i++) {
+                            const c = candidates[i];
+                            const shortText = c.text.length > 40 ? c.text.substring(0, 40) + '...' : c.text;
+                            previewHtml += `<tr style="border-bottom:1px solid #eee;">
+                                <td style="padding:4px;font-family:monospace;">${shortText}</td>
+                                <td style="padding:4px;">→</td>
+                                <td style="padding:4px;color:#1e40af;font-weight:600;">H${c.level}</td>
+                            </tr>`;
+                        }
+                        if (candidates.length > 10) {
+                            previewHtml += `<tr><td colspan="3" style="padding:4px;color:#666;font-style:italic;">... and ${candidates.length - 10} more</td></tr>`;
+                        }
+                        previewHtml += '</table>';
+                        
+                        previewResults.innerHTML = previewHtml;
+                        previewResults.style.display = 'block';
+                        applyBtn.disabled = false;
+                    } else {
+                        scanStatus.innerHTML = 'No matching lines found. Try adjusting the prefix or options.';
+                        scanStatus.style.background = '#fff3e0';
+                        previewResults.style.display = 'none';
+                        applyBtn.disabled = true;
+                    }
+                });
+            } catch (error) {
+                console.error("Scan Error:", error);
+                scanStatus.innerHTML = 'Error: ' + error.message;
+                scanStatus.style.background = '#ffebee';
+            }
+        }
+        
+        async function applyHeadingConversion() {
+            if (headingCandidates.length === 0) {
+                showToast('No candidates to convert. Run scan first.', 'error');
+                return;
+            }
+            
+            const removeNumber = document.getElementById('optRemoveNumber').checked;
+            
+            try {
+                await Word.run(async (context) => {
+                    const paragraphs = context.document.body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    let convertedCount = 0;
+                    
+                    // Apply heading styles
+                    for (const candidate of headingCandidates) {
+                        const para = paragraphs.items[candidate.index];
+                        if (!para) continue;
+                        
+                        // Apply heading style
+                        para.style = `Heading ${candidate.level}`;
+                        
+                        // Optionally remove the number prefix
+                        if (removeNumber) {
+                            para.load("text");
+                            await context.sync();
+                            
+                            // Get range and replace with just the text part
+                            const range = para.getRange(Word.RangeLocation.content);
+                            range.insertText(candidate.textPart, Word.InsertLocation.replace);
+                        }
+                        
+                        convertedCount++;
+                    }
+                    
+                    await context.sync();
+                    
+                    hideConvertHeadingsModal();
+                    showToast(`Converted ${convertedCount} lines to headings!`, 'success');
+                });
+            } catch (error) {
+                console.error("Conversion Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
