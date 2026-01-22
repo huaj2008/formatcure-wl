@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #55</span>
+        <span class="build-num">Build #57</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -1058,17 +1058,29 @@
 
     <!-- Custom Uppercase Modal -->
     <div class="modal-overlay" id="customUppercaseModal">
-        <div class="modal" style="max-width: 400px;">
+        <div class="modal" style="max-width: 450px;">
             <div class="modal-header">
                 <span class="modal-title">Custom UPPERCASE</span>
                 <button class="modal-close" id="customUppercaseClose">×</button>
             </div>
             <div class="modal-body">
                 <p class="modal-desc">Enter terms to UPPERCASE (one per line):</p>
-                <textarea id="customUppercaseInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="xyz-123&#10;abc-456&#10;drug name"></textarea>
+                <textarea id="customUppercaseInput" rows="5" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="xyz-123&#10;abc-456&#10;drug name"></textarea>
                 <p style="font-size:11px;color:#666;margin-top:8px;">Will convert all instances to UPPERCASE (e.g., xyz-123 → XYZ-123)</p>
+                
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label style="font-weight:600;font-size:12px;">My Saved Terms:</label>
+                        <button id="clearSavedTerms" style="font-size:10px;padding:2px 6px;background:#f5f5f5;border:1px solid #ccc;border-radius:3px;cursor:pointer;">Clear All</button>
+                    </div>
+                    <div id="savedTermsList" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:11px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
+                        No saved terms
+                    </div>
+                    <p style="font-size:10px;color:#888;margin-top:4px;">💡 Saved terms persist between sessions</p>
+                </div>
             </div>
             <div class="modal-footer">
+                <button class="modal-btn" id="customUppercaseSave" style="background:#4caf50;color:white;">Save Terms</button>
                 <button class="modal-btn cancel" id="customUppercaseCancel">Cancel</button>
                 <button class="modal-btn apply" id="customUppercaseApply">Apply to Document</button>
             </div>
@@ -1182,6 +1194,26 @@
             'a', 'an', 'the', 'at', 'by', 'for', 'in', 'of', 'on', 'to', 'up',
             'and', 'as', 'but', 'or', 'nor', 'so', 'yet', 'be'
         ];
+        
+        // Storage key for user-saved uppercase terms
+        const SAVED_TERMS_KEY = 'formatcure_custom_uppercase_terms';
+        
+        // Function to get ALL preserved terms (built-in + user-saved)
+        function getAllPreservedTerms() {
+            let allTerms = [...PRESERVED_TERMS];
+            
+            try {
+                const saved = localStorage.getItem(SAVED_TERMS_KEY);
+                if (saved) {
+                    const userTerms = JSON.parse(saved);
+                    allTerms = allTerms.concat(userTerms);
+                }
+            } catch (e) {
+                console.log('Could not load user terms:', e);
+            }
+            
+            return allTerms;
+        }
 
         // Initialize Office
         Office.onReady(function(info) {
@@ -1260,9 +1292,14 @@
                 document.getElementById('customUppercaseClose').addEventListener('click', hideCustomUppercaseModal);
                 document.getElementById('customUppercaseCancel').addEventListener('click', hideCustomUppercaseModal);
                 document.getElementById('customUppercaseApply').addEventListener('click', applyCustomUppercase);
+                document.getElementById('customUppercaseSave').addEventListener('click', saveCustomTerms);
+                document.getElementById('clearSavedTerms').addEventListener('click', clearSavedTerms);
                 document.getElementById('customUppercaseModal').addEventListener('click', function(e) {
                     if (e.target === this) hideCustomUppercaseModal();
                 });
+                
+                // Load saved terms on startup
+                loadSavedTerms();
                 
                 // Style Scanner events
                 document.getElementById('btnStyleScanner').addEventListener('click', runStyleScanner);
@@ -2572,10 +2609,89 @@
         // ============================================
         // CUSTOM UPPERCASE MODAL & HANDLER
         // ============================================
+        
+        function loadSavedTerms() {
+            try {
+                const saved = localStorage.getItem(SAVED_TERMS_KEY);
+                const savedList = document.getElementById('savedTermsList');
+                
+                if (saved) {
+                    const terms = JSON.parse(saved);
+                    if (terms.length > 0) {
+                        savedList.innerHTML = terms.map(t => `<span style="background:#e3f2fd;padding:1px 4px;border-radius:2px;margin:1px;">${t}</span>`).join(' ');
+                        savedList.style.color = '#333';
+                    } else {
+                        savedList.innerHTML = 'No saved terms';
+                        savedList.style.color = '#666';
+                    }
+                } else {
+                    savedList.innerHTML = 'No saved terms';
+                    savedList.style.color = '#666';
+                }
+            } catch (e) {
+                console.log('Could not load saved terms:', e);
+            }
+        }
+        
+        function saveCustomTerms() {
+            const input = document.getElementById('customUppercaseInput').value.trim();
+            
+            if (!input) {
+                showToast('Enter terms to save first', 'error');
+                return;
+            }
+            
+            // Parse input - one term per line
+            const newTerms = input.split('\n')
+                .map(line => line.trim().toUpperCase())
+                .filter(line => line.length > 0);
+            
+            if (newTerms.length === 0) {
+                showToast('Enter at least one term', 'error');
+                return;
+            }
+            
+            try {
+                // Get existing saved terms
+                const saved = localStorage.getItem(SAVED_TERMS_KEY);
+                let existingTerms = saved ? JSON.parse(saved) : [];
+                
+                // Merge and deduplicate
+                const allTerms = [...new Set([...existingTerms, ...newTerms])];
+                
+                // Save
+                localStorage.setItem(SAVED_TERMS_KEY, JSON.stringify(allTerms));
+                
+                // Update display
+                loadSavedTerms();
+                
+                // Clear input
+                document.getElementById('customUppercaseInput').value = '';
+                
+                showToast(`Saved ${newTerms.length} term(s)! Total: ${allTerms.length}`, 'success');
+            } catch (e) {
+                console.error('Could not save terms:', e);
+                showToast('Could not save terms (localStorage not available)', 'error');
+            }
+        }
+        
+        function clearSavedTerms() {
+            if (confirm('Clear all saved uppercase terms?')) {
+                try {
+                    localStorage.removeItem(SAVED_TERMS_KEY);
+                    loadSavedTerms();
+                    showToast('Saved terms cleared', 'success');
+                } catch (e) {
+                    console.error('Could not clear terms:', e);
+                }
+            }
+        }
+        
         function showCustomUppercaseModal() {
             document.getElementById('customUppercaseModal').classList.add('show');
             document.getElementById('customUppercaseInput').value = '';
             document.getElementById('customUppercaseInput').focus();
+            loadSavedTerms(); // Refresh saved terms display
         }
         
         function hideCustomUppercaseModal() {
@@ -2585,18 +2701,33 @@
         async function applyCustomUppercase() {
             const input = document.getElementById('customUppercaseInput').value.trim();
             
-            if (!input) {
-                showToast('Enter at least one term', 'error');
-                return;
+            // Get terms from input AND saved terms
+            let terms = [];
+            
+            // Add terms from input
+            if (input) {
+                const inputTerms = input.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+                terms = terms.concat(inputTerms);
             }
             
-            // Parse input - one term per line
-            const terms = input.split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 0);
+            // Add saved terms
+            try {
+                const saved = localStorage.getItem(SAVED_TERMS_KEY);
+                if (saved) {
+                    const savedTerms = JSON.parse(saved);
+                    terms = terms.concat(savedTerms);
+                }
+            } catch (e) {
+                console.log('Could not load saved terms:', e);
+            }
+            
+            // Deduplicate
+            terms = [...new Set(terms.map(t => t.toLowerCase()))];
             
             if (terms.length === 0) {
-                showToast('Enter at least one term', 'error');
+                showToast('Enter terms or save some terms first', 'error');
                 return;
             }
             
@@ -2629,7 +2760,7 @@
                     }
                     
                     if (totalFormatted > 0) {
-                        showToast(`Uppercased ${totalFormatted} instance(s)!`, 'success');
+                        showToast(`Uppercased ${totalFormatted} instance(s) from ${terms.length} term(s)!`, 'success');
                     } else {
                         showToast('No matching terms found in document', 'error');
                     }
@@ -3449,19 +3580,12 @@
                         return;
                     }
                     
-                    // Apply to all sections
-                    for (let i = 0; i < sections.items.length; i++) {
-                        const section = sections.items[i];
-                        
-                        // Load the section's page setup properties
-                        section.load("pageWidth, pageHeight, marginTop, marginBottom, marginLeft, marginRight");
-                    }
-                    await context.sync();
+                    let success = false;
                     
-                    // Now set the values
-                    for (let i = 0; i < sections.items.length; i++) {
-                        const section = sections.items[i];
-                        
+                    // Try to set page setup on first section
+                    const section = sections.items[0];
+                    
+                    try {
                         // US Letter size: 8.5" x 11" (in points: 72 points = 1 inch)
                         section.pageWidth = 612;   // 8.5 * 72
                         section.pageHeight = 792;  // 11 * 72
@@ -3471,10 +3595,32 @@
                         section.marginBottom = 72;
                         section.marginLeft = 72;
                         section.marginRight = 72;
+                        
+                        await context.sync();
+                        success = true;
+                        
+                        // Apply to remaining sections if any
+                        for (let i = 1; i < sections.items.length; i++) {
+                            const sect = sections.items[i];
+                            sect.pageWidth = 612;
+                            sect.pageHeight = 792;
+                            sect.marginTop = 72;
+                            sect.marginBottom = 72;
+                            sect.marginLeft = 72;
+                            sect.marginRight = 72;
+                        }
+                        await context.sync();
+                        
+                    } catch (propError) {
+                        console.error("Section property error:", propError);
+                        // The API might not support setting these properties
+                        showToast('Page setup not supported in this Word version. Use Layout > Size/Margins manually.', 'error');
+                        return;
                     }
                     
-                    await context.sync();
-                    showToast(`US Letter + 1" margins applied to ${sections.items.length} section(s)!`, 'success');
+                    if (success) {
+                        showToast(`US Letter + 1" margins applied to ${sections.items.length} section(s)!`, 'success');
+                    }
                 });
             } catch (error) {
                 console.error("Page Setup Error:", error);
@@ -3730,7 +3876,7 @@
         // ============================================
         function convertToTitleCase(text) {
             const preservedMap = {};
-            PRESERVED_TERMS.forEach(term => {
+            getAllPreservedTerms().forEach(term => {
                 preservedMap[term.toLowerCase()] = term;
             });
             
@@ -3785,7 +3931,7 @@
 
         function convertToSentenceCase(text) {
             const preservedMap = {};
-            PRESERVED_TERMS.forEach(term => {
+            getAllPreservedTerms().forEach(term => {
                 preservedMap[term.toLowerCase()] = term;
             });
 
