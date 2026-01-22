@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #54</span>
+        <span class="build-num">Build #55</span>
     </div>
 
     <!-- Main Content - Flat button grid -->
@@ -3439,19 +3439,34 @@
         async function handlePageSetup() {
             try {
                 await Word.run(async (context) => {
+                    // Get all sections
                     const sections = context.document.sections;
                     sections.load("items");
                     await context.sync();
+                    
+                    if (sections.items.length === 0) {
+                        showToast('No sections found in document', 'error');
+                        return;
+                    }
                     
                     // Apply to all sections
                     for (let i = 0; i < sections.items.length; i++) {
                         const section = sections.items[i];
                         
-                        // US Letter size: 8.5" x 11" (in points: 612 x 792)
-                        section.pageWidth = 612;  // 8.5 inches * 72 points/inch
-                        section.pageHeight = 792; // 11 inches * 72 points/inch
+                        // Load the section's page setup properties
+                        section.load("pageWidth, pageHeight, marginTop, marginBottom, marginLeft, marginRight");
+                    }
+                    await context.sync();
+                    
+                    // Now set the values
+                    for (let i = 0; i < sections.items.length; i++) {
+                        const section = sections.items[i];
                         
-                        // 1" margins on all sides (72 points = 1 inch)
+                        // US Letter size: 8.5" x 11" (in points: 72 points = 1 inch)
+                        section.pageWidth = 612;   // 8.5 * 72
+                        section.pageHeight = 792;  // 11 * 72
+                        
+                        // 1" margins on all sides
                         section.marginTop = 72;
                         section.marginBottom = 72;
                         section.marginLeft = 72;
@@ -3459,7 +3474,7 @@
                     }
                     
                     await context.sync();
-                    showToast(`Page setup applied: US Letter, 1" margins (${sections.items.length} section(s))`, 'success');
+                    showToast(`US Letter + 1" margins applied to ${sections.items.length} section(s)!`, 'success');
                 });
             } catch (error) {
                 console.error("Page Setup Error:", error);
@@ -3475,7 +3490,7 @@
         let headingCandidates = [];
         
         function showConvertHeadingsModal() {
-            document.getElementById('convertHeadingsModal').style.display = 'flex';
+            document.getElementById('convertHeadingsModal').classList.add('show');
             document.getElementById('headingPrefix').value = '';
             document.getElementById('previewResults').style.display = 'none';
             document.getElementById('scanStatus').style.display = 'none';
@@ -3485,7 +3500,7 @@
         }
         
         function hideConvertHeadingsModal() {
-            document.getElementById('convertHeadingsModal').style.display = 'none';
+            document.getElementById('convertHeadingsModal').classList.remove('show');
             headingCandidates = [];
         }
         
