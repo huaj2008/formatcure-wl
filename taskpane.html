@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #67</span>
+        <span class="build-num">Build #69</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -607,7 +607,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Body Text</div>
-                    <div class="tooltip-desc">Sentence Case + TNR 12pt, 1.15 spacing, 6pt before/after.</div>
+                    <div class="tooltip-desc">TNR 12pt, 1.15 spacing, 6pt before/after. No case change.</div>
                 </div>
             </div>
 
@@ -784,6 +784,18 @@
             </div>
 
             <!-- ====== SPECIAL TOOLS ====== -->
+            <!-- Latin Terms Italic -->
+            <div class="tooltip-container">
+                <button class="btn success" id="btnLatinItalic">
+                    <div class="btn-icon">𝑖𝑣</div>
+                    <span class="btn-label">Latin Italic</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Italicize Latin Terms</div>
+                    <div class="tooltip-desc">Find and italicize: in vitro, in vivo, in situ, ex vivo, in utero throughout document.</div>
+                </div>
+            </div>
+
             <!-- Special Characters -->
             <div class="tooltip-container">
                 <button class="btn success" id="btnSpecialChars">
@@ -945,9 +957,9 @@
                 </div>
                 
                 <div style="max-height:280px;overflow-y:auto;">
-                    <!-- Title -->
+                    <!-- TOC Heading -->
                     <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">Title</label>
+                        <label style="font-size:11px;font-weight:600;">TOC</label>
                         <select id="hTocCase" style="font-size:10px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1" selected>Title</option>
@@ -1418,8 +1430,8 @@
     <!-- JavaScript -->
     <script type="text/javascript">
         // ============================================
-        // DOCUALIGN - TASKPANE LOGIC
-        // Version 1.1.0
+        // FORMATCURE WL - TASKPANE LOGIC
+        // Build #69
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -1495,6 +1507,7 @@
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
                 
                 // Document Tools buttons
+                document.getElementById('btnLatinItalic').addEventListener('click', handleLatinItalic);
                 document.getElementById('btnSpecialChars').addEventListener('click', showSpecialCharsModal);
                 document.getElementById('btnScientificNames').addEventListener('click', showScientificNamesModal);
                 document.getElementById('btnCustomUppercase').addEventListener('click', showCustomUppercaseModal);
@@ -1945,12 +1958,12 @@
                         const styleName = para.style;
                         const lowerStyleName = styleName.toLowerCase();
                         
-                        // Determine heading level (standard or custom) or Title
+                        // Determine heading level (standard or custom) or TOC Heading
                         let headingKey = getHeadingLevelForStyle(styleName);
                         
-                        // Fall back to legacy detection for Title and standard headings
+                        // Fall back to legacy detection for TOC and standard headings
                         if (headingKey === null) {
-                            if (lowerStyleName === 'title') {
+                            if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
                                 headingKey = 'toc';
                             } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
                             else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
@@ -2035,8 +2048,9 @@
         // ============================================
         // BODY FORMAT HANDLER
         // Applies body formatting while preserving cross-reference fields
+        // Skips: Headings, TOC Heading, paragraphs in tables, captions
         // For paragraphs WITH cross-refs: applies formatting only (no text change)
-        // For paragraphs WITHOUT cross-refs: applies formatting + sentence case
+        // For paragraphs WITHOUT cross-refs: applies formatting only (no case change)
         // ============================================
         async function handleBodyFormat() {
             try {
@@ -2049,8 +2063,48 @@
                     let paraCount = 0;
                     let skippedCount = 0;
 
+                    // Load style and text for all paragraphs first
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text, parentTableOrNullObject");
+                    }
+                    await context.sync();
+
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
+                        const styleName = (para.style || "").toLowerCase();
+                        const text = (para.text || "").trim().toLowerCase();
+                        
+                        // Skip if inside a table
+                        if (para.parentTableOrNullObject && !para.parentTableOrNullObject.isNullObject) {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Skip headings (H1-H10, TOC Heading)
+                        if (styleName.includes('heading') || styleName.includes('toc')) {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Skip TOC/LOT/LOF entries (TOC 1, TOC 2, etc. styles)
+                        if (styleName.match(/^toc\s*\d/) || styleName.includes('table of')) {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Skip TOC/LOT/LOF titles by content
+                        if (text === 'table of contents' || text === 'list of tables' || 
+                            text === 'list of figures' || text === 'contents' ||
+                            text === 'toc' || text === 'lot' || text === 'lof') {
+                            skippedCount++;
+                            continue;
+                        }
+                        
+                        // Skip captions (starts with "Table" or "Figure" followed by number)
+                        if (/^(table|figure)\s*[\d\.]/i.test(text)) {
+                            skippedCount++;
+                            continue;
+                        }
                         
                         // Apply paragraph-level formatting (spacing, alignment)
                         para.alignment = Word.Alignment.left;
@@ -2068,31 +2122,14 @@
                             // This preserves the hyperlinks
                             para.font.name = "Times New Roman";
                             para.font.size = 12;
-                            skippedCount++;
                         } else {
-                            // No cross-refs - safe to replace text and apply full formatting
-                            para.load("text");
-                            await context.sync();
-                            
-                            let text = para.text;
-                            if (text.endsWith('\r')) {
-                                text = text.slice(0, -1);
-                            }
-                            
-                            if (text.trim() !== '') {
-                                // Apply sentence case
-                                const converted = convertToSentenceCase(text);
-                                para.insertText(converted, Word.InsertLocation.replace);
-                                await context.sync();
-                            }
-                            
-                            // Apply full body font formatting (regular text)
+                            // No cross-refs - apply full body font formatting (no case change)
                             para.font.name = "Times New Roman";
                             para.font.size = 12;
                             para.font.bold = false;
                             para.font.italic = false;
                             para.font.underline = Word.UnderlineType.none;
-                            para.font.color = "#000000";
+                            para.font.color = "black";
                         }
                         
                         paraCount++;
@@ -2102,7 +2139,7 @@
                     
                     let msg = `Body format applied to ${paraCount} paragraph(s)!`;
                     if (skippedCount > 0) {
-                        msg += ` (${skippedCount} with cross-refs: font only)`;
+                        msg += ` (${skippedCount} skipped: headings/tables/captions)`;
                     }
                     showToast(msg, 'success');
                 });
@@ -2129,6 +2166,35 @@
                     
                     // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
+                    
+                    // Set table borders to 0.75pt (all borders)
+                    // 0.75pt = 0.75 points
+                    try {
+                        table.getBorder(Word.BorderLocation.top).width = 0.75;
+                        table.getBorder(Word.BorderLocation.bottom).width = 0.75;
+                        table.getBorder(Word.BorderLocation.left).width = 0.75;
+                        table.getBorder(Word.BorderLocation.right).width = 0.75;
+                        table.getBorder(Word.BorderLocation.insideHorizontal).width = 0.75;
+                        table.getBorder(Word.BorderLocation.insideVertical).width = 0.75;
+                        
+                        // Set border type to single line
+                        table.getBorder(Word.BorderLocation.top).type = Word.BorderType.single;
+                        table.getBorder(Word.BorderLocation.bottom).type = Word.BorderType.single;
+                        table.getBorder(Word.BorderLocation.left).type = Word.BorderType.single;
+                        table.getBorder(Word.BorderLocation.right).type = Word.BorderType.single;
+                        table.getBorder(Word.BorderLocation.insideHorizontal).type = Word.BorderType.single;
+                        table.getBorder(Word.BorderLocation.insideVertical).type = Word.BorderType.single;
+                        
+                        // Set border color to black
+                        table.getBorder(Word.BorderLocation.top).color = "000000";
+                        table.getBorder(Word.BorderLocation.bottom).color = "000000";
+                        table.getBorder(Word.BorderLocation.left).color = "000000";
+                        table.getBorder(Word.BorderLocation.right).color = "000000";
+                        table.getBorder(Word.BorderLocation.insideHorizontal).color = "000000";
+                        table.getBorder(Word.BorderLocation.insideVertical).color = "000000";
+                    } catch (borderErr) {
+                        console.log('Border setting error:', borderErr);
+                    }
                     
                     // Set table-level default cell padding (if supported)
                     if (paddingSupported) {
@@ -2160,7 +2226,7 @@
                     for (let i = 0; i < headerCells.items.length; i++) {
                         // Set cell shading to white (clear any color)
                         headerCells.items[i].shadingColor = "FFFFFF";
-                        // Set cell-level padding to override any existing settings
+                        // Set cell-level padding
                         if (paddingSupported) {
                             try {
                                 headerCells.items[i].setCellPadding("Top", 3);
@@ -2173,10 +2239,14 @@
                     }
                     await context.sync();
                     
+                    // Set consistent paragraph spacing in header cells
                     for (let i = 0; i < headerCells.items.length; i++) {
                         const paras = headerCells.items[i].body.paragraphs.items;
                         for (let j = 0; j < paras.length; j++) {
                             paras[j].alignment = Word.Alignment.left;
+                            paras[j].lineSpacing = 12; // Single spacing (10pt font)
+                            paras[j].spaceBefore = 0;
+                            paras[j].spaceAfter = 0;
                         }
                     }
                     
@@ -2201,7 +2271,7 @@
                         for (let c = 0; c < cells.items.length; c++) {
                             // Clear body cell shading
                             cells.items[c].shadingColor = "FFFFFF";
-                            // Set cell-level padding to override any existing settings
+                            // Set cell-level padding
                             if (paddingSupported) {
                                 try {
                                     cells.items[c].setCellPadding("Top", 3);
@@ -2214,10 +2284,14 @@
                         }
                         await context.sync();
                         
+                        // Set consistent paragraph spacing in body cells
                         for (let c = 0; c < cells.items.length; c++) {
                             const paras = cells.items[c].body.paragraphs.items;
                             for (let p = 0; p < paras.length; p++) {
                                 paras[p].alignment = Word.Alignment.left;
+                                paras[p].lineSpacing = 12; // Single spacing (10pt font)
+                                paras[p].spaceBefore = 0;
+                                paras[p].spaceAfter = 0;
                             }
                         }
                     }
@@ -2226,9 +2300,9 @@
                     table.autoFitWindow();
                     
                     await context.sync();
-                    let msg = 'Table formatted!';
+                    let msg = 'Table formatted (0.75pt borders)!';
                     if (paddingSupported) {
-                        msg += ' (with padding)';
+                        msg = 'Table formatted (0.75pt borders, padding)!';
                     }
                     showToast(msg, 'success');
                 });
@@ -2262,6 +2336,32 @@
                     for (let t = 0; t < tables.items.length; t++) {
                         const table = tables.items[t];
                         
+                        // Set table borders to 0.75pt (all borders)
+                        try {
+                            table.getBorder(Word.BorderLocation.top).width = 0.75;
+                            table.getBorder(Word.BorderLocation.bottom).width = 0.75;
+                            table.getBorder(Word.BorderLocation.left).width = 0.75;
+                            table.getBorder(Word.BorderLocation.right).width = 0.75;
+                            table.getBorder(Word.BorderLocation.insideHorizontal).width = 0.75;
+                            table.getBorder(Word.BorderLocation.insideVertical).width = 0.75;
+                            
+                            table.getBorder(Word.BorderLocation.top).type = Word.BorderType.single;
+                            table.getBorder(Word.BorderLocation.bottom).type = Word.BorderType.single;
+                            table.getBorder(Word.BorderLocation.left).type = Word.BorderType.single;
+                            table.getBorder(Word.BorderLocation.right).type = Word.BorderType.single;
+                            table.getBorder(Word.BorderLocation.insideHorizontal).type = Word.BorderType.single;
+                            table.getBorder(Word.BorderLocation.insideVertical).type = Word.BorderType.single;
+                            
+                            table.getBorder(Word.BorderLocation.top).color = "000000";
+                            table.getBorder(Word.BorderLocation.bottom).color = "000000";
+                            table.getBorder(Word.BorderLocation.left).color = "000000";
+                            table.getBorder(Word.BorderLocation.right).color = "000000";
+                            table.getBorder(Word.BorderLocation.insideHorizontal).color = "000000";
+                            table.getBorder(Word.BorderLocation.insideVertical).color = "000000";
+                        } catch (borderErr) {
+                            console.log('Border setting error:', borderErr);
+                        }
+                        
                         // Set table-level default cell padding (if supported)
                         if (paddingSupported) {
                             try {
@@ -2294,7 +2394,7 @@
                             for (let i = 0; i < headerCells.items.length; i++) {
                                 // Set cell shading to white
                                 headerCells.items[i].shadingColor = "FFFFFF";
-                                // Set cell-level padding to override any existing settings
+                                // Set cell-level padding
                                 if (paddingSupported) {
                                     try {
                                         headerCells.items[i].setCellPadding("Top", 3);
@@ -2307,10 +2407,14 @@
                             }
                             await context.sync();
                             
+                            // Set consistent paragraph spacing in header cells
                             for (let i = 0; i < headerCells.items.length; i++) {
                                 const paras = headerCells.items[i].body.paragraphs.items;
                                 for (let j = 0; j < paras.length; j++) {
                                     paras[j].alignment = Word.Alignment.left;
+                                    paras[j].lineSpacing = 12;
+                                    paras[j].spaceBefore = 0;
+                                    paras[j].spaceAfter = 0;
                                 }
                             }
                             
@@ -2328,7 +2432,7 @@
                                 for (let c = 0; c < cells.items.length; c++) {
                                     // Set body cell shading to white
                                     cells.items[c].shadingColor = "FFFFFF";
-                                    // Set cell-level padding to override any existing settings
+                                    // Set cell-level padding
                                     if (paddingSupported) {
                                         try {
                                             cells.items[c].setCellPadding("Top", 3);
@@ -2341,10 +2445,14 @@
                                 }
                                 await context.sync();
                                 
+                                // Set consistent paragraph spacing in body cells
                                 for (let c = 0; c < cells.items.length; c++) {
                                     const paras = cells.items[c].body.paragraphs.items;
                                     for (let p = 0; p < paras.length; p++) {
                                         paras[p].alignment = Word.Alignment.left;
+                                        paras[p].lineSpacing = 12;
+                                        paras[p].spaceBefore = 0;
+                                        paras[p].spaceAfter = 0;
                                     }
                                 }
                             }
@@ -2355,10 +2463,8 @@
                     }
                     
                     await context.sync();
-                    let msg = `Formatted ${tables.items.length} table(s)!`;
-                    if (paddingSupported) {
-                        msg += ' (with padding)';
-                    } else {
+                    let msg = `Formatted ${tables.items.length} table(s) (0.75pt borders)!`;
+                    if (!paddingSupported) {
                         msg += ' (padding needs VBA)';
                     }
                     showToast(msg, 'success');
@@ -2446,12 +2552,13 @@
                             continue;
                         }
 
-                        // Apply formatting to entire paragraph - Bold only, no italic/underline
+                        // Apply formatting to entire paragraph - Bold, black color, no italic/underline
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
                         para.font.bold = true;
                         para.font.italic = false;
                         para.font.underline = Word.UnderlineType.none;
+                        para.font.color = "black";
                         para.alignment = Word.Alignment.left;
                         
                         formattedCount++;
@@ -2617,6 +2724,48 @@
         }
 
         // ============================================
+        // LATIN TERMS ITALIC HANDLER
+        // Finds and italicizes: in vitro, in vivo, in situ, ex vivo, in utero
+        // ============================================
+        async function handleLatinItalic() {
+            const latinTerms = ['in vitro', 'in vivo', 'in situ', 'ex vivo', 'in utero'];
+            
+            try {
+                await Word.run(async (context) => {
+                    let totalCount = 0;
+                    
+                    for (const term of latinTerms) {
+                        // Search for each term (case insensitive)
+                        const searchResults = context.document.body.search(term, {
+                            matchCase: false,
+                            matchWholeWord: false
+                        });
+                        searchResults.load("items");
+                        await context.sync();
+                        
+                        // Italicize each found instance
+                        for (let i = 0; i < searchResults.items.length; i++) {
+                            searchResults.items[i].font.italic = true;
+                        }
+                        
+                        totalCount += searchResults.items.length;
+                    }
+                    
+                    await context.sync();
+                    
+                    if (totalCount > 0) {
+                        showToast(`Italicized ${totalCount} Latin term(s)!`, 'success');
+                    } else {
+                        showToast('No Latin terms found', 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Latin Italic Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
         // SPECIAL CHARACTERS MODAL
         // ============================================
         function showSpecialCharsModal() {
@@ -2642,9 +2791,6 @@
             }
         }
 
-        // ============================================
-        // LATIN TERMS HANDLER
-        // ============================================
         // ============================================
         // SCIENTIFIC NAMES MODAL & HANDLER
         // ============================================
@@ -3008,7 +3154,7 @@
                     const skipStyles = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
                                         'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
                                         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
-                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 'title',
+                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 
                                         'caption', 'header', 'footer', 'list paragraph', 'table of figures',
                                         'footnote', 'endnote', 'body text', 'default paragraph font'];
                     
@@ -3089,7 +3235,7 @@
                             html += `<select class="custom-heading-select" data-style="${escapedStyle}" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;width:100%;">`;
                             html += `<option value="">-- Skip --</option>`;
                             html += `<option value="Normal"${existingLevel === 'Normal' || suggestedLevel === 'Normal' ? ' selected' : ''}>Normal</option>`;
-                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>Title</option>`;
+                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
                             for (let h = 1; h <= 10; h++) {
                                 const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
                                 html += `<option value="H${h}"${selected}>H${h}</option>`;
@@ -3220,7 +3366,7 @@
             if (lowerStyle.includes('heading 8') || lowerStyle === 'h8') return 8;
             if (lowerStyle.includes('heading 9') || lowerStyle === 'h9') return 9;
             if (lowerStyle.includes('heading 10') || lowerStyle === 'h10') return 10;
-            if (lowerStyle === 'title') return 'toc';
+            if (lowerStyle.includes('toc heading')) return 'toc';
             
             // Then, check custom style mappings
             const customMappings = getCustomHeadingStyleMappings();
@@ -3370,18 +3516,18 @@
                                     console.log('Could not apply Normal style:', e);
                                 }
                             }
-                            // Handle Title
+                            // Handle TOC Heading
                             else if (matchedLevel.toUpperCase() === 'TOC') {
-                                // Try different variations of Title style name
-                                const titleStyleNames = ['Title', 'title'];
+                                // Try different variations of TOC Heading style name
+                                const tocStyleNames = ['TOC Heading', 'TOCHeading', 'toc heading'];
                                 let applied = false;
                                 
-                                for (const styleName of titleStyleNames) {
+                                for (const styleName of tocStyleNames) {
                                     try {
                                         para.style = styleName;
                                         convertedCount++;
                                         applied = true;
-                                        console.log('Applied Title with style name:', styleName);
+                                        console.log('Applied TOC Heading with style name:', styleName);
                                         break;
                                     } catch (e) {
                                         console.log(`Could not apply "${styleName}":`, e.message);
@@ -3389,7 +3535,7 @@
                                 }
                                 
                                 if (!applied) {
-                                    console.log('Could not apply any Title style variation');
+                                    console.log('Could not apply any TOC Heading style variation');
                                 }
                             } else {
                                 // Get the heading number from H1, H2, etc.
