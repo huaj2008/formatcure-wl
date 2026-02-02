@@ -607,7 +607,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Body Text</div>
-                    <div class="tooltip-desc">TNR 12pt, 1.15 spacing, 6pt before/after. No case change.</div>
+                    <div class="tooltip-desc">TNR 12pt, 1.15 spacing, 6pt before/after. Keeps bold/italic/underline/color.</div>
                 </div>
             </div>
 
@@ -2143,20 +2143,9 @@
                         fields.load("items");
                         await context.sync();
                         
-                        if (fields.items.length > 0) {
-                            // Has cross-refs - ONLY apply font formatting, don't change text
-                            // This preserves the hyperlinks
-                            para.font.name = "Times New Roman";
-                            para.font.size = 12;
-                        } else {
-                            // No cross-refs - apply full body font formatting (no case change)
-                            para.font.name = "Times New Roman";
-                            para.font.size = 12;
-                            para.font.bold = false;
-                            para.font.italic = false;
-                            para.font.underline = Word.UnderlineType.none;
-                            para.font.color = "black";
-                        }
+                        // Apply font name and size only - KEEP bold, italic, underline, color
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
                         
                         paraCount++;
                     }
