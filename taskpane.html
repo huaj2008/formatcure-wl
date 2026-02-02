@@ -794,6 +794,18 @@
                 </div>
             </div>
 
+            <!-- Table Footnote Style -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnTableFootnote">
+                    <div class="btn-icon">T*</div>
+                    <span class="btn-label">Table Footnote</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Table Footnote</div>
+                    <div class="tooltip-desc">TNR 10pt, single line spacing, 0pt before/after. Select text first.</div>
+                </div>
+            </div>
+
             <!-- ====== CROSS-REFERENCES & LINKS ====== -->
             <!-- Cross-Reference Style -->
             <div class="tooltip-container">
@@ -1554,6 +1566,7 @@
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
                 document.getElementById('btnTableCaptionLeft').addEventListener('click', handleTableCaptionLeft);
                 document.getElementById('btnFigureCaptionLeft').addEventListener('click', handleFigureCaptionLeft);
+                document.getElementById('btnTableFootnote').addEventListener('click', handleTableFootnote);
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
                 document.getElementById('btnAllCrossRef').addEventListener('click', handleAllCrossRefStyle);
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
@@ -2632,13 +2645,21 @@
                     await context.sync();
 
                     let alignedCount = 0;
-                    const captionRegex = new RegExp(`^${captionType}\\s*[\\d\\.\\-\\w]+`, 'i');
+                    // Match "Table 1", "Table 3.2.S.1-1", etc. but NOT "Table of Contents"
+                    const captionRegex = new RegExp(`^${captionType}\\s+[\\d\\.\\-\\w]+`, 'i');
+                    // Exclude patterns
+                    const excludeRegex = /^table\s+of\s+(contents|figures|tables)/i;
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
                         let text = para.text;
                         if (text.endsWith('\r')) {
                             text = text.slice(0, -1);
+                        }
+
+                        // Skip "Table of Contents", "Table of Figures", etc.
+                        if (excludeRegex.test(text)) {
+                            continue;
                         }
 
                         if (captionRegex.test(text)) {
@@ -2657,6 +2678,52 @@
                 });
             } catch (error) {
                 console.error("Align Caption Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // TABLE FOOTNOTE HANDLER
+        // TNR 10pt, single line spacing, 0pt before/after
+        // ============================================
+        async function handleTableFootnote() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    const paragraphs = selection.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+
+                    if (paragraphs.items.length === 0) {
+                        showToast('Select table footnote text first', 'error');
+                        return;
+                    }
+
+                    let formattedCount = 0;
+
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        
+                        // Font: TNR 10pt
+                        para.font.name = "Times New Roman";
+                        para.font.size = 10;
+                        
+                        // Spacing: single line (10pt for 10pt font), 0pt before/after
+                        para.lineSpacing = 10;
+                        para.spaceBefore = 0;
+                        para.spaceAfter = 0;
+                        
+                        // Left align
+                        para.alignment = Word.Alignment.left;
+                        
+                        formattedCount++;
+                    }
+
+                    await context.sync();
+                    showToast(`Formatted ${formattedCount} table footnote paragraph(s)!`, 'success');
+                });
+            } catch (error) {
+                console.error("Table Footnote Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
