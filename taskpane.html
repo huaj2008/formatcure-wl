@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #69</span>
+        <span class="build-num">Build #70</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -559,11 +559,11 @@
         <span style="color:#b71c1c;">Set US Letter + 1" margins before formatting</span>
     </div>
 
-    <!-- Custom UPPERCASE Terms Display -->
+    <!-- Custom Preserved Terms Display -->
     <div id="customUppercaseDisplay" style="background:#fff3e0;border-left:4px solid #ff9800;padding:8px 12px;margin:4px 12px 0 12px;border-radius:0 4px 4px 0;font-size:11px;display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
-                <strong style="color:#e65100;">📝 Custom UPPERCASE:</strong>
+                <strong style="color:#e65100;">📝 Preserved Terms:</strong>
                 <span id="customUppercaseTermsDisplay" style="color:#f57c00;font-family:monospace;"></span>
             </div>
             <button id="btnCustomUppercaseEdit" style="padding:2px 8px;font-size:10px;background:#ff9800;color:white;border:none;border-radius:3px;cursor:pointer;">Edit</button>
@@ -722,6 +722,30 @@
             </div>
 
             <!-- ====== CAPTIONS ====== -->
+            <!-- Single Table Caption -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnSingleTableCaption">
+                    <div class="btn-icon">T1</div>
+                    <span class="btn-label">Table Caption</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Selected Table Caption</div>
+                    <div class="tooltip-desc">Format current paragraph as table caption: Title Case, Tab separator, TNR 12pt Bold.</div>
+                </div>
+            </div>
+
+            <!-- Single Figure Caption -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnSingleFigureCaption">
+                    <div class="btn-icon">F1</div>
+                    <span class="btn-label">Figure Caption</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Selected Figure Caption</div>
+                    <div class="tooltip-desc">Format current paragraph as figure caption: Title Case, Tab separator, TNR 12pt Bold.</div>
+                </div>
+            </div>
+
             <!-- All Table Caption -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnTableCaption">
@@ -820,15 +844,15 @@
                 </div>
             </div>
 
-            <!-- Custom UPPERCASE (Drug names, etc.) -->
+            <!-- Custom Preserved Terms (Drug names, etc.) -->
             <div class="tooltip-container">
                 <button class="btn success" id="btnCustomUppercase">
                     <div class="btn-icon">AB+</div>
-                    <span class="btn-label">Custom UPPER</span>
+                    <span class="btn-label">Preserve Terms</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Custom UPPERCASE</div>
-                    <div class="tooltip-desc">Save drug names or terms to auto-convert to UPPERCASE throughout document.</div>
+                    <div class="tooltip-title">Preserve Custom Terms</div>
+                    <div class="tooltip-desc">Save terms (DRU-012, Aleeto) to preserve their exact case during Title/Sentence case conversion.</div>
                 </div>
             </div>
 
@@ -1292,17 +1316,17 @@
         </div>
     </div>
 
-    <!-- Custom Uppercase Modal -->
+    <!-- Preserve Custom Terms Modal -->
     <div class="modal-overlay" id="customUppercaseModal">
         <div class="modal" style="max-width: 450px;">
             <div class="modal-header">
-                <span class="modal-title">Custom UPPERCASE</span>
+                <span class="modal-title">Preserve Custom Terms</span>
                 <button class="modal-close" id="customUppercaseClose">×</button>
             </div>
             <div class="modal-body">
-                <p class="modal-desc">Enter terms to UPPERCASE (one per line):</p>
-                <textarea id="customUppercaseInput" rows="5" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="xyz-123&#10;abc-456&#10;drug name"></textarea>
-                <p style="font-size:11px;color:#666;margin-top:8px;">Will convert all instances to UPPERCASE (e.g., xyz-123 → XYZ-123)</p>
+                <p class="modal-desc">Enter terms to preserve during case conversion (one per line):</p>
+                <textarea id="customUppercaseInput" rows="5" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="DRU-012&#10;Aleeto&#10;ABC-456"></textarea>
+                <p style="font-size:11px;color:#666;margin-top:8px;">Terms will keep their exact case in Title/Sentence conversion (e.g., DRU-012 stays DRU-012)</p>
                 
                 <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1312,7 +1336,7 @@
                     <div id="savedTermsList" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:11px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
                         No saved terms
                     </div>
-                    <p style="font-size:10px;color:#888;margin-top:4px;">💡 Saved terms persist between sessions</p>
+                    <p style="font-size:10px;color:#888;margin-top:4px;">💡 Saved terms persist between sessions and apply to headings, captions, and body text</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1431,19 +1455,19 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #69
+        // Build #70
         // ============================================
 
         // Pharmaceutical acronyms to preserve
         const PRESERVED_TERMS = [
             'FDA', 'IND', 'NDA', 'BLA', 'ANDA', 'DMF', 'CTD', 'eCTD',
             'PK', 'PD', 'ADME', 'AUC', 'Cmax', 'Tmax',
-            'API', 'GMP', 'cGMP', 'ICH', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP',
+            'API', 'GMP', 'cGMP', 'GLP', 'ICH', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP',
             'DNA', 'RNA', 'mRNA', 'pH', 'UV', 'IR', 'NMR', 'HPLC', 'GC', 'MS',
             'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN',
             'US', 'EU', 'UK', 'WHO', 'EMA', 'PMDA', 'TGA', 'NMPA',
             'SOP', 'QA', 'QC', 'R&D', 'CMC', 'CMO', 'CRO', 'CDMO',
-            'DS', 'DP', 'ADC'
+            'DS', 'DP', 'ADC', 'SD', 'PBMC', 'Aleeto'
         ];
 
         const LOWERCASE_WORDS = [
@@ -1500,6 +1524,8 @@
                 document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
                 
                 // Captions & References buttons
+                document.getElementById('btnSingleTableCaption').addEventListener('click', handleSingleTableCaption);
+                document.getElementById('btnSingleFigureCaption').addEventListener('click', handleSingleFigureCaption);
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
@@ -2477,7 +2503,86 @@
 
         // ============================================
         // FORMAT CAPTION HANDLERS
-        // Finds ALL captions in document and formats them
+        // ============================================
+        
+        // Single Table/Figure Caption - formats the current paragraph
+        async function handleSingleTableCaption() {
+            await formatSingleCaption('Table');
+        }
+
+        async function handleSingleFigureCaption() {
+            await formatSingleCaption('Figure');
+        }
+
+        async function formatSingleCaption(captionType) {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    const paragraphs = selection.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+
+                    if (paragraphs.items.length === 0) {
+                        showToast('Place cursor in a caption paragraph', 'error');
+                        return;
+                    }
+
+                    const para = paragraphs.items[0];
+                    para.load("text");
+                    await context.sync();
+
+                    let text = para.text;
+                    if (text.endsWith('\r')) {
+                        text = text.slice(0, -1);
+                    }
+
+                    // Check if this looks like a caption
+                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
+                    const match = text.match(captionRegex);
+
+                    if (!match) {
+                        showToast(`Not a ${captionType.toLowerCase()} caption (should start with "${captionType} #")`, 'error');
+                        return;
+                    }
+
+                    const prefix = match[1].trim();
+                    let afterPrefix = match[2];
+                    let captionText = afterPrefix.replace(/^[\t:\s]*/, '').trim();
+
+                    if (captionText) {
+                        // Convert to Title Case
+                        const convertedCaption = convertToTitleCase(captionText);
+
+                        if (afterPrefix) {
+                            const searchRange = para.search(afterPrefix, { matchCase: false });
+                            searchRange.load("items");
+                            await context.sync();
+
+                            if (searchRange.items.length > 0) {
+                                searchRange.items[0].insertText('\t' + convertedCaption, Word.InsertLocation.replace);
+                            }
+                        }
+                    }
+
+                    // Apply formatting
+                    para.font.name = "Times New Roman";
+                    para.font.size = 12;
+                    para.font.bold = true;
+                    para.font.italic = false;
+                    para.font.underline = Word.UnderlineType.none;
+                    para.font.color = "black";
+                    para.alignment = Word.Alignment.left;
+
+                    await context.sync();
+                    showToast(`${captionType} caption formatted!`, 'success');
+                });
+            } catch (error) {
+                console.error("Single Caption Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+
+        // All Table/Figure Captions - finds ALL captions in document and formats them
         // Converts any separator (colon, space, none) to tab
         // Format: Table #[tab]Caption Text in Title Case
         // ============================================
@@ -2936,9 +3041,9 @@
                 return;
             }
             
-            // Parse input - one term per line
+            // Parse input - one term per line, PRESERVE original case
             const newTerms = input.split('\n')
-                .map(line => line.trim().toUpperCase())
+                .map(line => line.trim())
                 .filter(line => line.length > 0);
             
             if (newTerms.length === 0) {
@@ -2951,8 +3056,15 @@
                 const saved = localStorage.getItem(SAVED_TERMS_KEY);
                 let existingTerms = saved ? JSON.parse(saved) : [];
                 
-                // Merge and deduplicate
-                const allTerms = [...new Set([...existingTerms, ...newTerms])];
+                // Merge and deduplicate (case-insensitive dedup, keep first occurrence)
+                const seenLower = new Set(existingTerms.map(t => t.toLowerCase()));
+                const uniqueNewTerms = newTerms.filter(t => {
+                    const lower = t.toLowerCase();
+                    if (seenLower.has(lower)) return false;
+                    seenLower.add(lower);
+                    return true;
+                });
+                const allTerms = [...existingTerms, ...uniqueNewTerms];
                 
                 // Save
                 localStorage.setItem(SAVED_TERMS_KEY, JSON.stringify(allTerms));
@@ -2963,7 +3075,7 @@
                 // Clear input
                 document.getElementById('customUppercaseInput').value = '';
                 
-                showToast(`Saved ${newTerms.length} term(s)! Total: ${allTerms.length}`, 'success');
+                showToast(`Saved ${uniqueNewTerms.length} term(s)! Total: ${allTerms.length}`, 'success');
             } catch (e) {
                 console.error('Could not save terms:', e);
                 showToast('Could not save terms (localStorage not available)', 'error');
