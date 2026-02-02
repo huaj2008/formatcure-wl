@@ -2267,8 +2267,7 @@
                     headerRow.load("cells");
                     await context.sync();
                     
-                    // Make header row bold
-                    headerRow.font.bold = true;
+                    // Format header row font (keep bold as-is)
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
                     
@@ -2311,7 +2310,7 @@
                     
                     for (let r = 1; r < allRows.items.length; r++) {
                         const row = allRows.items[r];
-                        row.font.bold = false;
+                        // Format body row font (keep bold as-is)
                         row.font.name = "Times New Roman";
                         row.font.size = 10;
                         
@@ -2436,8 +2435,7 @@
                         if (rows.items.length > 0) {
                             const headerRow = rows.items[0];
                             
-                            // Format header row - bold, left align, white fill
-                            headerRow.font.bold = true;
+                            // Format header row - left align, white fill (keep bold as-is)
                             headerRow.font.name = "Times New Roman";
                             headerRow.font.size = 10;
                             
@@ -2472,10 +2470,9 @@
                                 }
                             }
                             
-                            // Format body rows
+                            // Format body rows (keep bold as-is)
                             for (let r = 1; r < rows.items.length; r++) {
                                 const row = rows.items[r];
-                                row.font.bold = false;
                                 row.font.name = "Times New Roman";
                                 row.font.size = 10;
                                 
