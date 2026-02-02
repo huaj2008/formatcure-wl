@@ -770,6 +770,30 @@
                 </div>
             </div>
 
+            <!-- All Table Caption Left Align -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnTableCaptionLeft">
+                    <div class="btn-icon">T←</div>
+                    <span class="btn-label">Table Caption Left</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Left Align All Table Captions</div>
+                    <div class="tooltip-desc">Set all table captions to left alignment (no other changes).</div>
+                </div>
+            </div>
+
+            <!-- All Figure Caption Left Align -->
+            <div class="tooltip-container">
+                <button class="btn warning" id="btnFigureCaptionLeft">
+                    <div class="btn-icon">F←</div>
+                    <span class="btn-label">Figure Caption Left</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Left Align All Figure Captions</div>
+                    <div class="tooltip-desc">Set all figure captions to left alignment (no other changes).</div>
+                </div>
+            </div>
+
             <!-- ====== CROSS-REFERENCES & LINKS ====== -->
             <!-- Cross-Reference Style -->
             <div class="tooltip-container">
@@ -1528,6 +1552,8 @@
                 document.getElementById('btnSingleFigureCaption').addEventListener('click', handleSingleFigureCaption);
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
+                document.getElementById('btnTableCaptionLeft').addEventListener('click', handleTableCaptionLeft);
+                document.getElementById('btnFigureCaptionLeft').addEventListener('click', handleFigureCaptionLeft);
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
                 document.getElementById('btnAllCrossRef').addEventListener('click', handleAllCrossRefStyle);
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
@@ -2581,6 +2607,58 @@
 
         async function handleFigureCaption() {
             await formatAllCaptions('Figure');
+        }
+
+        // Left Align Only - no text changes
+        async function handleTableCaptionLeft() {
+            await alignAllCaptions('Table');
+        }
+
+        async function handleFigureCaptionLeft() {
+            await alignAllCaptions('Figure');
+        }
+
+        async function alignAllCaptions(captionType) {
+            try {
+                await Word.run(async (context) => {
+                    const body = context.document.body;
+                    const paragraphs = body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("text");
+                    }
+                    await context.sync();
+
+                    let alignedCount = 0;
+                    const captionRegex = new RegExp(`^${captionType}\\s*[\\d\\.\\-\\w]+`, 'i');
+
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        let text = para.text;
+                        if (text.endsWith('\r')) {
+                            text = text.slice(0, -1);
+                        }
+
+                        if (captionRegex.test(text)) {
+                            para.alignment = Word.Alignment.left;
+                            alignedCount++;
+                        }
+                    }
+
+                    await context.sync();
+
+                    if (alignedCount > 0) {
+                        showToast(`Left-aligned ${alignedCount} ${captionType.toLowerCase()} caption(s)!`, 'success');
+                    } else {
+                        showToast(`No ${captionType.toLowerCase()} captions found`, 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Align Caption Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
         }
 
         async function formatAllCaptions(captionType) {
