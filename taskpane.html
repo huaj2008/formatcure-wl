@@ -2804,7 +2804,7 @@
                     const prefix = match[1].trim();
                     let afterPrefix = match[2];
                     // Strip any separator: tab, colon, space, em-dash (—), en-dash (–), hyphen
-                    let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\-]*/, '').trim();
+                    let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\u00AD\-]*/, '').trim();
 
                     if (captionText) {
                         // Only replace separator with colon — no case changes
@@ -2906,7 +2906,7 @@
                             // Only treat as caption if separator contains a real delimiter
                             // (tab, colon, em-dash, en-dash) — NOT just a plain space
                             // Plain space = body text like "Table 3.2.P.1-1 provides summary..."
-                            const hasRealSeparator = /[\t:\u2013\u2014]/.test(separator);
+                            const hasRealSeparator = /[\t:\u2013\u2014\u00AD]/.test(separator) || /^\s+\-\s+$/.test(separator);
                             const isStandaloneNumber = !captionText; // just "Table 1" with nothing after
                             
                             if (!hasRealSeparator && !isStandaloneNumber) {
@@ -3033,13 +3033,13 @@
                         let afterPrefix = match[2]; // everything after
                         
                         // Strip any separator: tab, colon, space, em-dash (—), en-dash (–), hyphen
-                        let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\-]*/, '').trim();
+                        let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\u00AD\-]*/, '').trim();
                         
                         // Only treat as caption if afterPrefix contains a real delimiter
                         // (tab, colon, em-dash, en-dash) — NOT just a plain space
                         // Plain space = body text like "Table 3.2.P.1-1 provides summary..."
                         // Also check if prefix ends with tab (tab gets consumed by regex into prefix)
-                        const hasRealSeparator = /[\t:\u2013\u2014]/.test(afterPrefix) || /\t$/.test(match[1]);
+                        const hasRealSeparator = /[\t:\u2013\u2014\u00AD]/.test(afterPrefix) || /\t$/.test(match[1]) || /^\s+\-\s+/.test(afterPrefix);
                         
                         if (captionText && !hasRealSeparator) {
                             continue; // Skip — this is body text, not a caption
