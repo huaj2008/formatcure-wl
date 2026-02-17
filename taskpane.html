@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #74</span>
+        <span class="build-num">Build #75</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -595,6 +595,18 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Heading Options</div>
                     <div class="tooltip-desc">Set case, bold, italic, size for each heading level (H1-H10). Pre-populated with standard settings.</div>
+                </div>
+            </div>
+
+            <!-- Title Format (single line) -->
+            <div class="tooltip-container">
+                <button class="btn secondary" id="btnTitleFormat">
+                    <div class="btn-icon">T1</div>
+                    <span class="btn-label">Title Format</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Line as Title</div>
+                    <div class="tooltip-desc">Title Case + TNR 12pt Bold Left. Preserves 3.2.S/P numbering. NO italic/underline change.</div>
                 </div>
             </div>
 
@@ -1491,7 +1503,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #74
+        // Build #75
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -1543,6 +1555,9 @@
                 
                 // Standard Heading button
                 document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
+                
+                // Title Format button
+                document.getElementById('btnTitleFormat').addEventListener('click', handleTitleFormat);
                 
                 // Custom Heading button (combined scan & convert)
                 document.getElementById('btnCustomHeadings').addEventListener('click', showCustomHeadingsModal);
@@ -1679,6 +1694,80 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2500);
+        }
+
+        // ============================================
+        // TITLE FORMAT HANDLER
+        // Format entire paragraph as title: Title Case, TNR 12pt Bold, Left aligned
+        // Preserves S/P in numbering like 3.2.S.7.3, 3.2.P.2.3
+        // Does NOT change italic/underline
+        // ============================================
+        async function handleTitleFormat() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    const paragraphs = selection.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+                    
+                    if (paragraphs.items.length === 0) {
+                        showToast('No paragraph found', 'error');
+                        return;
+                    }
+                    
+                    const para = paragraphs.items[0];
+                    
+                    // Remove All Caps formatting first
+                    para.font.allCaps = false;
+                    await context.sync();
+                    
+                    para.load("text");
+                    await context.sync();
+                    
+                    let text = para.text;
+                    if (text.endsWith('\r')) {
+                        text = text.slice(0, -1);
+                    }
+                    
+                    if (text.trim() !== '') {
+                        // Convert to Title Case, preserving S/P in numbering
+                        const converted = convertToTitleCasePreserveNumbering(text);
+                        para.insertText(converted, Word.InsertLocation.replace);
+                    }
+                    
+                    // Apply formatting: TNR 12pt Bold Left (don't change italic/underline)
+                    para.font.name = "Times New Roman";
+                    para.font.size = 12;
+                    para.font.bold = true;
+                    para.font.allCaps = false;
+                    para.alignment = Word.Alignment.left;
+                    
+                    await context.sync();
+                    showToast('Title format applied!', 'success');
+                });
+            } catch (error) {
+                console.error("Title Format Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Convert to Title Case while preserving S/P in numbering patterns
+        function convertToTitleCasePreserveNumbering(text) {
+            // First, apply standard title case
+            let result = convertToTitleCase(text);
+            
+            // Then fix any S/P that got lowercased in numbering patterns
+            // Pattern: digit.digit.letter.digit (like 3.2.s.7.3 -> 3.2.S.7.3)
+            result = result.replace(/(\d+\.\d+\.)([sp])(\.\d+)/gi, (match, prefix, letter, suffix) => {
+                return prefix + letter.toUpperCase() + suffix;
+            });
+            
+            // Also handle patterns like 3.2.S.2.3.1 (more dots)
+            result = result.replace(/(\d+\.\d+\.)([sp])(\.[\d\.]+)/gi, (match, prefix, letter, suffix) => {
+                return prefix + letter.toUpperCase() + suffix;
+            });
+            
+            return result;
         }
 
         // ============================================
