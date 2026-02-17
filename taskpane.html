@@ -4394,9 +4394,19 @@
                     await context.sync();
                     
                     for (let i = 0; i < paras.items.length; i++) {
-                        paras.items[i].load("text");
+                        paras.items[i].load("text, style");
                     }
                     await context.sync();
+                    
+                    // Collect text of paragraphs with "Title" style (to exclude from TOC later)
+                    const titleTexts = [];
+                    for (let i = 0; i < paras.items.length; i++) {
+                        const style = (paras.items[i].style || "").toLowerCase();
+                        if (style === 'title') {
+                            const t = (paras.items[i].text || "").trim().replace(/\r$/, '');
+                            if (t) titleTexts.push(t.toLowerCase());
+                        }
+                    }
                     
                     for (let i = 0; i < paras.items.length; i++) {
                         const text = (paras.items[i].text || "").trim().toLowerCase();
@@ -4439,16 +4449,21 @@
                     for (let i = 0; i < tocParas.items.length; i++) {
                         const para = tocParas.items[i];
                         const styleName = (para.style || "").toLowerCase();
+                        const paraText = (para.text || "").trim().toLowerCase().replace(/\r$/, '');
                         
                         // Determine TOC level from style name (toc 1, toc 2, etc.)
-                        let tocLevel = 1;
+                        let tocLevel = 0;
                         const levelMatch = styleName.match(/toc\s*(\d+)/);
                         if (levelMatch) {
                             tocLevel = parseInt(levelMatch[1]);
                         }
                         
-                        // Delete TOC Heading style entry (the "Table of Contents" title Word auto-generates)
-                        if (styleName.includes('toc heading')) {
+                        // Delete Title / TOC Heading entries
+                        // Matches: "TOC Heading", "Title" style, or text matching document's Title paragraph
+                        if (styleName.includes('toc heading') || 
+                            styleName === 'title' || 
+                            (styleName.includes('toc') && tocLevel === 0) ||
+                            titleTexts.some(t => paraText.includes(t) || t.includes(paraText))) {
                             para.delete();
                             continue;
                         }
@@ -4466,10 +4481,13 @@
                         para.lineSpacing = 12; // single spacing for 12pt font
                         para.alignment = Word.Alignment.left;
                         
-                        // Indentation: TOC 1 (H1) = default (follows margin), TOC 2+ = 12pt per level
-                        // Only set indent for level 2+, leave level 1 at default
-                        if (tocLevel >= 2) {
-                            para.leftIndent = (tocLevel - 1) * 12;
+                        // Indentation (relative to margin):
+                        // TOC 1 (H1) = 0pt, TOC 2 (H2) = 6pt
+                        // TOC 3 (H3) = 12pt, TOC 4 (H4) = 18pt, TOC 5 (H5) = 24pt
+                        if (tocLevel <= 1) {
+                            para.leftIndent = 0;
+                        } else {
+                            para.leftIndent = (tocLevel - 1) * 6;
                         }
                     }
                     
