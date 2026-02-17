@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #71</span>
+        <span class="build-num">Build #72</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -1491,7 +1491,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #71
+        // Build #72
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -2666,7 +2666,7 @@
                     await context.sync();
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("text");
+                        paragraphs.items[i].load("text, parentTableOrNullObject");
                     }
                     await context.sync();
 
@@ -2678,6 +2678,12 @@
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
                         const para = paragraphs.items[i];
+                        
+                        // Skip if inside a table
+                        if (para.parentTableOrNullObject && !para.parentTableOrNullObject.isNullObject) {
+                            continue;
+                        }
+                        
                         let text = para.text;
                         if (text.endsWith('\r')) {
                             text = text.slice(0, -1);
@@ -2938,6 +2944,7 @@
                         resultRange.font.italic = false;
                         resultRange.font.underline = Word.UnderlineType.none;
                         resultRange.font.color = "#0000FF";
+                        
                         totalFormatted++;
                     }
                     
