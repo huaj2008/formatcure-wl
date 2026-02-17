@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #72</span>
+        <span class="build-num">Build #73</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -778,7 +778,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Left Align All Table Captions</div>
-                    <div class="tooltip-desc">Set all table captions to left alignment (no other changes).</div>
+                    <div class="tooltip-desc">Left align, 6pt before/after, colon separator. NO case change.</div>
                 </div>
             </div>
 
@@ -790,7 +790,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Left Align All Figure Captions</div>
-                    <div class="tooltip-desc">Set all figure captions to left alignment (no other changes).</div>
+                    <div class="tooltip-desc">Left align, 6pt before/after, colon separator. NO case change.</div>
                 </div>
             </div>
 
@@ -1491,7 +1491,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #72
+        // Build #73
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -2672,7 +2672,8 @@
 
                     let alignedCount = 0;
                     // Match "Table 1", "Table 3.2.S.1-1", etc. but NOT "Table of Contents"
-                    const captionRegex = new RegExp(`^${captionType}\\s+[\\d\\.\\-\\w]+`, 'i');
+                    // Capture: (prefix)(separator)(caption text)
+                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)([\\-\\s\\t:]+)(.*)`, 'i');
                     // Exclude patterns
                     const excludeRegex = /^table\s+of\s+(contents|figures|tables)/i;
 
@@ -2694,7 +2695,19 @@
                             continue;
                         }
 
-                        if (captionRegex.test(text)) {
+                        const match = text.match(captionRegex);
+                        if (match) {
+                            const prefix = match[1].trim();  // "Table 3.2.S.2.2-1"
+                            const separator = match[2];       // the separator (-, tab, space, etc.)
+                            const captionText = match[3].trim(); // caption text
+                            
+                            // Only replace if there's caption text and separator is not already colon
+                            if (captionText && separator !== ': ') {
+                                // Replace entire paragraph with prefix + colon + caption
+                                para.insertText(prefix + ': ' + captionText, Word.InsertLocation.replace);
+                            }
+                            
+                            // Apply formatting
                             para.alignment = Word.Alignment.left;
                             para.spaceBefore = 6;
                             para.spaceAfter = 6;
@@ -2705,7 +2718,7 @@
                     await context.sync();
 
                     if (alignedCount > 0) {
-                        showToast(`Left-aligned ${alignedCount} ${captionType.toLowerCase()} caption(s)!`, 'success');
+                        showToast(`Formatted ${alignedCount} ${captionType.toLowerCase()} caption(s) with colon separator!`, 'success');
                     } else {
                         showToast(`No ${captionType.toLowerCase()} captions found`, 'error');
                     }
