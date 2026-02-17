@@ -656,7 +656,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Insert Table of Contents</div>
-                    <div class="tooltip-desc">Insert TOC (H1-H5) at cursor. TNR 12pt, 3pt spacing, indented by level. No title. Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-desc">Insert "Table of Contents" title + TOC (H1-H5) at cursor. TNR 12pt, 3pt spacing, indented by level. Requires Office 2019+ or M365.</div>
                 </div>
             </div>
 
@@ -1503,7 +1503,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #76
+        // Build #77
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -4398,7 +4398,7 @@
                     }
                     await context.sync();
                     
-                    // Collect text of paragraphs with "Title" style (to exclude from TOC later)
+                    // Collect text of paragraphs with "Title" style (to exclude from TOC entries later)
                     const titleTexts = [];
                     for (let i = 0; i < paras.items.length; i++) {
                         const style = (paras.items[i].style || "").toLowerCase();
@@ -4408,9 +4408,10 @@
                         }
                     }
                     
+                    // Delete any existing "Table of Contents" title paragraph (from previous insert)
                     for (let i = 0; i < paras.items.length; i++) {
-                        const text = (paras.items[i].text || "").trim().toLowerCase();
-                        if (text === "table of contents" || text === "table of contents\r") {
+                        const text = (paras.items[i].text || "").trim().toLowerCase().replace(/\r$/, '');
+                        if (text === "table of contents") {
                             paras.items[i].delete();
                             break;
                         }
@@ -4418,13 +4419,35 @@
                     
                     await context.sync();
                     
-                    // No title inserted — TOC only
-                    // Get selection for TOC insertion
-                    const range = context.document.getSelection().getRange();
+                    // --- Insert "Table of Contents" title paragraph ---
+                    const selection = context.document.getSelection();
+                    const titlePara = selection.insertParagraph("Table of Contents", Word.InsertLocation.before);
                     
-                    // Insert TOC with hyperlinks, showing heading levels 1-5
-                    const field = range.insertField(
-                        Word.InsertLocation.replace,
+                    // Format title: TNR 12pt Bold, Black, Title Case, Left-aligned
+                    // 3pt before/after, single spacing
+                    titlePara.font.name = "Times New Roman";
+                    titlePara.font.size = 12;
+                    titlePara.font.bold = true;
+                    titlePara.font.italic = false;
+                    titlePara.font.color = "#000000";
+                    titlePara.font.underline = Word.UnderlineType.none;
+                    titlePara.alignment = Word.Alignment.left;
+                    titlePara.spaceBefore = 3;
+                    titlePara.spaceAfter = 3;
+                    titlePara.lineSpacing = 12; // single spacing for 12pt font
+                    titlePara.leftIndent = 0;
+                    titlePara.rightIndent = 0;
+                    titlePara.firstLineIndent = 0;
+                    
+                    // Move selection after the title for TOC field insertion
+                    const titleRange = titlePara.getRange(Word.RangeLocation.after);
+                    titleRange.select();
+                    await context.sync();
+                    
+                    // --- Insert TOC field ---
+                    // Insert TOC with hyperlinks, showing heading levels 1-5, no title (\t switch excluded)
+                    const field = titleRange.insertField(
+                        Word.InsertLocation.after,
                         Word.FieldType.toc,
                         '\\o "1-5" \\h'
                     );
@@ -4433,8 +4456,8 @@
                     field.updateResult();
                     await context.sync();
                     
-                    // Format TOC entries by finding all paragraphs with TOC styles in the document
-                    // Using document body instead of field.result for more reliable access
+                    // --- Format TOC entries ---
+                    // Find all paragraphs with TOC styles and format them
                     const allParas = context.document.body.paragraphs;
                     allParas.load("items");
                     await context.sync();
@@ -4461,8 +4484,8 @@
                             tocLevel = parseInt(levelMatch[1]);
                         }
                         
-                        // Delete Title / TOC Heading entries
-                        // Matches: "TOC Heading", or text matching document's Title paragraph
+                        // Delete TOC Heading entries (Word's built-in title that we replaced with our own)
+                        // Also delete entries that match the document's Title paragraph text
                         if (styleName.includes('toc heading') || 
                             tocLevel === 0 ||
                             titleTexts.some(t => paraText.includes(t) || t.includes(paraText))) {
@@ -4470,12 +4493,14 @@
                             continue;
                         }
                         
-                        // Base formatting: TNR 12pt, no bold, no underline, no allCaps, 3pt before/after, single spacing
+                        // Base formatting: TNR 12pt, no bold, no underline, no allCaps
+                        // 3pt before/after, single spacing
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
                         para.font.bold = false;
                         para.font.allCaps = false;
                         para.font.underline = Word.UnderlineType.none;
+                        para.font.color = "#000000";
                         // Italic is NOT touched — keeps whatever italic state exists
                         
                         para.spaceBefore = 3;
@@ -4483,8 +4508,14 @@
                         para.lineSpacing = 12; // single spacing for 12pt font
                         para.alignment = Word.Alignment.left;
                         
-                        // Indentation (relative to margin):
-                        // TOC 1 (H1) = 0pt, TOC 2 (H2) = 6pt
+                        // Reset all indentation explicitly to override TOC style defaults
+                        // Then apply level-specific left indent
+                        para.firstLineIndent = 0;
+                        para.rightIndent = 0;
+                        
+                        // Left indentation (relative to margin):
+                        // TOC 1 (H1) = 0pt from margin
+                        // TOC 2 (H2) = 6pt from margin
                         // TOC 3 (H3) = 12pt, TOC 4 (H4) = 18pt, TOC 5 (H5) = 24pt
                         if (tocLevel <= 1) {
                             para.leftIndent = 0;
@@ -4494,7 +4525,7 @@
                     }
                     
                     await context.sync();
-                    showToast('TOC inserted!', 'success');
+                    showToast('TOC inserted! (Build #77)', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
