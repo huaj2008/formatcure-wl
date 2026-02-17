@@ -4364,31 +4364,27 @@
             
             try {
                 await Word.run(async (context) => {
-                    // First, look for existing TOC field to delete
+                    // --- Step 1: Clean up any existing TOC field and old title ---
                     const fields = context.document.body.fields;
                     fields.load("items");
                     await context.sync();
                     
-                    // Load field codes to find TOC
                     for (let i = 0; i < fields.items.length; i++) {
                         fields.items[i].load("code");
                     }
                     await context.sync();
                     
-                    // Find and delete existing TOC field (not LOT/LOF which use \c switch)
-                    let foundExisting = false;
+                    // Delete existing TOC field (not LOT/LOF which use \c switch)
                     for (let i = 0; i < fields.items.length; i++) {
                         const field = fields.items[i];
                         const code = (field.code || "").toUpperCase();
-                        // TOC field without \c (tables/figures) switch
                         if (code.includes('TOC') && !code.includes('\\C "')) {
                             field.delete();
-                            foundExisting = true;
                             break;
                         }
                     }
                     
-                    // Also try to delete the old title paragraph if it exists
+                    // Delete any existing "Table of Contents" paragraph from previous insert
                     const paras = context.document.body.paragraphs;
                     paras.load("items");
                     await context.sync();
@@ -4398,7 +4394,7 @@
                     }
                     await context.sync();
                     
-                    // Collect text of paragraphs with "Title" style (to exclude from TOC entries later)
+                    // Collect document Title style text (to remove from TOC entries later)
                     const titleTexts = [];
                     for (let i = 0; i < paras.items.length; i++) {
                         const style = (paras.items[i].style || "").toLowerCase();
@@ -4408,23 +4404,22 @@
                         }
                     }
                     
-                    // Delete any existing "Table of Contents" title paragraph (from previous insert)
+                    // Delete old "Table of Contents" title paragraphs
                     for (let i = 0; i < paras.items.length; i++) {
                         const text = (paras.items[i].text || "").trim().toLowerCase().replace(/\r$/, '');
                         if (text === "table of contents") {
                             paras.items[i].delete();
-                            break;
+                            // Don't break — delete ALL occurrences
                         }
                     }
                     
                     await context.sync();
                     
-                    // --- Insert "Table of Contents" title paragraph ---
+                    // --- Step 2: Insert "Table of Contents" title paragraph FIRST ---
                     const selection = context.document.getSelection();
                     const titlePara = selection.insertParagraph("Table of Contents", Word.InsertLocation.before);
                     
-                    // Format title: TNR 12pt Bold, Black, Title Case, Left-aligned
-                    // 3pt before/after, single spacing
+                    // Format: TNR 12pt Bold, Black, Left-aligned, 3pt before/after, single spacing
                     titlePara.font.name = "Times New Roman";
                     titlePara.font.size = 12;
                     titlePara.font.bold = true;
@@ -4434,30 +4429,28 @@
                     titlePara.alignment = Word.Alignment.left;
                     titlePara.spaceBefore = 3;
                     titlePara.spaceAfter = 3;
-                    titlePara.lineSpacing = 12; // single spacing for 12pt font
+                    titlePara.lineSpacing = 12;
                     titlePara.leftIndent = 0;
                     titlePara.rightIndent = 0;
                     titlePara.firstLineIndent = 0;
+                    // Use Normal style so it does NOT get pulled into TOC
+                    titlePara.styleBuiltIn = Word.BuiltInStyleName.normal;
                     
-                    // Move selection after the title for TOC field insertion
-                    const titleRange = titlePara.getRange(Word.RangeLocation.after);
-                    titleRange.select();
                     await context.sync();
                     
-                    // --- Insert TOC field ---
-                    // Insert TOC with hyperlinks, showing heading levels 1-5, no title (\t switch excluded)
-                    const field = titleRange.insertField(
+                    // ---- Step 3: Insert TOC field AFTER the title paragraph ---
+                    const afterTitle = titlePara.getRange(Word.RangeLocation.after);
+                    
+                    const field = afterTitle.insertField(
                         Word.InsertLocation.after,
                         Word.FieldType.toc,
                         '\\o "1-5" \\h'
                     );
                     
-                    // Update the field to populate it
                     field.updateResult();
                     await context.sync();
                     
-                    // --- Format TOC entries ---
-                    // Find all paragraphs with TOC styles and format them
+                    // --- Step 4: Format TOC entries and remove unwanted entries ---
                     const allParas = context.document.body.paragraphs;
                     allParas.load("items");
                     await context.sync();
@@ -4466,6 +4459,8 @@
                         allParas.items[i].load("style, text");
                     }
                     await context.sync();
+                    
+                    const tocParasToFix = []; // Collect TOC paras for tab stop fix
                     
                     for (let i = 0; i < allParas.items.length; i++) {
                         const para = allParas.items[i];
@@ -4484,16 +4479,37 @@
                             tocLevel = parseInt(levelMatch[1]);
                         }
                         
-                        // Delete TOC Heading entries (Word's built-in title that we replaced with our own)
-                        // Also delete entries that match the document's Title paragraph text
-                        if (styleName.includes('toc heading') || 
-                            tocLevel === 0 ||
-                            titleTexts.some(t => paraText.includes(t) || t.includes(paraText))) {
+                        // --- Delete unwanted TOC entries ---
+                        let shouldDelete = false;
+                        
+                        // 1. Delete "TOC Heading" style entries (Word's built-in TOC title)
+                        if (styleName.includes('toc heading')) {
+                            shouldDelete = true;
+                        }
+                        
+                        // 2. Delete entries with tocLevel 0 (unknown/title level)
+                        if (tocLevel === 0) {
+                            shouldDelete = true;
+                        }
+                        
+                        // 3. Delete entries whose text contains "table of contents"
+                        if (paraText.includes('table of contents')) {
+                            shouldDelete = true;
+                        }
+                        
+                        // 4. Delete entries that match the document's Title paragraph text
+                        // TOC entries include page numbers, so check if entry STARTS WITH title text
+                        if (titleTexts.some(t => paraText.startsWith(t) || t.startsWith(paraText.replace(/\d+\s*$/, '').trim()))) {
+                            shouldDelete = true;
+                        }
+                        
+                        if (shouldDelete) {
                             para.delete();
                             continue;
                         }
                         
-                        // Base formatting: TNR 12pt, no bold, no underline, no allCaps
+                        // --- Format remaining TOC entries ---
+                        // TNR 12pt, no bold, no underline, no allCaps, black
                         // 3pt before/after, single spacing
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
@@ -4501,26 +4517,60 @@
                         para.font.allCaps = false;
                         para.font.underline = Word.UnderlineType.none;
                         para.font.color = "#000000";
-                        // Italic is NOT touched — keeps whatever italic state exists
                         
                         para.spaceBefore = 3;
                         para.spaceAfter = 3;
-                        para.lineSpacing = 12; // single spacing for 12pt font
+                        para.lineSpacing = 12;
                         para.alignment = Word.Alignment.left;
                         
-                        // Reset all indentation explicitly to override TOC style defaults
-                        // Then apply level-specific left indent
+                        // Reset all indentation to override TOC style defaults
                         para.firstLineIndent = 0;
                         para.rightIndent = 0;
                         
-                        // Left indentation (relative to margin):
+                        // Left indentation by level:
                         // TOC 1 (H1) = 0pt from margin
-                        // TOC 2 (H2) = 6pt from margin
-                        // TOC 3 (H3) = 12pt, TOC 4 (H4) = 18pt, TOC 5 (H5) = 24pt
-                        if (tocLevel <= 1) {
-                            para.leftIndent = 0;
-                        } else {
-                            para.leftIndent = (tocLevel - 1) * 6;
+                        // TOC 2 (H2) = 6pt, TOC 3 = 12pt, TOC 4 = 18pt, TOC 5 = 24pt
+                        const leftIndentPt = (tocLevel <= 1) ? 0 : (tocLevel - 1) * 6;
+                        para.leftIndent = leftIndentPt;
+                        
+                        // Collect for right tab stop fix
+                        tocParasToFix.push(para);
+                    }
+                    
+                    await context.sync();
+                    
+                    // --- Step 5: Fix right tab stops via OOXML round-trip ---
+                    // Word's TOC styles have right-aligned tab stops for page numbers
+                    // that may not align with the actual right margin.
+                    // For letter paper with 1" margins: content width = 6.5" = 9360 twips.
+                    // We get each para's OOXML, fix the right tab stop position, and write it back.
+                    const rightTabPosTwips = 9360; // 6.5 inches in twips (letter, 1" margins)
+                    
+                    for (const para of tocParasToFix) {
+                        try {
+                            const paraRange = para.getRange(Word.RangeLocation.whole);
+                            const ooxmlObj = paraRange.getOoxml();
+                            await context.sync();
+                            
+                            let ooxml = ooxmlObj.value;
+                            
+                            // Replace any existing right tab stop position with our calculated position
+                            // Match: <w:tab w:val="right" ... w:pos="XXXX"/>
+                            // The pos value is in twips
+                            ooxml = ooxml.replace(
+                                /(<w:tab\s[^>]*w:val="right"[^>]*w:pos=")(\d+)(")/g,
+                                `$1${rightTabPosTwips}$3`
+                            );
+                            // Also handle attribute order: w:pos before w:val
+                            ooxml = ooxml.replace(
+                                /(<w:tab\s[^>]*w:pos=")(\d+)("[^>]*w:val="right")/g,
+                                `$1${rightTabPosTwips}$3`
+                            );
+                            
+                            paraRange.insertOoxml(ooxml, Word.InsertLocation.replace);
+                        } catch (ooxmlErr) {
+                            // If OOXML round-trip fails for a paragraph, skip it silently
+                            console.warn("Tab stop fix failed for a TOC entry:", ooxmlErr);
                         }
                     }
                     
