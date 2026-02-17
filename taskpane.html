@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #73</span>
+        <span class="build-num">Build #74</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -1491,7 +1491,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #73
+        // Build #74
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -2674,8 +2674,8 @@
                     // Match "Table 1", "Table 3.2.S.1-1", "Table 3.2.P.7.3", etc. but NOT "Table of Contents"
                     // Capture: (prefix)(separator)(caption text)
                     // Prefix: Table/Figure + space + alphanumeric with dots/dashes
-                    // Separator: any combination of dash, space, tab, colon (at least one, or none if followed by uppercase)
-                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+)([\\-\\s\\t:]*)(.*)`,'i');
+                    // Separator: any non-alphanumeric characters (handles soft hyphens, em-dashes, etc.)
+                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+)([^a-zA-Z0-9]*)(.*)`,'i');
                     // Exclude patterns
                     const excludeRegex = /^table\s+of\s+(contents|figures|tables)/i;
 
