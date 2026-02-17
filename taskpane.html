@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #70</span>
+        <span class="build-num">Build #69</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -559,11 +559,11 @@
         <span style="color:#b71c1c;">Set US Letter + 1" margins before formatting</span>
     </div>
 
-    <!-- Custom Preserved Terms Display -->
+    <!-- Custom UPPERCASE Terms Display -->
     <div id="customUppercaseDisplay" style="background:#fff3e0;border-left:4px solid #ff9800;padding:8px 12px;margin:4px 12px 0 12px;border-radius:0 4px 4px 0;font-size:11px;display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <div>
-                <strong style="color:#e65100;">📝 Preserved Terms:</strong>
+                <strong style="color:#e65100;">📝 Custom UPPERCASE:</strong>
                 <span id="customUppercaseTermsDisplay" style="color:#f57c00;font-family:monospace;"></span>
             </div>
             <button id="btnCustomUppercaseEdit" style="padding:2px 8px;font-size:10px;background:#ff9800;color:white;border:none;border-radius:3px;cursor:pointer;">Edit</button>
@@ -607,7 +607,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Body Text</div>
-                    <div class="tooltip-desc">TNR 12pt, 1.15 spacing, 6pt before/after. Keeps bold/italic/underline/color.</div>
+                    <div class="tooltip-desc">TNR 12pt, 1.15 spacing, 6pt before/after. No case change.</div>
                 </div>
             </div>
 
@@ -722,30 +722,6 @@
             </div>
 
             <!-- ====== CAPTIONS ====== -->
-            <!-- Single Table Caption -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnSingleTableCaption">
-                    <div class="btn-icon">T1</div>
-                    <span class="btn-label">Table Caption</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format Selected Table Caption</div>
-                    <div class="tooltip-desc">Format current paragraph as table caption: Title Case, Tab separator, TNR 12pt Bold.</div>
-                </div>
-            </div>
-
-            <!-- Single Figure Caption -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnSingleFigureCaption">
-                    <div class="btn-icon">F1</div>
-                    <span class="btn-label">Figure Caption</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format Selected Figure Caption</div>
-                    <div class="tooltip-desc">Format current paragraph as figure caption: Title Case, Tab separator, TNR 12pt Bold.</div>
-                </div>
-            </div>
-
             <!-- All Table Caption -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnTableCaption">
@@ -767,42 +743,6 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Figure Captions</div>
                     <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
-                </div>
-            </div>
-
-            <!-- All Table Caption Left Align -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnTableCaptionLeft">
-                    <div class="btn-icon">T←</div>
-                    <span class="btn-label">Table Caption Left</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Left Align All Table Captions</div>
-                    <div class="tooltip-desc">Set all table captions to left alignment (no other changes).</div>
-                </div>
-            </div>
-
-            <!-- All Figure Caption Left Align -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnFigureCaptionLeft">
-                    <div class="btn-icon">F←</div>
-                    <span class="btn-label">Figure Caption Left</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Left Align All Figure Captions</div>
-                    <div class="tooltip-desc">Set all figure captions to left alignment (no other changes).</div>
-                </div>
-            </div>
-
-            <!-- Table Footnote Style -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnTableFootnote">
-                    <div class="btn-icon">T*</div>
-                    <span class="btn-label">Table Footnote</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format Table Footnote</div>
-                    <div class="tooltip-desc">TNR 10pt, single line spacing, 0pt before/after. Select text first.</div>
                 </div>
             </div>
 
@@ -880,15 +820,15 @@
                 </div>
             </div>
 
-            <!-- Custom Preserved Terms (Drug names, etc.) -->
+            <!-- Custom UPPERCASE (Drug names, etc.) -->
             <div class="tooltip-container">
                 <button class="btn success" id="btnCustomUppercase">
                     <div class="btn-icon">AB+</div>
-                    <span class="btn-label">Preserve Terms</span>
+                    <span class="btn-label">Custom UPPER</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Preserve Custom Terms</div>
-                    <div class="tooltip-desc">Save terms (DRU-012, Aleeto) to preserve their exact case during Title/Sentence case conversion.</div>
+                    <div class="tooltip-title">Custom UPPERCASE</div>
+                    <div class="tooltip-desc">Save drug names or terms to auto-convert to UPPERCASE throughout document.</div>
                 </div>
             </div>
 
@@ -1352,17 +1292,17 @@
         </div>
     </div>
 
-    <!-- Preserve Custom Terms Modal -->
+    <!-- Custom Uppercase Modal -->
     <div class="modal-overlay" id="customUppercaseModal">
         <div class="modal" style="max-width: 450px;">
             <div class="modal-header">
-                <span class="modal-title">Preserve Custom Terms</span>
+                <span class="modal-title">Custom UPPERCASE</span>
                 <button class="modal-close" id="customUppercaseClose">×</button>
             </div>
             <div class="modal-body">
-                <p class="modal-desc">Enter terms to preserve during case conversion (one per line):</p>
-                <textarea id="customUppercaseInput" rows="5" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="DRU-012&#10;Aleeto&#10;ABC-456"></textarea>
-                <p style="font-size:11px;color:#666;margin-top:8px;">Terms will keep their exact case in Title/Sentence conversion (e.g., DRU-012 stays DRU-012)</p>
+                <p class="modal-desc">Enter terms to UPPERCASE (one per line):</p>
+                <textarea id="customUppercaseInput" rows="5" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;resize:vertical;" placeholder="xyz-123&#10;abc-456&#10;drug name"></textarea>
+                <p style="font-size:11px;color:#666;margin-top:8px;">Will convert all instances to UPPERCASE (e.g., xyz-123 → XYZ-123)</p>
                 
                 <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1372,7 +1312,7 @@
                     <div id="savedTermsList" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:11px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
                         No saved terms
                     </div>
-                    <p style="font-size:10px;color:#888;margin-top:4px;">💡 Saved terms persist between sessions and apply to headings, captions, and body text</p>
+                    <p style="font-size:10px;color:#888;margin-top:4px;">💡 Saved terms persist between sessions</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1490,20 +1430,20 @@
     <!-- JavaScript -->
     <script type="text/javascript">
         // ============================================
-        // FORMATCURE WL - TASKPANE LOGIC
-        // Build #70
+        // DOCUALIGN - TASKPANE LOGIC
+        // Version 1.1.0
         // ============================================
 
         // Pharmaceutical acronyms to preserve
         const PRESERVED_TERMS = [
             'FDA', 'IND', 'NDA', 'BLA', 'ANDA', 'DMF', 'CTD', 'eCTD',
             'PK', 'PD', 'ADME', 'AUC', 'Cmax', 'Tmax',
-            'API', 'GMP', 'cGMP', 'GLP', 'ICH', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP',
+            'API', 'GMP', 'cGMP', 'ICH', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP',
             'DNA', 'RNA', 'mRNA', 'pH', 'UV', 'IR', 'NMR', 'HPLC', 'GC', 'MS',
             'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN',
             'US', 'EU', 'UK', 'WHO', 'EMA', 'PMDA', 'TGA', 'NMPA',
             'SOP', 'QA', 'QC', 'R&D', 'CMC', 'CMO', 'CRO', 'CDMO',
-            'DS', 'DP', 'ADC', 'SD', 'PBMC', 'Aleeto'
+            'DS', 'DP', 'ADC'
         ];
 
         const LOWERCASE_WORDS = [
@@ -1560,13 +1500,8 @@
                 document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
                 
                 // Captions & References buttons
-                document.getElementById('btnSingleTableCaption').addEventListener('click', handleSingleTableCaption);
-                document.getElementById('btnSingleFigureCaption').addEventListener('click', handleSingleFigureCaption);
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
-                document.getElementById('btnTableCaptionLeft').addEventListener('click', handleTableCaptionLeft);
-                document.getElementById('btnFigureCaptionLeft').addEventListener('click', handleFigureCaptionLeft);
-                document.getElementById('btnTableFootnote').addEventListener('click', handleTableFootnote);
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
                 document.getElementById('btnAllCrossRef').addEventListener('click', handleAllCrossRefStyle);
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
@@ -1688,6 +1623,11 @@
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
+                    
+                    // FIRST: Remove All Caps formatting
+                    selection.font.allCaps = false;
+                    await context.sync();
+                    
                     selection.load("text");
                     await context.sync();
 
@@ -1702,6 +1642,11 @@
 
                         if (paragraphs.items.length > 0) {
                             const para = paragraphs.items[0];
+                            
+                            // Remove All Caps from paragraph
+                            para.font.allCaps = false;
+                            await context.sync();
+                            
                             para.load("text");
                             await context.sync();
                             
@@ -1746,6 +1691,11 @@
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
+                    
+                    // FIRST: Remove All Caps formatting
+                    selection.font.allCaps = false;
+                    await context.sync();
+                    
                     selection.load("text");
                     await context.sync();
 
@@ -1761,6 +1711,11 @@
 
                         if (paragraphs.items.length > 0) {
                             para = paragraphs.items[0];
+                            
+                            // Remove All Caps from paragraph
+                            para.font.allCaps = false;
+                            await context.sync();
+                            
                             para.load("text");
                             await context.sync();
                             
@@ -2045,6 +2000,16 @@
                         if (headingKey !== null && options[headingKey]) {
                             const opt = options[headingKey];
                             
+                            // FIRST: Remove All Caps formatting (this is key!)
+                            // Word's "All Caps" font property makes text LOOK uppercase
+                            // but the actual text might be different
+                            para.font.allCaps = false;
+                            await context.sync();
+                            
+                            // Reload text after removing All Caps
+                            para.load("text");
+                            await context.sync();
+                            
                             // Apply case conversion if not "No Change"
                             if (opt.case !== '0') {
                                 let text = para.text;
@@ -2067,6 +2032,7 @@
                             const fontObj = para.font;
                             fontObj.bold = (opt.bold === '1');
                             fontObj.italic = (opt.italic === '1');
+                            fontObj.allCaps = false; // Ensure All Caps stays off
                             if (opt.size !== '0') {
                                 fontObj.size = parseInt(opt.size);
                             }
@@ -2182,9 +2148,20 @@
                         fields.load("items");
                         await context.sync();
                         
-                        // Apply font name and size only - KEEP bold, italic, underline, color
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
+                        if (fields.items.length > 0) {
+                            // Has cross-refs - ONLY apply font formatting, don't change text
+                            // This preserves the hyperlinks
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                        } else {
+                            // No cross-refs - apply full body font formatting (no case change)
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = false;
+                            para.font.italic = false;
+                            para.font.underline = Word.UnderlineType.none;
+                            para.font.color = "black";
+                        }
                         
                         paraCount++;
                     }
@@ -2267,7 +2244,8 @@
                     headerRow.load("cells");
                     await context.sync();
                     
-                    // Format header row font (keep bold as-is)
+                    // Make header row bold
+                    headerRow.font.bold = true;
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
                     
@@ -2310,7 +2288,7 @@
                     
                     for (let r = 1; r < allRows.items.length; r++) {
                         const row = allRows.items[r];
-                        // Format body row font (keep bold as-is)
+                        row.font.bold = false;
                         row.font.name = "Times New Roman";
                         row.font.size = 10;
                         
@@ -2435,7 +2413,8 @@
                         if (rows.items.length > 0) {
                             const headerRow = rows.items[0];
                             
-                            // Format header row - left align, white fill (keep bold as-is)
+                            // Format header row - bold, left align, white fill
+                            headerRow.font.bold = true;
                             headerRow.font.name = "Times New Roman";
                             headerRow.font.size = 10;
                             
@@ -2470,9 +2449,10 @@
                                 }
                             }
                             
-                            // Format body rows (keep bold as-is)
+                            // Format body rows
                             for (let r = 1; r < rows.items.length; r++) {
                                 const row = rows.items[r];
+                                row.font.bold = false;
                                 row.font.name = "Times New Roman";
                                 row.font.size = 10;
                                 
@@ -2528,86 +2508,7 @@
 
         // ============================================
         // FORMAT CAPTION HANDLERS
-        // ============================================
-        
-        // Single Table/Figure Caption - formats the current paragraph
-        async function handleSingleTableCaption() {
-            await formatSingleCaption('Table');
-        }
-
-        async function handleSingleFigureCaption() {
-            await formatSingleCaption('Figure');
-        }
-
-        async function formatSingleCaption(captionType) {
-            try {
-                await Word.run(async (context) => {
-                    const selection = context.document.getSelection();
-                    const paragraphs = selection.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-
-                    if (paragraphs.items.length === 0) {
-                        showToast('Place cursor in a caption paragraph', 'error');
-                        return;
-                    }
-
-                    const para = paragraphs.items[0];
-                    para.load("text");
-                    await context.sync();
-
-                    let text = para.text;
-                    if (text.endsWith('\r')) {
-                        text = text.slice(0, -1);
-                    }
-
-                    // Check if this looks like a caption
-                    const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
-                    const match = text.match(captionRegex);
-
-                    if (!match) {
-                        showToast(`Not a ${captionType.toLowerCase()} caption (should start with "${captionType} #")`, 'error');
-                        return;
-                    }
-
-                    const prefix = match[1].trim();
-                    let afterPrefix = match[2];
-                    let captionText = afterPrefix.replace(/^[\t:\s]*/, '').trim();
-
-                    if (captionText) {
-                        // Convert to Title Case
-                        const convertedCaption = convertToTitleCase(captionText);
-
-                        if (afterPrefix) {
-                            const searchRange = para.search(afterPrefix, { matchCase: false });
-                            searchRange.load("items");
-                            await context.sync();
-
-                            if (searchRange.items.length > 0) {
-                                searchRange.items[0].insertText('\t' + convertedCaption, Word.InsertLocation.replace);
-                            }
-                        }
-                    }
-
-                    // Apply formatting
-                    para.font.name = "Times New Roman";
-                    para.font.size = 12;
-                    para.font.bold = true;
-                    para.font.italic = false;
-                    para.font.underline = Word.UnderlineType.none;
-                    para.font.color = "black";
-                    para.alignment = Word.Alignment.left;
-
-                    await context.sync();
-                    showToast(`${captionType} caption formatted!`, 'success');
-                });
-            } catch (error) {
-                console.error("Single Caption Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-
-        // All Table/Figure Captions - finds ALL captions in document and formats them
+        // Finds ALL captions in document and formats them
         // Converts any separator (colon, space, none) to tab
         // Format: Table #[tab]Caption Text in Title Case
         // ============================================
@@ -2617,112 +2518,6 @@
 
         async function handleFigureCaption() {
             await formatAllCaptions('Figure');
-        }
-
-        // Left Align Only - no text changes
-        async function handleTableCaptionLeft() {
-            await alignAllCaptions('Table');
-        }
-
-        async function handleFigureCaptionLeft() {
-            await alignAllCaptions('Figure');
-        }
-
-        async function alignAllCaptions(captionType) {
-            try {
-                await Word.run(async (context) => {
-                    const body = context.document.body;
-                    const paragraphs = body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("text");
-                    }
-                    await context.sync();
-
-                    let alignedCount = 0;
-                    // Match "Table 1", "Table 3.2.S.1-1", etc. but NOT "Table of Contents"
-                    const captionRegex = new RegExp(`^${captionType}\\s+[\\d\\.\\-\\w]+`, 'i');
-                    // Exclude patterns
-                    const excludeRegex = /^table\s+of\s+(contents|figures|tables)/i;
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        let text = para.text;
-                        if (text.endsWith('\r')) {
-                            text = text.slice(0, -1);
-                        }
-
-                        // Skip "Table of Contents", "Table of Figures", etc.
-                        if (excludeRegex.test(text)) {
-                            continue;
-                        }
-
-                        if (captionRegex.test(text)) {
-                            para.alignment = Word.Alignment.left;
-                            alignedCount++;
-                        }
-                    }
-
-                    await context.sync();
-
-                    if (alignedCount > 0) {
-                        showToast(`Left-aligned ${alignedCount} ${captionType.toLowerCase()} caption(s)!`, 'success');
-                    } else {
-                        showToast(`No ${captionType.toLowerCase()} captions found`, 'error');
-                    }
-                });
-            } catch (error) {
-                console.error("Align Caption Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-
-        // ============================================
-        // TABLE FOOTNOTE HANDLER
-        // TNR 10pt, single line spacing, 0pt before/after
-        // ============================================
-        async function handleTableFootnote() {
-            try {
-                await Word.run(async (context) => {
-                    const selection = context.document.getSelection();
-                    const paragraphs = selection.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-
-                    if (paragraphs.items.length === 0) {
-                        showToast('Select table footnote text first', 'error');
-                        return;
-                    }
-
-                    let formattedCount = 0;
-
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        
-                        // Font: TNR 10pt
-                        para.font.name = "Times New Roman";
-                        para.font.size = 10;
-                        
-                        // Spacing: single line (10pt for 10pt font), 0pt before/after
-                        para.lineSpacing = 10;
-                        para.spaceBefore = 0;
-                        para.spaceAfter = 0;
-                        
-                        // Left align
-                        para.alignment = Word.Alignment.left;
-                        
-                        formattedCount++;
-                    }
-
-                    await context.sync();
-                    showToast(`Formatted ${formattedCount} table footnote paragraph(s)!`, 'success');
-                });
-            } catch (error) {
-                console.error("Table Footnote Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
         }
 
         async function formatAllCaptions(captionType) {
@@ -3028,6 +2823,9 @@
         }
 
         // ============================================
+        // LATIN TERMS HANDLER
+        // ============================================
+        // ============================================
         // SCIENTIFIC NAMES MODAL & HANDLER
         // ============================================
         function showScientificNamesModal() {
@@ -3172,9 +2970,9 @@
                 return;
             }
             
-            // Parse input - one term per line, PRESERVE original case
+            // Parse input - one term per line
             const newTerms = input.split('\n')
-                .map(line => line.trim())
+                .map(line => line.trim().toUpperCase())
                 .filter(line => line.length > 0);
             
             if (newTerms.length === 0) {
@@ -3187,15 +2985,8 @@
                 const saved = localStorage.getItem(SAVED_TERMS_KEY);
                 let existingTerms = saved ? JSON.parse(saved) : [];
                 
-                // Merge and deduplicate (case-insensitive dedup, keep first occurrence)
-                const seenLower = new Set(existingTerms.map(t => t.toLowerCase()));
-                const uniqueNewTerms = newTerms.filter(t => {
-                    const lower = t.toLowerCase();
-                    if (seenLower.has(lower)) return false;
-                    seenLower.add(lower);
-                    return true;
-                });
-                const allTerms = [...existingTerms, ...uniqueNewTerms];
+                // Merge and deduplicate
+                const allTerms = [...new Set([...existingTerms, ...newTerms])];
                 
                 // Save
                 localStorage.setItem(SAVED_TERMS_KEY, JSON.stringify(allTerms));
@@ -3206,7 +2997,7 @@
                 // Clear input
                 document.getElementById('customUppercaseInput').value = '';
                 
-                showToast(`Saved ${uniqueNewTerms.length} term(s)! Total: ${allTerms.length}`, 'success');
+                showToast(`Saved ${newTerms.length} term(s)! Total: ${allTerms.length}`, 'success');
             } catch (e) {
                 console.error('Could not save terms:', e);
                 showToast('Could not save terms (localStorage not available)', 'error');
