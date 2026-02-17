@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #75</span>
+        <span class="build-num">Build #76</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -606,7 +606,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Line as Title</div>
-                    <div class="tooltip-desc">Title Case + TNR 12pt Bold Left. Preserves 3.2.S/P numbering. NO italic/underline change.</div>
+                    <div class="tooltip-desc">Title Case + TNR 12pt Bold Left. 18pt before / 12pt after. Preserves 3.2.S/P numbering. NO italic/underline change.</div>
                 </div>
             </div>
 
@@ -742,7 +742,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Selected Table Caption</div>
-                    <div class="tooltip-desc">Format current paragraph as table caption: Title Case, Tab separator, TNR 12pt Bold.</div>
+                    <div class="tooltip-desc">Format current paragraph as table caption: Title Case, Colon separator, TNR 12pt Bold.</div>
                 </div>
             </div>
 
@@ -754,7 +754,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Selected Figure Caption</div>
-                    <div class="tooltip-desc">Format current paragraph as figure caption: Title Case, Tab separator, TNR 12pt Bold.</div>
+                    <div class="tooltip-desc">Format current paragraph as figure caption: Title Case, Colon separator, TNR 12pt Bold.</div>
                 </div>
             </div>
 
@@ -766,7 +766,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Table Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
+                    <div class="tooltip-desc">Title Case, Colon separator, TNR 12pt Bold (no italic/underline).</div>
                 </div>
             </div>
 
@@ -778,7 +778,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Figure Captions</div>
-                    <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
+                    <div class="tooltip-desc">Title Case, Colon separator, TNR 12pt Bold (no italic/underline).</div>
                 </div>
             </div>
 
@@ -790,7 +790,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Left Align All Table Captions</div>
-                    <div class="tooltip-desc">Left align, 6pt before/after, colon separator. NO case change.</div>
+                    <div class="tooltip-desc">Left align, 6pt before/after. Replaces separator (em-dash, tab, etc.) with colon. No case/italic change.</div>
                 </div>
             </div>
 
@@ -802,7 +802,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Left Align All Figure Captions</div>
-                    <div class="tooltip-desc">Left align, 6pt before/after, colon separator. NO case change.</div>
+                    <div class="tooltip-desc">Left align, 6pt before/after. Replaces separator (em-dash, tab, etc.) with colon. No case/italic change.</div>
                 </div>
             </div>
 
@@ -1503,7 +1503,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #75
+        // Build #76
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -1735,12 +1735,14 @@
                         para.insertText(converted, Word.InsertLocation.replace);
                     }
                     
-                    // Apply formatting: TNR 12pt Bold Left (don't change italic/underline)
+                    // Apply formatting: TNR 12pt Bold Left, 18pt before / 12pt after (don't change italic/underline)
                     para.font.name = "Times New Roman";
                     para.font.size = 12;
                     para.font.bold = true;
                     para.font.allCaps = false;
                     para.alignment = Word.Alignment.left;
+                    para.spaceBefore = 18;
+                    para.spaceAfter = 12;
                     
                     await context.sync();
                     showToast('Title format applied!', 'success');
@@ -2690,7 +2692,8 @@
 
                     const prefix = match[1].trim();
                     let afterPrefix = match[2];
-                    let captionText = afterPrefix.replace(/^[\t:\s]*/, '').trim();
+                    // Strip any separator: tab, colon, space, em-dash (—), en-dash (–), hyphen
+                    let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\-]*/, '').trim();
 
                     if (captionText) {
                         // Convert to Title Case
@@ -2702,7 +2705,8 @@
                             await context.sync();
 
                             if (searchRange.items.length > 0) {
-                                searchRange.items[0].insertText('\t' + convertedCaption, Word.InsertLocation.replace);
+                                // Replace with colon + space + converted caption
+                                searchRange.items[0].insertText(': ' + convertedCaption, Word.InsertLocation.replace);
                             }
                         }
                     }
@@ -2726,8 +2730,8 @@
         }
 
         // All Table/Figure Captions - finds ALL captions in document and formats them
-        // Converts any separator (colon, space, none) to tab
-        // Format: Table #[tab]Caption Text in Title Case
+        // Converts any separator (tab, em-dash, en-dash, space) to colon
+        // Format: Table #: Caption Text in Title Case
         // ============================================
         async function handleTableCaption() {
             await formatAllCaptions('Table');
@@ -2788,17 +2792,23 @@
 
                         const match = text.match(captionRegex);
                         if (match) {
-                            const prefix = match[1].trim();  // "Table 3.2.S.2.2-1" or "Table 3.2.P.7.3"
-                            const separator = match[2] || '';       // the separator (-, tab, space, etc.) or empty
-                            const captionText = (match[3] || '').trim(); // caption text
+                            const separator = match[2]; // e.g. " – ", " \t ", " : ", "  "
+                            const captionText = match[3]; // caption text after separator
                             
-                            // Only replace if there's caption text and not already properly formatted with colon
-                            if (captionText && !text.includes(prefix + ': ')) {
-                                // Replace entire paragraph with prefix + colon + caption
-                                para.insertText(prefix + ': ' + captionText, Word.InsertLocation.replace);
+                            // Replace separator with colon if it's not already ": "
+                            // Only touch the separator portion — preserves fields on prefix and caption text
+                            if (captionText && separator && separator.trim() !== ':') {
+                                const searchResult = para.search(separator, { matchCase: true });
+                                searchResult.load("items");
+                                await context.sync();
+                                
+                                if (searchResult.items.length > 0) {
+                                    // Replace first match (the separator) with ": "
+                                    searchResult.items[0].insertText(': ', Word.InsertLocation.replace);
+                                }
                             }
                             
-                            // Apply formatting even if no text change needed
+                            // Apply paragraph formatting only — no case/italic changes
                             para.alignment = Word.Alignment.left;
                             para.spaceBefore = 6;
                             para.spaceAfter = 6;
@@ -2809,7 +2819,7 @@
                     await context.sync();
 
                     if (alignedCount > 0) {
-                        showToast(`Formatted ${alignedCount} ${captionType.toLowerCase()} caption(s) with colon separator!`, 'success');
+                        showToast(`Formatted ${alignedCount} ${captionType.toLowerCase()} caption(s)!`, 'success');
                     } else {
                         showToast(`No ${captionType.toLowerCase()} captions found`, 'error');
                     }
@@ -2884,7 +2894,6 @@
                     
                     // Match "Table" or "Figure" followed by space(s) and complex numbering
                     // Supports: Table 1, Table 3.2.S.2.2-1, Table 3.2.S.2.2- 1, Figure 2.1, etc.
-                    // Pattern: "Table" + optional space + alphanumeric/dot/dash sequence
                     const captionRegex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
 
                     for (let i = 0; i < paragraphs.items.length; i++) {
@@ -2905,23 +2914,21 @@
                         const prefix = match[1].trim(); // "Table 4" or "Table 3.2.S.2.2-1"
                         let afterPrefix = match[2]; // everything after
                         
-                        // Remove any leading separator (tab, colon, space, or nothing)
-                        let captionText = afterPrefix.replace(/^[\t:\s]*/, '').trim();
+                        // Strip any separator: tab, colon, space, em-dash (—), en-dash (–), hyphen
+                        let captionText = afterPrefix.replace(/^[\t:\s\u2013\u2014\-]*/, '').trim();
                         
                         if (captionText) {
                             // Convert to Title Case
                             const convertedCaption = convertToTitleCase(captionText);
                             
-                            // Find and replace everything after the prefix
                             if (afterPrefix) {
-                                // Search for the exact text after prefix
                                 const searchRange = para.search(afterPrefix, { matchCase: false });
                                 searchRange.load("items");
                                 await context.sync();
                                 
                                 if (searchRange.items.length > 0) {
-                                    // Replace with tab + converted caption
-                                    searchRange.items[0].insertText('\t' + convertedCaption, Word.InsertLocation.replace);
+                                    // Replace with colon + space + converted caption
+                                    searchRange.items[0].insertText(': ' + convertedCaption, Word.InsertLocation.replace);
                                 }
                             }
                         } else if (afterPrefix === '') {
@@ -2952,6 +2959,7 @@
             } catch (error) {
                 console.error("Format Caption Error:", error);
                 showToast('Error: ' + error.message, 'error');
+            }
             }
         }
 
