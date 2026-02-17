@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #76</span>
+        <span class="build-num">Build #77</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -4433,23 +4433,26 @@
                     field.updateResult();
                     await context.sync();
                     
-                    // Format TOC entries per level
-                    // TOC entries use Word styles "TOC 1", "TOC 2", etc.
-                    // Indentation: TOC Heading & H1 (TOC 1) = 0pt, H2 (TOC 2) = 12pt, H3 = 24pt, etc.
-                    const tocResult = field.result;
-                    const tocParas = tocResult.paragraphs;
-                    tocParas.load("items");
+                    // Format TOC entries by finding all paragraphs with TOC styles in the document
+                    // Using document body instead of field.result for more reliable access
+                    const allParas = context.document.body.paragraphs;
+                    allParas.load("items");
                     await context.sync();
                     
-                    for (let i = 0; i < tocParas.items.length; i++) {
-                        tocParas.items[i].load("style, text");
+                    for (let i = 0; i < allParas.items.length; i++) {
+                        allParas.items[i].load("style, text");
                     }
                     await context.sync();
                     
-                    for (let i = 0; i < tocParas.items.length; i++) {
-                        const para = tocParas.items[i];
+                    for (let i = 0; i < allParas.items.length; i++) {
+                        const para = allParas.items[i];
                         const styleName = (para.style || "").toLowerCase();
                         const paraText = (para.text || "").trim().toLowerCase().replace(/\r$/, '');
+                        
+                        // Only process TOC-styled paragraphs
+                        if (!styleName.startsWith('toc')) {
+                            continue;
+                        }
                         
                         // Determine TOC level from style name (toc 1, toc 2, etc.)
                         let tocLevel = 0;
@@ -4459,10 +4462,9 @@
                         }
                         
                         // Delete Title / TOC Heading entries
-                        // Matches: "TOC Heading", "Title" style, or text matching document's Title paragraph
+                        // Matches: "TOC Heading", or text matching document's Title paragraph
                         if (styleName.includes('toc heading') || 
-                            styleName === 'title' || 
-                            (styleName.includes('toc') && tocLevel === 0) ||
+                            tocLevel === 0 ||
                             titleTexts.some(t => paraText.includes(t) || t.includes(paraText))) {
                             para.delete();
                             continue;
