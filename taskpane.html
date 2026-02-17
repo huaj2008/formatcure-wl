@@ -656,7 +656,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Insert Table of Contents</div>
-                    <div class="tooltip-desc">Insert TOC at cursor. Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-desc">Insert TOC (H1-H5) at cursor. TNR 12pt, 3pt spacing, indented by level. No title. Requires Office 2019+ or M365.</div>
                 </div>
             </div>
 
@@ -4388,7 +4388,7 @@
                         }
                     }
                     
-                    // Also try to delete the title paragraph
+                    // Also try to delete the old title paragraph if it exists
                     const paras = context.document.body.paragraphs;
                     paras.load("items");
                     await context.sync();
@@ -4408,27 +4408,70 @@
                     
                     await context.sync();
                     
-                    // Insert formatted title at cursor
-                    await insertFormattedTitle(context, "Table of Contents");
-                    
-                    // Get new selection (after title)
+                    // No title inserted — TOC only
+                    // Get selection for TOC insertion
                     const range = context.document.getSelection().getRange();
                     
-                    // Insert TOC with hyperlinks, showing heading levels 1-3
+                    // Insert TOC with hyperlinks, showing heading levels 1-5
                     const field = range.insertField(
                         Word.InsertLocation.replace,
                         Word.FieldType.toc,
-                        '\\o "1-3" \\h'
+                        '\\o "1-5" \\h'
                     );
                     
                     // Update the field to populate it
                     field.updateResult();
+                    await context.sync();
                     
-                    // Format TOC entries: TNR 12pt, not bold
-                    const tocRange = field.result;
-                    tocRange.font.name = "Times New Roman";
-                    tocRange.font.size = 12;
-                    tocRange.font.bold = false;
+                    // Format TOC entries per level
+                    // TOC entries use Word styles "TOC 1", "TOC 2", etc.
+                    // Indentation: TOC Heading & H1 (TOC 1) = 0pt, H2 (TOC 2) = 12pt, H3 = 24pt, etc.
+                    const tocResult = field.result;
+                    const tocParas = tocResult.paragraphs;
+                    tocParas.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < tocParas.items.length; i++) {
+                        tocParas.items[i].load("style");
+                    }
+                    await context.sync();
+                    
+                    for (let i = 0; i < tocParas.items.length; i++) {
+                        const para = tocParas.items[i];
+                        const styleName = (para.style || "").toLowerCase();
+                        
+                        // Determine TOC level from style name (toc 1, toc 2, etc.)
+                        let tocLevel = 1;
+                        const levelMatch = styleName.match(/toc\s*(\d+)/);
+                        if (levelMatch) {
+                            tocLevel = parseInt(levelMatch[1]);
+                        }
+                        
+                        // Skip TOC Heading style (the "Table of Contents" title Word auto-generates)
+                        if (styleName.includes('toc heading')) {
+                            continue;
+                        }
+                        
+                        // Base formatting: TNR 12pt, no bold, no underline, 3pt before/after, single spacing
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
+                        para.font.bold = false;
+                        para.font.underline = Word.UnderlineType.none;
+                        // Italic is NOT touched — keeps whatever italic state exists
+                        
+                        para.spaceBefore = 3;
+                        para.spaceAfter = 3;
+                        para.lineSpacing = 12; // single spacing for 12pt font
+                        para.alignment = Word.Alignment.left;
+                        
+                        // Indentation: TOC 1 (H1) = 0pt, TOC 2 (H2) = 12pt, TOC 3 (H3) = 24pt, etc.
+                        // 12pt per level starting from level 2
+                        if (tocLevel <= 1) {
+                            para.leftIndent = 0;
+                        } else {
+                            para.leftIndent = (tocLevel - 1) * 12;
+                        }
+                    }
                     
                     await context.sync();
                     showToast('TOC inserted!', 'success');
