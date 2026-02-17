@@ -734,6 +734,18 @@
                 </div>
             </div>
 
+            <!-- Table Caption Left Only -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnTableCaptionLeft" style="background:#9e9e9e;">
+                    <div class="btn-icon">T←</div>
+                    <span class="btn-label">Table Caption Left</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Table Caption Left Align Only</div>
+                    <div class="tooltip-desc">Left align + TNR 12pt Bold + 6pt before/after. NO case change.</div>
+                </div>
+            </div>
+
             <!-- All Figure Caption -->
             <div class="tooltip-container">
                 <button class="btn warning" id="btnFigureCaption">
@@ -743,6 +755,18 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Format All Figure Captions</div>
                     <div class="tooltip-desc">Title Case, Tab separator, TNR 12pt Bold (no italic/underline).</div>
+                </div>
+            </div>
+
+            <!-- Figure Caption Left Only -->
+            <div class="tooltip-container">
+                <button class="btn" id="btnFigureCaptionLeft" style="background:#9e9e9e;">
+                    <div class="btn-icon">F←</div>
+                    <span class="btn-label">Figure Caption Left</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Figure Caption Left Align Only</div>
+                    <div class="tooltip-desc">Left align + TNR 12pt Bold + 6pt before/after. NO case change.</div>
                 </div>
             </div>
 
@@ -1502,6 +1526,8 @@
                 // Captions & References buttons
                 document.getElementById('btnTableCaption').addEventListener('click', handleTableCaption);
                 document.getElementById('btnFigureCaption').addEventListener('click', handleFigureCaption);
+                document.getElementById('btnTableCaptionLeft').addEventListener('click', () => handleCaptionLeftOnly('Table'));
+                document.getElementById('btnFigureCaptionLeft').addEventListener('click', () => handleCaptionLeftOnly('Figure'));
                 document.getElementById('btnCrossRef').addEventListener('click', handleCrossRefStyle);
                 document.getElementById('btnAllCrossRef').addEventListener('click', handleAllCrossRefStyle);
                 document.getElementById('btnEctdLink').addEventListener('click', handleEctdLinkStyle);
@@ -2518,6 +2544,72 @@
 
         async function handleFigureCaption() {
             await formatAllCaptions('Figure');
+        }
+
+        // ============================================
+        // CAPTION LEFT ALIGN ONLY HANDLER
+        // Only applies: Left align, TNR 12pt Bold, Black
+        // Does NOT change case or add tab separator
+        // ============================================
+        async function handleCaptionLeftOnly(captionType) {
+            try {
+                await Word.run(async (context) => {
+                    const body = context.document.body;
+                    const paragraphs = body.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+
+                    // Load all paragraph text
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("text");
+                    }
+                    await context.sync();
+
+                    let formattedCount = 0;
+                    
+                    // Match "Table" or "Figure" followed by space(s) and number
+                    const captionRegex = new RegExp(`^${captionType}\\s*[\\d\\.\\-\\w]+`, 'i');
+
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        let text = para.text;
+                        
+                        // Remove trailing paragraph mark
+                        if (text.endsWith('\r')) {
+                            text = text.slice(0, -1);
+                        }
+
+                        // Check if this is a caption
+                        if (!captionRegex.test(text)) {
+                            continue;
+                        }
+
+                        // Apply MINIMAL formatting - preserve italic/underline
+                        // Only: Left align, TNR 12pt, Bold, Black, 6pt before/after
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
+                        para.font.bold = true;
+                        para.font.color = "black";
+                        // DO NOT change italic or underline
+                        para.alignment = Word.Alignment.left;
+                        para.spaceBefore = 6;
+                        para.spaceAfter = 6;
+                        
+                        formattedCount++;
+                    }
+
+                    await context.sync();
+
+                    if (formattedCount > 0) {
+                        showToast(`Left-aligned ${formattedCount} ${captionType.toLowerCase()} caption(s)!`, 'success');
+                    } else {
+                        showToast(`No ${captionType.toLowerCase()} captions found`, 'error');
+                    }
+                });
+            } catch (error) {
+                console.error("Caption Left Only Error:", error);
+                showToast('Error: ' + error.message, 'error');
+            }
         }
 
         async function formatAllCaptions(captionType) {
