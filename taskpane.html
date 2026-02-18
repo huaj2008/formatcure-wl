@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #77</span>
+        <span class="build-num">Build #79</span>
     </div>
 
     <!-- US Letter Reminder -->
@@ -1503,7 +1503,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #77
+        // Build #79
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -2406,6 +2406,8 @@
                         para.alignment = Word.Alignment.left;
                         para.spaceAfter = 6;
                         para.spaceBefore = 6;
+                        para.lineUnitBefore = 0;
+                        para.lineUnitAfter = 0;
                         para.lineSpacing = 13.8; // 1.15 × 12pt = 13.8pt
                         
                         // Check if paragraph has cross-reference fields
@@ -4575,7 +4577,7 @@
                     }
                     
                     await context.sync();
-                    showToast('TOC inserted! (Build #77)', 'success');
+                    showToast('TOC inserted! (Build #79)', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
