@@ -2444,17 +2444,18 @@
         async function handleTableFormat() {
             try {
                 await Word.run(async (context) => {
+                    let step = 'getting selection';
                     const selection = context.document.getSelection();
                     
-                    // Get the table
+                    step = 'getting parentTable';
                     const table = selection.parentTable;
                     table.load("rows");
                     await context.sync();
                     
-                    // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
-                    // Set table borders to 0.75pt (all borders)
+                    // Step 1: Borders
+                    step = 'setting borders';
                     try {
                         table.getBorder(Word.BorderLocation.top).width = 0.75;
                         table.getBorder(Word.BorderLocation.bottom).width = 0.75;
@@ -2477,10 +2478,11 @@
                         table.getBorder(Word.BorderLocation.insideHorizontal).color = "000000";
                         table.getBorder(Word.BorderLocation.insideVertical).color = "000000";
                     } catch (borderErr) {
-                        console.log('Border setting error:', borderErr);
+                        console.log('Border error:', borderErr);
                     }
                     
-                    // Set table-level default cell padding (if supported)
+                    // Step 2: Table padding
+                    step = 'setting table padding';
                     if (paddingSupported) {
                         try {
                             table.setCellPadding("Top", 3);
@@ -2488,77 +2490,83 @@
                             table.setCellPadding("Left", 5);
                             table.setCellPadding("Right", 5);
                         } catch (padErr) {
-                            console.log('Table padding error:', padErr);
+                            console.log('Padding error:', padErr);
                         }
                     }
                     
-                    // Get all rows
+                    // Step 3: Sync after borders/padding
+                    step = 'sync after borders';
+                    await context.sync();
+                    
+                    // Step 4: Load rows
+                    step = 'loading rows';
                     const allRows = table.rows;
                     allRows.load("items");
                     await context.sync();
                     
+                    // Step 5: Format each row
                     for (let r = 0; r < allRows.items.length; r++) {
                         try {
+                            step = 'formatting row ' + r + ' font';
                             const row = allRows.items[r];
-                            
-                            // Set font for all rows
                             row.font.name = "Times New Roman";
                             row.font.size = 10;
                             
+                            step = 'loading row ' + r + ' cells';
                             const cells = row.cells;
                             cells.load("items");
                             await context.sync();
                             
                             for (let c = 0; c < cells.items.length; c++) {
                                 try {
+                                    step = 'cell padding R' + r + 'C' + c;
                                     if (paddingSupported) {
-                                        try {
-                                            cells.items[c].setCellPadding("Top", 3);
-                                            cells.items[c].setCellPadding("Bottom", 3);
-                                            cells.items[c].setCellPadding("Left", 5);
-                                            cells.items[c].setCellPadding("Right", 5);
-                                        } catch (e) { /* ignore - may fail on merged cells */ }
+                                        cells.items[c].setCellPadding("Top", 3);
+                                        cells.items[c].setCellPadding("Bottom", 3);
+                                        cells.items[c].setCellPadding("Left", 5);
+                                        cells.items[c].setCellPadding("Right", 5);
                                     }
+                                    
+                                    step = 'loading paras R' + r + 'C' + c;
                                     cells.items[c].body.paragraphs.load("items");
                                 } catch (cellErr) {
-                                    console.log('Cell error R' + r + 'C' + c + ':', cellErr);
+                                    console.log('Cell error at ' + step + ':', cellErr.message);
                                 }
                             }
+                            
+                            step = 'sync row ' + r + ' paras';
                             await context.sync();
                             
                             for (let c = 0; c < cells.items.length; c++) {
                                 try {
                                     const paras = cells.items[c].body.paragraphs.items;
                                     for (let p = 0; p < paras.length; p++) {
-                                        try {
-                                            paras[p].alignment = Word.Alignment.left;
-                                            paras[p].lineSpacing = 12;
-                                            paras[p].spaceBefore = 0;
-                                            paras[p].spaceAfter = 0;
-                                        } catch (e) { /* skip */ }
+                                        step = 'para spacing R' + r + 'C' + c + 'P' + p;
+                                        paras[p].alignment = Word.Alignment.left;
+                                        paras[p].lineSpacing = 12;
+                                        paras[p].spaceBefore = 0;
+                                        paras[p].spaceAfter = 0;
                                     }
                                 } catch (paraErr) {
-                                    console.log('Para error R' + r + 'C' + c + ':', paraErr);
+                                    console.log('Para error at ' + step + ':', paraErr.message);
                                 }
                             }
                         } catch (rowErr) {
-                            console.log('Row ' + r + ' error (merged cells?):', rowErr);
+                            console.log('Row error at ' + step + ':', rowErr.message);
                         }
                     }
                     
-                    // Auto-fit table to window
+                    step = 'autoFitWindow';
                     table.autoFitWindow();
                     
+                    step = 'final sync';
                     await context.sync();
-                    let msg = 'Table formatted (0.75pt borders)!';
-                    if (paddingSupported) {
-                        msg = 'Table formatted (0.75pt borders, padding)!';
-                    }
-                    showToast(msg, 'success');
+                    
+                    showToast('Table formatted!', 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
-                showToast('Click inside a table first: ' + error.message, 'error');
+                showToast('Error at: ' + error.message, 'error');
             }
         }
 
