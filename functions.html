@@ -135,6 +135,7 @@
         // BODY FORMAT
         // TNR 12pt, 1.15 spacing, 6pt before/after
         // Keeps bold/italic/underline/color (no text change)
+        // Skips: headings, TOC, tables, captions
         // ============================================
         async function applyBodyFormat(event) {
             try {
@@ -144,8 +145,43 @@
                     paras.load("items");
                     await context.sync();
 
+                    // Load style and text for all paragraphs first
+                    for (let i = 0; i < paras.items.length; i++) {
+                        paras.items[i].load("style, text, parentTableOrNullObject");
+                    }
+                    await context.sync();
+
                     for (let i = 0; i < paras.items.length; i++) {
                         const para = paras.items[i];
+                        const styleName = (para.style || "").toLowerCase();
+                        const text = (para.text || "").trim().toLowerCase();
+                        
+                        // Skip if inside a table
+                        if (para.parentTableOrNullObject && !para.parentTableOrNullObject.isNullObject) {
+                            continue;
+                        }
+                        
+                        // Skip headings (H1-H10, TOC Heading), Title
+                        if (styleName.includes('heading') || styleName.includes('toc') || styleName === 'title') {
+                            continue;
+                        }
+                        
+                        // Skip TOC/LOT/LOF entries (TOC 1, TOC 2, etc.)
+                        if (styleName.match(/^toc\s*\d/) || styleName.includes('table of')) {
+                            continue;
+                        }
+                        
+                        // Skip TOC/LOT/LOF titles by content
+                        if (text === 'table of contents' || text === 'list of tables' || 
+                            text === 'list of figures' || text === 'contents' ||
+                            text === 'toc' || text === 'lot' || text === 'lof') {
+                            continue;
+                        }
+                        
+                        // Skip captions
+                        if (/^(table|figure)\s*[\d\.]/i.test(text)) {
+                            continue;
+                        }
                         
                         // Apply formatting only — no text/case changes
                         // Keeps bold, italic, underline, color as-is
