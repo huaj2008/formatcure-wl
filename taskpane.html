@@ -2455,10 +2455,11 @@
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
                     // Styleless tables with color=auto borders cause getBorder() to throw
-                    // "invalid argument". Apply TableGrid first to ensure API compatibility.
-                    if (!table.style || table.style === '' || table.style === 'Normal Table') {
+                    // "invalid argument". Apply a table style first to ensure API compatibility.
+                    const currentStyle = (table.style || '').trim();
+                    if (!currentStyle || currentStyle === 'Normal Table' || currentStyle === 'TableNormal') {
                         try {
-                            table.styleBuiltIn = Word.BuiltInStyleName.tableGrid;
+                            table.styleBuiltIn = Word.BuiltInStyleName.plainTable1;
                             await context.sync();
                         } catch (styleErr) {
                             console.log('Style assignment skipped:', styleErr);
@@ -2635,12 +2636,12 @@
                         const table = tables.items[t];
                         
                         // Styleless tables cause getBorder() to throw "invalid argument".
-                        // Apply TableGrid first to ensure API compatibility.
                         table.load("style");
                         await context.sync();
-                        if (!table.style || table.style === '' || table.style === 'Normal Table') {
+                        const currentStyle = (table.style || '').trim();
+                        if (!currentStyle || currentStyle === 'Normal Table' || currentStyle === 'TableNormal') {
                             try {
-                                table.styleBuiltIn = Word.BuiltInStyleName.tableGrid;
+                                table.styleBuiltIn = Word.BuiltInStyleName.plainTable1;
                                 await context.sync();
                             } catch (styleErr) {
                                 console.log('Style assignment skipped for table ' + (t+1));
