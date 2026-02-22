@@ -2448,22 +2448,18 @@
                     
                     // Get the table
                     const table = selection.parentTable;
-                    table.load("rows, style");
+                    table.load("rows");
                     await context.sync();
                     
                     // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
-                    // Styleless tables with color=auto borders cause getBorder() to throw
-                    // "invalid argument". Apply a table style first to ensure API compatibility.
-                    const currentStyle = (table.style || '').trim();
-                    if (!currentStyle || currentStyle === 'Normal Table' || currentStyle === 'TableNormal') {
-                        try {
-                            table.styleBuiltIn = Word.BuiltInStyleName.plainTable1;
-                            await context.sync();
-                        } catch (styleErr) {
-                            console.log('Style assignment skipped:', styleErr);
-                        }
+                    // Apply table style before getBorder()
+                    try {
+                        table.style = "PlainTable1";
+                        await context.sync();
+                    } catch (styleErr) {
+                        console.log('Style assignment skipped:', styleErr);
                     }
                     
                     // Set table borders to 0.75pt (all borders)
@@ -2635,17 +2631,12 @@
                         try {
                         const table = tables.items[t];
                         
-                        // Styleless tables cause getBorder() to throw "invalid argument".
-                        table.load("style");
-                        await context.sync();
-                        const currentStyle = (table.style || '').trim();
-                        if (!currentStyle || currentStyle === 'Normal Table' || currentStyle === 'TableNormal') {
-                            try {
-                                table.styleBuiltIn = Word.BuiltInStyleName.plainTable1;
-                                await context.sync();
-                            } catch (styleErr) {
-                                console.log('Style assignment skipped for table ' + (t+1));
-                            }
+                        // Apply table style before getBorder()
+                        try {
+                            table.style = "PlainTable1";
+                            await context.sync();
+                        } catch (styleErr) {
+                            console.log('Style assignment skipped for table ' + (t+1));
                         }
                         
                         // Set table borders to 0.75pt (all borders)
