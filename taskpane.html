@@ -2444,18 +2444,29 @@
         async function handleTableFormat() {
             try {
                 await Word.run(async (context) => {
-                    let step = 'getting selection';
                     const selection = context.document.getSelection();
                     
-                    step = 'getting parentTable';
+                    // Get the table
                     const table = selection.parentTable;
-                    table.load("rows");
+                    table.load("rows, style");
                     await context.sync();
                     
+                    // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
-                    // Step 1: Borders
-                    step = 'setting borders';
+                    // Styleless tables with color=auto borders cause getBorder() to throw
+                    // "invalid argument". Apply TableGrid first to ensure API compatibility.
+                    if (!table.style || table.style === '' || table.style === 'Normal Table') {
+                        try {
+                            table.styleBuiltIn = Word.BuiltInStyleName.tableGrid;
+                            await context.sync();
+                        } catch (styleErr) {
+                            console.log('Style assignment skipped:', styleErr);
+                        }
+                    }
+                    
+                    // Set table borders to 0.75pt (all borders)
+                    // 0.75pt = 0.75 points
                     try {
                         table.getBorder(Word.BorderLocation.top).width = 0.75;
                         table.getBorder(Word.BorderLocation.bottom).width = 0.75;
@@ -2464,6 +2475,7 @@
                         table.getBorder(Word.BorderLocation.insideHorizontal).width = 0.75;
                         table.getBorder(Word.BorderLocation.insideVertical).width = 0.75;
                         
+                        // Set border type to single line
                         table.getBorder(Word.BorderLocation.top).type = Word.BorderType.single;
                         table.getBorder(Word.BorderLocation.bottom).type = Word.BorderType.single;
                         table.getBorder(Word.BorderLocation.left).type = Word.BorderType.single;
@@ -2471,6 +2483,7 @@
                         table.getBorder(Word.BorderLocation.insideHorizontal).type = Word.BorderType.single;
                         table.getBorder(Word.BorderLocation.insideVertical).type = Word.BorderType.single;
                         
+                        // Set border color to black
                         table.getBorder(Word.BorderLocation.top).color = "000000";
                         table.getBorder(Word.BorderLocation.bottom).color = "000000";
                         table.getBorder(Word.BorderLocation.left).color = "000000";
@@ -2478,11 +2491,10 @@
                         table.getBorder(Word.BorderLocation.insideHorizontal).color = "000000";
                         table.getBorder(Word.BorderLocation.insideVertical).color = "000000";
                     } catch (borderErr) {
-                        console.log('Border error:', borderErr);
+                        console.log('Border setting error:', borderErr);
                     }
                     
-                    // Step 2: Table padding
-                    step = 'setting table padding';
+                    // Set table-level default cell padding (if supported)
                     if (paddingSupported) {
                         try {
                             table.setCellPadding("Top", 3);
@@ -2490,83 +2502,108 @@
                             table.setCellPadding("Left", 5);
                             table.setCellPadding("Right", 5);
                         } catch (padErr) {
-                            console.log('Padding error:', padErr);
+                            console.log('Table padding error:', padErr);
                         }
                     }
                     
-                    // Step 3: Sync after borders/padding
-                    step = 'sync after borders';
+                    // Get first row (header)
+                    const headerRow = table.rows.getFirst();
+                    headerRow.load("cells");
                     await context.sync();
                     
-                    // Step 4: Load rows
-                    step = 'loading rows';
+                    // Format header row font (keep bold as-is)
+                    headerRow.font.name = "Times New Roman";
+                    headerRow.font.size = 10;
+                    
+                    // Format header cells - left align, clear shading, set cell padding
+                    const headerCells = headerRow.cells;
+                    headerCells.load("items");
+                    await context.sync();
+                    
+                    for (let i = 0; i < headerCells.items.length; i++) {
+                        // Set cell shading to white (clear any color)
+                        // Set cell-level padding
+                        if (paddingSupported) {
+                            try {
+                                headerCells.items[i].setCellPadding("Top", 3);
+                                headerCells.items[i].setCellPadding("Bottom", 3);
+                                headerCells.items[i].setCellPadding("Left", 5);
+                                headerCells.items[i].setCellPadding("Right", 5);
+                            } catch (e) { /* ignore */ }
+                        }
+                        headerCells.items[i].body.paragraphs.load("items");
+                    }
+                    await context.sync();
+                    
+                    // Set consistent paragraph spacing in header cells
+                    for (let i = 0; i < headerCells.items.length; i++) {
+                        const paras = headerCells.items[i].body.paragraphs.items;
+                        for (let j = 0; j < paras.length; j++) {
+                            paras[j].alignment = Word.Alignment.left;
+                            paras[j].lineSpacing = 12; // Single spacing (10pt font)
+                            paras[j].spaceBefore = 0;
+                            paras[j].spaceAfter = 0;
+                        }
+                    }
+                    
+                    // Format body rows (all except first)
                     const allRows = table.rows;
                     allRows.load("items");
                     await context.sync();
                     
-                    // Step 5: Format each row
-                    for (let r = 0; r < allRows.items.length; r++) {
-                        try {
-                            step = 'formatting row ' + r + ' font';
-                            const row = allRows.items[r];
-                            row.font.name = "Times New Roman";
-                            row.font.size = 10;
-                            
-                            step = 'loading row ' + r + ' cells';
-                            const cells = row.cells;
-                            cells.load("items");
-                            await context.sync();
-                            
-                            for (let c = 0; c < cells.items.length; c++) {
+                    for (let r = 1; r < allRows.items.length; r++) {
+                        const row = allRows.items[r];
+                        // Format body row font (keep bold as-is)
+                        row.font.name = "Times New Roman";
+                        row.font.size = 10;
+                        
+                        row.load("cells");
+                        await context.sync();
+                        
+                        const cells = row.cells;
+                        cells.load("items");
+                        await context.sync();
+                        
+                        for (let c = 0; c < cells.items.length; c++) {
+                            // Clear body cell shading
+                            // Set cell-level padding
+                            if (paddingSupported) {
                                 try {
-                                    step = 'cell padding R' + r + 'C' + c;
-                                    if (paddingSupported) {
-                                        cells.items[c].setCellPadding("Top", 3);
-                                        cells.items[c].setCellPadding("Bottom", 3);
-                                        cells.items[c].setCellPadding("Left", 5);
-                                        cells.items[c].setCellPadding("Right", 5);
-                                    }
-                                    
-                                    step = 'loading paras R' + r + 'C' + c;
-                                    cells.items[c].body.paragraphs.load("items");
-                                } catch (cellErr) {
-                                    console.log('Cell error at ' + step + ':', cellErr.message);
-                                }
+                                    cells.items[c].setCellPadding("Top", 3);
+                                    cells.items[c].setCellPadding("Bottom", 3);
+                                    cells.items[c].setCellPadding("Left", 5);
+                                    cells.items[c].setCellPadding("Right", 5);
+                                } catch (e) { /* ignore */ }
                             }
-                            
-                            step = 'sync row ' + r + ' paras';
-                            await context.sync();
-                            
-                            for (let c = 0; c < cells.items.length; c++) {
-                                try {
-                                    const paras = cells.items[c].body.paragraphs.items;
-                                    for (let p = 0; p < paras.length; p++) {
-                                        step = 'para spacing R' + r + 'C' + c + 'P' + p;
-                                        paras[p].alignment = Word.Alignment.left;
-                                        paras[p].lineSpacing = 12;
-                                        paras[p].spaceBefore = 0;
-                                        paras[p].spaceAfter = 0;
-                                    }
-                                } catch (paraErr) {
-                                    console.log('Para error at ' + step + ':', paraErr.message);
-                                }
+                            cells.items[c].body.paragraphs.load("items");
+                        }
+                        await context.sync();
+                        
+                        // Set consistent paragraph spacing in body cells
+                        for (let c = 0; c < cells.items.length; c++) {
+                            const paras = cells.items[c].body.paragraphs.items;
+                            for (let p = 0; p < paras.length; p++) {
+                                paras[p].alignment = Word.Alignment.left;
+                                paras[p].lineSpacing = 12; // Single spacing (10pt font)
+                                paras[p].spaceBefore = 0;
+                                paras[p].spaceAfter = 0;
                             }
-                        } catch (rowErr) {
-                            console.log('Row error at ' + step + ':', rowErr.message);
                         }
                     }
                     
-                    step = 'autoFitWindow';
+                    // Auto-fit table to window (at the end)
                     table.autoFitWindow();
                     
-                    step = 'final sync';
                     await context.sync();
-                    
-                    showToast('Table formatted!', 'success');
+                    let msg = 'Table formatted (0.75pt borders)!';
+                    if (paddingSupported) {
+                        msg = 'Table formatted (0.75pt borders, padding)!';
+                    }
+                    showToast(msg, 'success');
                 });
             } catch (error) {
                 console.error("Table Format Error:", error);
-                showToast('Error at: ' + error.message, 'error');
+                showToast('Click inside a table first: ' + error.message, 'error');
             }
         }
 
@@ -2591,9 +2628,24 @@
                     // Check if setCellPadding is supported (WordApi 1.3+)
                     const paddingSupported = Office.context.requirements.isSetSupported('WordApi', '1.3');
                     
+                    let tablesFormatted = 0;
+                    let tablesSkipped = 0;
                     for (let t = 0; t < tables.items.length; t++) {
                         try {
                         const table = tables.items[t];
+                        
+                        // Styleless tables cause getBorder() to throw "invalid argument".
+                        // Apply TableGrid first to ensure API compatibility.
+                        table.load("style");
+                        await context.sync();
+                        if (!table.style || table.style === '' || table.style === 'Normal Table') {
+                            try {
+                                table.styleBuiltIn = Word.BuiltInStyleName.tableGrid;
+                                await context.sync();
+                            } catch (styleErr) {
+                                console.log('Style assignment skipped for table ' + (t+1));
+                            }
+                        }
                         
                         // Set table borders to 0.75pt (all borders)
                         try {
@@ -2618,7 +2670,7 @@
                             table.getBorder(Word.BorderLocation.insideHorizontal).color = "000000";
                             table.getBorder(Word.BorderLocation.insideVertical).color = "000000";
                         } catch (borderErr) {
-                            console.log('Border setting error on table ' + (t+1) + ':', borderErr);
+                            console.log('Border setting error:', borderErr);
                         }
                         
                         // Set table-level default cell padding (if supported)
@@ -2668,12 +2720,10 @@
                             for (let i = 0; i < headerCells.items.length; i++) {
                                 const paras = headerCells.items[i].body.paragraphs.items;
                                 for (let j = 0; j < paras.length; j++) {
-                                    try {
-                                        paras[j].alignment = Word.Alignment.left;
-                                        paras[j].lineSpacing = 12;
-                                        paras[j].spaceBefore = 0;
-                                        paras[j].spaceAfter = 0;
-                                    } catch (e) { /* skip para */ }
+                                    paras[j].alignment = Word.Alignment.left;
+                                    paras[j].lineSpacing = 12;
+                                    paras[j].spaceBefore = 0;
+                                    paras[j].spaceAfter = 0;
                                 }
                             }
                             
@@ -2706,12 +2756,10 @@
                                 for (let c = 0; c < cells.items.length; c++) {
                                     const paras = cells.items[c].body.paragraphs.items;
                                     for (let p = 0; p < paras.length; p++) {
-                                        try {
-                                            paras[p].alignment = Word.Alignment.left;
-                                            paras[p].lineSpacing = 12;
-                                            paras[p].spaceBefore = 0;
-                                            paras[p].spaceAfter = 0;
-                                        } catch (e) { /* skip para */ }
+                                        paras[p].alignment = Word.Alignment.left;
+                                        paras[p].lineSpacing = 12;
+                                        paras[p].spaceBefore = 0;
+                                        paras[p].spaceAfter = 0;
                                     }
                                 }
                             }
@@ -2721,13 +2769,18 @@
                         table.autoFitWindow();
                         
                         await context.sync();
+                        tablesFormatted++;
                         } catch (tableErr) {
-                            console.log('Error formatting table ' + (t+1) + ':', tableErr);
+                            tablesSkipped++;
+                            console.log('Skipped table ' + (t+1) + ':', tableErr.message);
                         }
                     }
                     
                     await context.sync();
-                    let msg = `Formatted ${tables.items.length} table(s) (0.75pt borders)!`;
+                    let msg = `Formatted ${tablesFormatted} table(s) (0.75pt borders)!`;
+                    if (tablesSkipped > 0) {
+                        msg += ` (${tablesSkipped} skipped)`;
+                    }
                     if (!paddingSupported) {
                         msg += ' (padding needs VBA)';
                     }
@@ -4557,7 +4610,7 @@
                     }
                     
                     await context.sync();
-                    showToast('TOC inserted! (Build #79)', 'success');
+                    showToast('TOC inserted! (Build #81)', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);
