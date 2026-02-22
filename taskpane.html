@@ -553,12 +553,6 @@
         <span class="build-num">Build #80</span>
     </div>
 
-    <!-- US Letter Reminder -->
-    <div style="background:#ffebee;border-left:4px solid #f44336;padding:6px 12px;margin:4px 12px 0 12px;border-radius:0 4px 4px 0;font-size:10px;">
-        <strong style="color:#c62828;">⚠️</strong>
-        <span style="color:#b71c1c;">Set US Letter + 1" margins before formatting</span>
-    </div>
-
     <!-- Custom Preserved Terms Display -->
     <div id="customUppercaseDisplay" style="background:#fff3e0;border-left:4px solid #ff9800;padding:8px 12px;margin:4px 12px 0 12px;border-radius:0 4px 4px 0;font-size:11px;display:none;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -573,18 +567,6 @@
     <!-- Main Content - Flat button grid -->
     <div class="main-content">
         <div class="button-grid">
-            <!-- ====== CUSTOM HEADINGS (Convert non-standard to standard) ====== -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnCustomHeadings">
-                    <div class="btn-icon">🔄</div>
-                    <span class="btn-label">Custom Headings</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Custom Headings → Standard</div>
-                    <div class="tooltip-desc">Scan for non-standard heading styles (Chinese, company templates), map them to Word H1-H10/Normal, and convert.</div>
-                </div>
-            </div>
-
             <!-- ====== STANDARD HEADINGS (H1-H10) ====== -->
             <!-- Heading Options Dialog -->
             <div class="tooltip-container">
@@ -606,7 +588,7 @@
                 </button>
                 <div class="tooltip">
                     <div class="tooltip-title">Format Line as Title</div>
-                    <div class="tooltip-desc">Title Case + TNR 12pt Bold Left. 18pt before / 12pt after. Preserves 3.2.S/P numbering. NO italic/underline change.</div>
+                    <div class="tooltip-desc">ALLCAPS + TNR 12pt Bold Left. 18pt before / 12pt after. No italic.</div>
                 </div>
             </div>
 
@@ -681,30 +663,6 @@
                 <div class="tooltip">
                     <div class="tooltip-title">Insert List of Figures</div>
                     <div class="tooltip-desc">Standard LOF (Figure 1, 2, 3...). Requires Office 2019+ or M365.</div>
-                </div>
-            </div>
-
-            <!-- Custom LOT (with prefix) -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnCustomLOT">
-                    <div class="btn-icon">📋+</div>
-                    <span class="btn-label">Custom LOT</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Custom List of Tables</div>
-                    <div class="tooltip-desc">For non-standard table names (Table 3.2.S.2.2-1). Enter your prefix pattern.</div>
-                </div>
-            </div>
-
-            <!-- Custom LOF (with prefix) -->
-            <div class="tooltip-container">
-                <button class="btn warning" id="btnCustomLOF">
-                    <div class="btn-icon">🖼️+</div>
-                    <span class="btn-label">Custom LOF</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Custom List of Figures</div>
-                    <div class="tooltip-desc">For non-standard figure names (Figure 3.2.S.2.2-1). Enter your prefix pattern.</div>
                 </div>
             </div>
 
@@ -1014,38 +972,85 @@
                             </select>
                         </div>
                     </div>
-                    <div style="font-size:9px;color:#666;margin-top:4px;">Note: H1 uses Space Before above; H2-H10 use 6pt</div>
+                    <div style="font-size:9px;color:#666;margin-top:4px;">Note: Title/H1 use Space Before above; H2-H10 use 6pt</div>
                 </div>
                 
                 <p class="modal-desc" style="margin-bottom:6px;font-size:11px;">Font formatting per level:</p>
                 
                 <!-- Table header -->
-                <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;font-size:10px;font-weight:600;color:#666;margin-bottom:6px;padding:0 4px;">
+                <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;font-size:10px;font-weight:600;color:#666;margin-bottom:6px;padding:0 4px;">
                     <span>Level</span>
                     <span>Case</span>
+                    <span>Font</span>
                     <span>Bold</span>
                     <span>Italic</span>
+                    <span>Caps</span>
                     <span>Size</span>
                 </div>
                 
-                <div style="max-height:280px;overflow-y:auto;">
-                    <!-- TOC Heading -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">TOC</label>
-                        <select id="hTocCase" style="font-size:10px;padding:2px;">
+                <div style="max-height:320px;overflow-y:auto;">
+                    <!-- Title (Word "Title" style) -->
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#e8f5e9;border-radius:3px;margin-bottom:3px;border-left:3px solid #4caf50;">
+                        <label style="font-size:11px;font-weight:600;">Title</label>
+                        <select id="hTitleCase" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1" selected>Title</option>
                             <option value="2">Sentence</option>
                         </select>
-                        <select id="hTocBold" style="font-size:10px;padding:2px;">
+                        <select id="hTitleFont" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="hTitleBold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="hTocItalic" style="font-size:10px;padding:2px;">
+                        <select id="hTitleItalic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="hTocSize" style="font-size:10px;padding:2px;">
+                        <select id="hTitleAllCaps" style="font-size:9px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="hTitleSize" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
+                        </select>
+                    </div>
+                    <!-- TOC Heading -->
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                        <label style="font-size:11px;font-weight:600;">TOC</label>
+                        <select id="hTocCase" style="font-size:9px;padding:2px;">
+                            <option value="0">No Change</option>
+                            <option value="1" selected>Title</option>
+                            <option value="2">Sentence</option>
+                        </select>
+                        <select id="hTocFont" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="hTocBold" style="font-size:9px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="hTocItalic" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="hTocAllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="hTocSize" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1055,22 +1060,32 @@
                         </select>
                     </div>
                     <!-- H1 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H1</label>
-                        <select id="h1Case" style="font-size:10px;padding:2px;">
+                        <select id="h1Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1" selected>Title</option>
                             <option value="2">Sentence</option>
                         </select>
-                        <select id="h1Bold" style="font-size:10px;padding:2px;">
+                        <select id="h1Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h1Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h1Italic" style="font-size:10px;padding:2px;">
+                        <select id="h1Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h1Size" style="font-size:10px;padding:2px;">
+                        <select id="h1AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h1Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1080,22 +1095,32 @@
                         </select>
                     </div>
                     <!-- H2 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H2</label>
-                        <select id="h2Case" style="font-size:10px;padding:2px;">
+                        <select id="h2Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h2Bold" style="font-size:10px;padding:2px;">
+                        <select id="h2Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h2Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h2Italic" style="font-size:10px;padding:2px;">
+                        <select id="h2Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h2Size" style="font-size:10px;padding:2px;">
+                        <select id="h2AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h2Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1105,22 +1130,32 @@
                         </select>
                     </div>
                     <!-- H3 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H3</label>
-                        <select id="h3Case" style="font-size:10px;padding:2px;">
+                        <select id="h3Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h3Bold" style="font-size:10px;padding:2px;">
+                        <select id="h3Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h3Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h3Italic" style="font-size:10px;padding:2px;">
+                        <select id="h3Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h3Size" style="font-size:10px;padding:2px;">
+                        <select id="h3AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h3Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1130,22 +1165,32 @@
                         </select>
                     </div>
                     <!-- H4 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H4</label>
-                        <select id="h4Case" style="font-size:10px;padding:2px;">
+                        <select id="h4Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h4Bold" style="font-size:10px;padding:2px;">
+                        <select id="h4Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h4Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h4Italic" style="font-size:10px;padding:2px;">
+                        <select id="h4Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h4Size" style="font-size:10px;padding:2px;">
+                        <select id="h4AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h4Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1155,22 +1200,32 @@
                         </select>
                     </div>
                     <!-- H5 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H5</label>
-                        <select id="h5Case" style="font-size:10px;padding:2px;">
+                        <select id="h5Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h5Bold" style="font-size:10px;padding:2px;">
+                        <select id="h5Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h5Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h5Italic" style="font-size:10px;padding:2px;">
+                        <select id="h5Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h5Size" style="font-size:10px;padding:2px;">
+                        <select id="h5AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h5Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1180,22 +1235,32 @@
                         </select>
                     </div>
                     <!-- H6 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H6</label>
-                        <select id="h6Case" style="font-size:10px;padding:2px;">
+                        <select id="h6Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h6Bold" style="font-size:10px;padding:2px;">
+                        <select id="h6Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h6Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h6Italic" style="font-size:10px;padding:2px;">
+                        <select id="h6Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h6Size" style="font-size:10px;padding:2px;">
+                        <select id="h6AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h6Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1204,23 +1269,33 @@
                             <option value="16">16</option>
                         </select>
                     </div>
-                    <!-- H7-H10 (collapsed by default, less common) -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                    <!-- H7-H10 (less common) -->
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H7</label>
-                        <select id="h7Case" style="font-size:10px;padding:2px;">
+                        <select id="h7Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h7Bold" style="font-size:10px;padding:2px;">
+                        <select id="h7Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h7Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h7Italic" style="font-size:10px;padding:2px;">
+                        <select id="h7Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h7Size" style="font-size:10px;padding:2px;">
+                        <select id="h7AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h7Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1229,22 +1304,32 @@
                             <option value="16">16</option>
                         </select>
                     </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H8</label>
-                        <select id="h8Case" style="font-size:10px;padding:2px;">
+                        <select id="h8Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h8Bold" style="font-size:10px;padding:2px;">
+                        <select id="h8Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h8Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h8Italic" style="font-size:10px;padding:2px;">
+                        <select id="h8Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h8Size" style="font-size:10px;padding:2px;">
+                        <select id="h8AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h8Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1253,22 +1338,32 @@
                             <option value="16">16</option>
                         </select>
                     </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H9</label>
-                        <select id="h9Case" style="font-size:10px;padding:2px;">
+                        <select id="h9Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h9Bold" style="font-size:10px;padding:2px;">
+                        <select id="h9Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h9Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h9Italic" style="font-size:10px;padding:2px;">
+                        <select id="h9Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h9Size" style="font-size:10px;padding:2px;">
+                        <select id="h9AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h9Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1277,22 +1372,32 @@
                             <option value="16">16</option>
                         </select>
                     </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
+                    <div style="display:grid;grid-template-columns:45px 80px 55px 45px 45px 45px 45px;gap:3px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">H10</label>
-                        <select id="h10Case" style="font-size:10px;padding:2px;">
+                        <select id="h10Case" style="font-size:9px;padding:2px;">
                             <option value="0">No Change</option>
                             <option value="1">Title</option>
                             <option value="2" selected>Sentence</option>
                         </select>
-                        <select id="h10Bold" style="font-size:10px;padding:2px;">
+                        <select id="h10Font" style="font-size:9px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="Times New Roman" selected>TNR</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Calibri">Calibri</option>
+                        </select>
+                        <select id="h10Bold" style="font-size:9px;padding:2px;">
                             <option value="1" selected>Yes</option>
                             <option value="0">No</option>
                         </select>
-                        <select id="h10Italic" style="font-size:10px;padding:2px;">
+                        <select id="h10Italic" style="font-size:9px;padding:2px;">
                             <option value="0" selected>No</option>
                             <option value="1">Yes</option>
                         </select>
-                        <select id="h10Size" style="font-size:10px;padding:2px;">
+                        <select id="h10AllCaps" style="font-size:9px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="h10Size" style="font-size:9px;padding:2px;">
                             <option value="0">--</option>
                             <option value="10">10</option>
                             <option value="11">11</option>
@@ -1395,103 +1500,8 @@
         </div>
     </div>
 
-    <!-- Custom Headings Modal (Combined Scan & Convert) -->
-    <div class="modal-overlay" id="customHeadingsModal">
-        <div class="modal" style="max-width: 620px;">
-            <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Custom Headings → Standard</span>
-                <button class="modal-close" id="customHeadingsClose" style="color:white;">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Scan for non-standard heading styles, map them to Word styles, then convert.</p>
-                
-                <div style="margin-bottom:12px;">
-                    <button id="runScanCustomHeadings" style="padding:8px 16px;background:#ff9800;color:white;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">🔍 Scan Document</button>
-                </div>
-                
-                <div id="customHeadingScanResults" style="max-height:250px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;font-size:11px;display:none;background:#fff;">
-                    <!-- Results will be populated here as a table -->
-                </div>
-                
-                <div id="savedMappingsSection" style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                        <label style="font-weight:600;font-size:12px;">Current Mappings:</label>
-                        <button id="clearCustomHeadingMappings" style="font-size:10px;padding:2px 6px;background:#f5f5f5;border:1px solid #ccc;border-radius:3px;cursor:pointer;">Clear All</button>
-                    </div>
-                    <div id="savedHeadingMappings" style="background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:6px;font-family:monospace;font-size:10px;max-height:80px;overflow-y:auto;min-height:30px;color:#666;">
-                        No mappings saved
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="saveCustomHeadingMappings" style="background:#4caf50;color:white;">Save Mappings</button>
-                <button class="modal-btn apply" id="applyConversion">Convert Now</button>
-                <button class="modal-btn cancel" id="customHeadingsCancel">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom LOT Modal -->
-    <div class="modal-overlay" id="customLOTModal">
-        <div class="modal" style="max-width: 480px;">
-            <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Custom List of Tables</span>
-                <button class="modal-close" id="customLOTClose" style="color:white;">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Generate a List of Tables for non-standard table naming (e.g., Table 3.2.S.2.2-1).</p>
-                
-                <div style="margin-bottom:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Table name prefix pattern:</label>
-                    <input type="text" id="customLOTPrefix" placeholder="e.g., Table 3.2.S.2.2-" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
-                    <p style="font-size:10px;color:#666;margin-top:4px;">Enter the prefix that appears before the table number. Leave empty to detect all "Table X" patterns.</p>
-                </div>
-                
-                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
-                    <p style="font-size:11px;margin:0;"><strong>💡 How it works:</strong> This scans your document for captions matching the pattern and builds a custom LOT at the cursor position.</p>
-                </div>
-                
-                <div id="customLOTPreview" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:11px;display:none;background:#f9f9f9;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="scanCustomLOT" style="background:#2196f3;color:white;">Scan Tables</button>
-                <button class="modal-btn apply" id="insertCustomLOT" disabled>Insert LOT</button>
-                <button class="modal-btn cancel" id="customLOTCancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom LOF Modal -->
-    <div class="modal-overlay" id="customLOFModal">
-        <div class="modal" style="max-width: 480px;">
-            <div class="modal-header" style="background:#ff9800;">
-                <span class="modal-title" style="color:white;">Custom List of Figures</span>
-                <button class="modal-close" id="customLOFClose" style="color:white;">×</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-desc" style="margin-bottom:12px;">Generate a List of Figures for non-standard figure naming (e.g., Figure 3.2.S.2.2-1).</p>
-                
-                <div style="margin-bottom:12px;">
-                    <label style="font-weight:600;font-size:12px;display:block;margin-bottom:4px;">Figure name prefix pattern:</label>
-                    <input type="text" id="customLOFPrefix" placeholder="e.g., Figure 3.2.S.2.2-" style="width:100%;padding:8px;font-family:monospace;font-size:12px;border:1px solid #ccc;border-radius:4px;">
-                    <p style="font-size:10px;color:#666;margin-top:4px;">Enter the prefix that appears before the figure number. Leave empty to detect all "Figure X" patterns.</p>
-                </div>
-                
-                <div style="margin-bottom:12px;padding:10px;background:#e3f2fd;border-radius:4px;">
-                    <p style="font-size:11px;margin:0;"><strong>💡 How it works:</strong> This scans your document for captions matching the pattern and builds a custom LOF at the cursor position.</p>
-                </div>
-                
-                <div id="customLOFPreview" style="max-height:150px;overflow-y:auto;border:1px solid #ddd;border-radius:4px;padding:8px;font-size:11px;display:none;background:#f9f9f9;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn" id="scanCustomLOF" style="background:#2196f3;color:white;">Scan Figures</button>
-                <button class="modal-btn apply" id="insertCustomLOF" disabled>Insert LOF</button>
-                <button class="modal-btn cancel" id="customLOFCancel">Cancel</button>
-            </div>
-        </div>
-    </div>
+    <!-- Custom LOT Modal removed in Build #80 -->
+    <!-- Custom LOF Modal removed in Build #80 -->
 
     <!-- Toast Notification -->
     <div class="toast" id="toast">
@@ -1526,9 +1536,6 @@
         // Storage key for user-saved uppercase terms
         const SAVED_TERMS_KEY = 'formatcure_custom_uppercase_terms';
         
-        // Storage key for custom heading style mappings
-        const CUSTOM_HEADING_STYLES_KEY = 'formatcure_custom_heading_styles';
-        
         // Function to get ALL preserved terms (built-in + user-saved)
         function getAllPreservedTerms() {
             let allTerms = [...PRESERVED_TERMS];
@@ -1558,9 +1565,6 @@
                 
                 // Title Format button
                 document.getElementById('btnTitleFormat').addEventListener('click', handleTitleFormat);
-                
-                // Custom Heading button (combined scan & convert)
-                document.getElementById('btnCustomHeadings').addEventListener('click', showCustomHeadingsModal);
                 
                 // Word-level format buttons
                 document.getElementById('btnToggleBold').addEventListener('click', handleToggleBold);
@@ -1597,9 +1601,6 @@
                 document.getElementById('btnInsertTOC').addEventListener('click', handleInsertTOC);
                 document.getElementById('btnInsertLOT').addEventListener('click', handleInsertLOT);
                 document.getElementById('btnInsertLOF').addEventListener('click', handleInsertLOF);
-                document.getElementById('btnCustomLOT').addEventListener('click', showCustomLOTModal);
-                document.getElementById('btnCustomLOF').addEventListener('click', showCustomLOFModal);
-                
                 // Heading Modal events
                 document.getElementById('modalClose').addEventListener('click', hideHeadingModal);
                 document.getElementById('modalCancel').addEventListener('click', hideHeadingModal);
@@ -1637,38 +1638,6 @@
                 
                 // Load saved terms on startup
                 loadSavedTerms();
-                
-                // Custom Headings Modal events (combined scan & convert)
-                document.getElementById('customHeadingsClose').addEventListener('click', hideCustomHeadingsModal);
-                document.getElementById('customHeadingsCancel').addEventListener('click', hideCustomHeadingsModal);
-                document.getElementById('runScanCustomHeadings').addEventListener('click', runScanCustomHeadings);
-                document.getElementById('saveCustomHeadingMappings').addEventListener('click', saveCustomHeadingMappings);
-                document.getElementById('clearCustomHeadingMappings').addEventListener('click', clearCustomHeadingMappings);
-                document.getElementById('applyConversion').addEventListener('click', applyHeadingConversion);
-                document.getElementById('customHeadingsModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideCustomHeadingsModal();
-                });
-                
-                // Custom LOT Modal events
-                document.getElementById('customLOTClose').addEventListener('click', hideCustomLOTModal);
-                document.getElementById('customLOTCancel').addEventListener('click', hideCustomLOTModal);
-                document.getElementById('scanCustomLOT').addEventListener('click', scanCustomLOT);
-                document.getElementById('insertCustomLOT').addEventListener('click', insertCustomLOT);
-                document.getElementById('customLOTModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideCustomLOTModal();
-                });
-                
-                // Custom LOF Modal events
-                document.getElementById('customLOFClose').addEventListener('click', hideCustomLOFModal);
-                document.getElementById('customLOFCancel').addEventListener('click', hideCustomLOFModal);
-                document.getElementById('scanCustomLOF').addEventListener('click', scanCustomLOF);
-                document.getElementById('insertCustomLOF').addEventListener('click', insertCustomLOF);
-                document.getElementById('customLOFModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideCustomLOFModal();
-                });
-                
-                // Load saved custom heading mappings on startup
-                loadSavedCustomHeadingMappings();
                 
                 // Update Custom UPPERCASE badge on startup
                 updateCustomUppercaseBadge();
@@ -1717,35 +1686,18 @@
                     
                     const para = paragraphs.items[0];
                     
-                    // Remove All Caps formatting first
-                    para.font.allCaps = false;
-                    await context.sync();
-                    
-                    para.load("text");
-                    await context.sync();
-                    
-                    let text = para.text;
-                    if (text.endsWith('\r')) {
-                        text = text.slice(0, -1);
-                    }
-                    
-                    if (text.trim() !== '') {
-                        // Convert to Title Case, preserving S/P in numbering
-                        const converted = convertToTitleCasePreserveNumbering(text);
-                        para.insertText(converted, Word.InsertLocation.replace);
-                    }
-                    
-                    // Apply formatting: TNR 12pt Bold Left, 18pt before / 12pt after (don't change italic/underline)
+                    // Apply formatting: TNR 12pt Bold Left, ALLCAPS, 18pt before / 12pt after
                     para.font.name = "Times New Roman";
                     para.font.size = 12;
                     para.font.bold = true;
-                    para.font.allCaps = false;
+                    para.font.italic = false;
+                    para.font.allCaps = true;
                     para.alignment = Word.Alignment.left;
                     para.spaceBefore = 18;
                     para.spaceAfter = 12;
                     
                     await context.sync();
-                    showToast('Title format applied!', 'success');
+                    showToast('Title format applied (ALLCAPS)!', 'success');
                 });
             } catch (error) {
                 console.error("Title Format Error:", error);
@@ -2208,17 +2160,22 @@
             const spaceBeforeH1 = document.getElementById('hSpaceBefore').value;
             const spaceAfter = document.getElementById('hSpaceAfter').value;
             
-            // Gather all options for each heading level
-            const levels = ['Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+            // Gather all options for each heading level (now includes Title)
+            const levels = ['Title', 'Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
             const options = {};
             
             for (const level of levels) {
-                const key = level === 'Toc' ? 'toc' : parseInt(level);
-                const prefix = level === 'Toc' ? 'hToc' : `h${level}`;
+                let key, prefix;
+                if (level === 'Title') { key = 'title'; prefix = 'hTitle'; }
+                else if (level === 'Toc') { key = 'toc'; prefix = 'hToc'; }
+                else { key = parseInt(level); prefix = `h${level}`; }
+                
                 options[key] = {
                     case: document.getElementById(`${prefix}Case`).value,
+                    font: document.getElementById(`${prefix}Font`).value,
                     bold: document.getElementById(`${prefix}Bold`).value,
                     italic: document.getElementById(`${prefix}Italic`).value,
+                    allCaps: document.getElementById(`${prefix}AllCaps`).value,
                     size: document.getElementById(`${prefix}Size`).value
                 };
             }
@@ -2245,8 +2202,17 @@
                         const styleName = para.style;
                         const lowerStyleName = styleName.toLowerCase();
                         
-                        // Determine heading level (standard or custom) or TOC Heading
-                        let headingKey = getHeadingLevelForStyle(styleName);
+                        // Determine heading level (standard or custom), TOC Heading, or Title
+                        let headingKey = null;
+                        
+                        // Check for Title style first
+                        if (lowerStyleName === 'title') {
+                            headingKey = 'title';
+                        }
+                        
+                        if (headingKey === null) {
+                            headingKey = getHeadingLevelForStyle(styleName);
+                        }
                         
                         // Fall back to legacy detection for TOC and standard headings
                         if (headingKey === null) {
@@ -2267,16 +2233,18 @@
                         if (headingKey !== null && options[headingKey]) {
                             const opt = options[headingKey];
                             
-                            // FIRST: Remove All Caps formatting (key fix!)
-                            para.font.allCaps = false;
-                            await context.sync();
+                            // If AllCaps is NOT requested, remove it first so we get true text
+                            if (opt.allCaps !== '1') {
+                                para.font.allCaps = false;
+                                await context.sync();
+                            }
                             
                             // Reload text after removing All Caps
                             para.load("text");
                             await context.sync();
                             
-                            // Apply case conversion if not "No Change"
-                            if (opt.case !== '0') {
+                            // Apply case conversion if not "No Change" and NOT allCaps
+                            if (opt.case !== '0' && opt.allCaps !== '1') {
                                 let text = para.text;
                                 if (text.endsWith('\r')) {
                                     text = text.slice(0, -1);
@@ -2297,7 +2265,15 @@
                             const fontObj = para.font;
                             fontObj.bold = (opt.bold === '1');
                             fontObj.italic = (opt.italic === '1');
-                            fontObj.allCaps = false; // Ensure All Caps stays off
+                            
+                            // Apply AllCaps setting
+                            fontObj.allCaps = (opt.allCaps === '1');
+                            
+                            // Apply font name if specified
+                            if (opt.font !== '0') {
+                                fontObj.name = opt.font;
+                            }
+                            
                             if (opt.size !== '0') {
                                 fontObj.size = parseInt(opt.size);
                             }
@@ -2309,9 +2285,9 @@
                                 para.lineUnitBefore = 0;
                             }
                             
-                            // Space before: H1/TOC uses selected value, H2-H10 use 6pt
+                            // Space before: H1/TOC/Title uses selected value, H2-H10 use 6pt
                             if (spaceBeforeH1 !== '0') {
-                                if (headingKey === 1 || headingKey === 'toc') {
+                                if (headingKey === 1 || headingKey === 'toc' || headingKey === 'title') {
                                     para.spaceBefore = parseFloat(spaceBeforeH1);
                                 } else {
                                     para.spaceBefore = 6; // H2-H10 always 6pt
@@ -3580,295 +3556,16 @@
         }
 
         // ============================================
-        // CUSTOM HEADING STYLES - Scan & Convert Functions
-        // For non-standard heading styles (Chinese, company templates)
+        // HEADING LEVEL DETECTION
+        // Maps style names to heading levels
         // ============================================
-        
-        // Store found custom styles for later use
-        let foundCustomStyles = [];
-        let customCaptions = { tables: [], figures: [] };
-        
-        function showCustomHeadingsModal() {
-            document.getElementById('customHeadingsModal').classList.add('show');
-            loadSavedCustomHeadingMappings();
-        }
-        
-        function hideCustomHeadingsModal() {
-            document.getElementById('customHeadingsModal').classList.remove('show');
-        }
-        
-        function loadSavedCustomHeadingMappings() {
-            try {
-                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
-                const savedList = document.getElementById('savedHeadingMappings');
-                
-                if (saved) {
-                    const mappings = JSON.parse(saved);
-                    if (Object.keys(mappings).length > 0) {
-                        let html = '';
-                        for (const [styleName, headingLevel] of Object.entries(mappings)) {
-                            html += `<div style="margin-bottom:2px;"><span style="background:#fff3e0;padding:1px 4px;border-radius:2px;">${styleName}</span> → <strong style="color:#ff9800;">${headingLevel}</strong></div>`;
-                        }
-                        savedList.innerHTML = html;
-                        savedList.style.color = '#333';
-                    } else {
-                        savedList.innerHTML = 'No saved mappings';
-                        savedList.style.color = '#666';
-                    }
-                } else {
-                    savedList.innerHTML = 'No saved mappings';
-                    savedList.style.color = '#666';
-                }
-            } catch (e) {
-                console.log('Could not load saved mappings:', e);
-            }
-        }
-        
-        // Helper function to detect heading level from style name
-        function detectHeadingLevel(styleName) {
-            const lower = styleName.toLowerCase();
-            
-            // Chinese numbers: 一级=1, 二级=2, 三级=3, etc.
-            const chineseNums = {'一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10};
-            for (const [char, num] of Object.entries(chineseNums)) {
-                if (styleName.includes(char + '级')) return num;
-            }
-            
-            // Look for numbers in style name: "Heading 1", "Level 2", "H3", "1级", etc.
-            const numMatch = lower.match(/(?:heading|level|h|lv|第)\s*(\d+)/i) || 
-                            lower.match(/(\d+)\s*(?:级|层|level)/i) ||
-                            lower.match(/^(\d+)\./);
-            if (numMatch) return parseInt(numMatch[1], 10);
-            
-            // Check for "title" or "toc" suggesting top level
-            if (lower.includes('title') || lower.includes('toc') || lower.includes('标题')) return 0;
-            
-            // Check for sub/child indicators
-            if (lower.includes('sub') || lower.includes('child') || lower.includes('子')) return 99;
-            
-            return 50; // Unknown - put in middle
-        }
-        
-        async function runScanCustomHeadings() {
-            try {
-                showToast('Scanning for custom heading styles...', 'success');
-                
-                await Word.run(async (context) => {
-                    const paragraphs = context.document.body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text");
-                    }
-                    await context.sync();
-                    
-                    // Collect styles that are NOT standard Word headings or common styles
-                    const skipStyles = ['normal', 'heading 1', 'heading 2', 'heading 3', 'heading 4', 
-                                        'heading 5', 'heading 6', 'heading 7', 'heading 8', 'heading 9',
-                                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'h9', 'h10',
-                                        'toc 1', 'toc 2', 'toc 3', 'toc 4', 'toc 5', 'toc heading', 
-                                        'caption', 'header', 'footer', 'list paragraph', 'table of figures',
-                                        'footnote', 'endnote', 'body text', 'default paragraph font'];
-                    
-                    const styleData = {};
-                    foundCustomStyles = [];
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const style = paragraphs.items[i].style;
-                        const text = paragraphs.items[i].text || '';
-                        const lowerStyle = style ? style.toLowerCase() : '';
-                        
-                        // Skip standard/common styles
-                        if (!style || skipStyles.some(s => lowerStyle.includes(s))) {
-                            continue;
-                        }
-                        
-                        // Track this custom style
-                        if (!styleData[style]) {
-                            styleData[style] = {
-                                count: 0,
-                                samples: [],
-                                detectedLevel: detectHeadingLevel(style)
-                            };
-                        }
-                        styleData[style].count++;
-                        if (styleData[style].samples.length < 2) {
-                            const sampleText = text.trim().substring(0, 40);
-                            if (sampleText) {
-                                styleData[style].samples.push(sampleText + (text.length > 40 ? '...' : ''));
-                            }
-                        }
-                    }
-                    
-                    foundCustomStyles = Object.keys(styleData);
-                    
-                    // Get existing saved mappings to pre-select dropdowns
-                    const existingMappings = getCustomHeadingStyleMappings();
-                    
-                    // Display results as a table with dropdowns
-                    const resultsDiv = document.getElementById('customHeadingScanResults');
-                    
-                    if (foundCustomStyles.length > 0) {
-                        let html = `<table style="width:100%;border-collapse:collapse;font-size:11px;">`;
-                        html += `<thead><tr style="background:#f5f5f5;border-bottom:2px solid #ddd;">`;
-                        html += `<th style="padding:8px;text-align:left;width:45%;">Style Name</th>`;
-                        html += `<th style="padding:8px;text-align:center;width:15%;">Count</th>`;
-                        html += `<th style="padding:8px;text-align:left;width:40%;">Map To</th>`;
-                        html += `</tr></thead><tbody>`;
-                        
-                        // Sort by detected heading level (potential order), then by count
-                        const sortedStyles = Object.entries(styleData).sort((a, b) => {
-                            const levelDiff = a[1].detectedLevel - b[1].detectedLevel;
-                            if (levelDiff !== 0) return levelDiff;
-                            return b[1].count - a[1].count; // Secondary: more used first
-                        });
-                        
-                        for (const [style, data] of sortedStyles) {
-                            const escapedStyle = style.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                            const existingLevel = existingMappings[style] || '';
-                            
-                            // Suggest a heading level based on detection
-                            let suggestedLevel = '';
-                            if (!existingLevel && data.detectedLevel >= 1 && data.detectedLevel <= 10) {
-                                suggestedLevel = `H${data.detectedLevel}`;
-                            } else if (!existingLevel && data.detectedLevel === 0) {
-                                suggestedLevel = 'TOC';
-                            }
-                            
-                            html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:6px;">`;
-                            html += `<div style="font-weight:600;color:#333;">${style}</div>`;
-                            if (data.samples.length > 0) {
-                                html += `<div style="font-size:9px;color:#888;margin-top:2px;">"${data.samples[0]}"</div>`;
-                            }
-                            html += `</td>`;
-                            html += `<td style="padding:6px;text-align:center;"><span style="background:#e3f2fd;padding:2px 8px;border-radius:10px;">${data.count}</span></td>`;
-                            html += `<td style="padding:6px;">`;
-                            html += `<select class="custom-heading-select" data-style="${escapedStyle}" style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;font-size:11px;width:100%;">`;
-                            html += `<option value="">-- Skip --</option>`;
-                            html += `<option value="Normal"${existingLevel === 'Normal' || suggestedLevel === 'Normal' ? ' selected' : ''}>Normal</option>`;
-                            html += `<option value="TOC"${existingLevel === 'TOC' || suggestedLevel === 'TOC' ? ' selected' : ''}>TOC Heading</option>`;
-                            for (let h = 1; h <= 10; h++) {
-                                const selected = (existingLevel === `H${h}` || suggestedLevel === `H${h}`) ? ' selected' : '';
-                                html += `<option value="H${h}"${selected}>H${h}</option>`;
-                            }
-                            html += `</select>`;
-                            html += `</td>`;
-                            html += `</tr>`;
-                        }
-                        
-                        html += `</tbody></table>`;
-                        html += `<p style="font-size:10px;color:#666;margin-top:8px;padding:4px;">💡 Styles sorted by detected level. Adjust as needed, then click "Save Selected Mappings"</p>`;
-                        
-                        resultsDiv.innerHTML = html;
-                        resultsDiv.style.display = 'block';
-                        
-                        showToast(`Found ${foundCustomStyles.length} custom style(s)!`, 'success');
-                    } else {
-                        resultsDiv.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No custom heading styles found.<br>Document uses standard Word headings.</div>';
-                        resultsDiv.style.display = 'block';
-                        showToast('No custom styles found', 'success');
-                    }
-                });
-            } catch (error) {
-                console.error("Scan Custom Headings Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-        
-        function saveCustomHeadingMappings() {
-            console.log('=== saveCustomHeadingMappings called ===');
-            
-            // Get all dropdown selections from the scan results
-            const selects = document.querySelectorAll('.custom-heading-select');
-            console.log('Found select elements:', selects.length);
-            
-            const newMappings = {};
-            
-            selects.forEach(select => {
-                const styleName = select.dataset.style;
-                const headingLevel = select.value;
-                console.log('Select:', styleName, '→', headingLevel);
-                if (styleName && headingLevel) {
-                    newMappings[styleName] = headingLevel;
-                }
-            });
-            
-            console.log('New mappings to save:', newMappings);
-            
-            if (Object.keys(newMappings).length === 0) {
-                showToast('Select at least one heading level to save', 'error');
-                return;
-            }
-            
-            const storageKey = 'formatcure_custom_heading_styles';
-            
-            try {
-                // Test localStorage first
-                localStorage.setItem('test_save', 'test');
-                console.log('localStorage test write: SUCCESS');
-                localStorage.removeItem('test_save');
-                
-                // Get existing saved mappings and merge
-                const saved = localStorage.getItem(storageKey);
-                console.log('Existing saved data:', saved);
-                let existingMappings = saved ? JSON.parse(saved) : {};
-                
-                // Merge (new mappings override existing)
-                const allMappings = { ...existingMappings, ...newMappings };
-                
-                // Save
-                const jsonString = JSON.stringify(allMappings);
-                console.log('About to save:', jsonString);
-                localStorage.setItem(storageKey, jsonString);
-                console.log('Saved to localStorage with key:', storageKey);
-                
-                // Verify save
-                const verify = localStorage.getItem(storageKey);
-                console.log('Verification read:', verify);
-                console.log('Save successful:', verify === jsonString);
-                
-                // Update display in scan modal
-                loadSavedCustomHeadingMappings();
-                
-                showToast(`Saved ${Object.keys(newMappings).length} mapping(s)! Total: ${Object.keys(allMappings).length}`, 'success');
-            } catch (e) {
-                console.error('Could not save mappings:', e);
-                showToast('Could not save (localStorage error: ' + e.message + ')', 'error');
-            }
-        }
-        
-        function clearCustomHeadingMappings() {
-            if (confirm('Clear all saved custom heading mappings?')) {
-                try {
-                    localStorage.removeItem(CUSTOM_HEADING_STYLES_KEY);
-                    loadSavedCustomHeadingMappings();
-                    showToast('Mappings cleared', 'success');
-                } catch (e) {
-                    console.error('Could not clear mappings:', e);
-                }
-            }
-        }
-        
-        // Get custom heading styles from localStorage
-        function getCustomHeadingStyleMappings() {
-            try {
-                const saved = localStorage.getItem(CUSTOM_HEADING_STYLES_KEY);
-                return saved ? JSON.parse(saved) : {};
-            } catch (e) {
-                return {};
-            }
-        }
-        
-        // Check if a style name should be treated as a heading
-        // Returns heading level number (1-10) or null if not a heading
         function getHeadingLevelForStyle(styleName) {
             if (!styleName) return null;
             
             const lowerStyle = styleName.toLowerCase();
             
-            // First, check standard Word heading styles
+            // Check standard Word heading styles
+            if (lowerStyle === 'title') return 'title';
             if (lowerStyle.includes('heading 1') || lowerStyle === 'h1') return 1;
             if (lowerStyle.includes('heading 2') || lowerStyle === 'h2') return 2;
             if (lowerStyle.includes('heading 3') || lowerStyle === 'h3') return 3;
@@ -3881,448 +3578,7 @@
             if (lowerStyle.includes('heading 10') || lowerStyle === 'h10') return 10;
             if (lowerStyle.includes('toc heading')) return 'toc';
             
-            // Then, check custom style mappings
-            const customMappings = getCustomHeadingStyleMappings();
-            for (const [customStyle, headingLevel] of Object.entries(customMappings)) {
-                // Case-insensitive comparison
-                if (styleName.toLowerCase() === customStyle.toLowerCase() || 
-                    styleName === customStyle) {
-                    const match = headingLevel.match(/H(\d+)/i);
-                    if (match) {
-                        return parseInt(match[1], 10);
-                    }
-                }
-            }
-            
             return null;
-        }
-        
-        // Apply the heading conversion - convert custom styles to standard Word headings
-        async function applyHeadingConversion() {
-            // Test if localStorage is working at all
-            try {
-                localStorage.setItem('test_key', 'test_value');
-                const testRead = localStorage.getItem('test_key');
-                console.log('localStorage test:', testRead === 'test_value' ? 'WORKING' : 'FAILED');
-                localStorage.removeItem('test_key');
-            } catch (e) {
-                console.error('localStorage not available:', e);
-                showToast('localStorage not available in this environment', 'error');
-                return;
-            }
-            
-            // Direct localStorage access with detailed logging
-            let mappings = {};
-            const storageKey = 'formatcure_custom_heading_styles';
-            
-            try {
-                const savedRaw = localStorage.getItem(storageKey);
-                console.log('applyHeadingConversion - storage key:', storageKey);
-                console.log('applyHeadingConversion - raw localStorage:', savedRaw);
-                console.log('applyHeadingConversion - all keys in localStorage:', Object.keys(localStorage));
-                
-                if (savedRaw) {
-                    mappings = JSON.parse(savedRaw);
-                }
-            } catch (e) {
-                console.error('Error reading localStorage:', e);
-            }
-            
-            console.log('applyHeadingConversion - parsed mappings:', mappings);
-            console.log('applyHeadingConversion - mappings count:', Object.keys(mappings).length);
-            
-            if (Object.keys(mappings).length === 0) {
-                showToast('No mappings saved. Use "Scan Custom" first to scan and save mappings.', 'error');
-                return;
-            }
-            
-            const preserveFormatting = document.getElementById('preserveCustomStyle') ? 
-                document.getElementById('preserveCustomStyle').checked : false;
-            
-            try {
-                showToast('Converting custom headings...', 'success');
-                
-                await Word.run(async (context) => {
-                    const paragraphs = context.document.body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("style, text");
-                    }
-                    await context.sync();
-                    
-                    let convertedCount = 0;
-                    let matchedStyles = new Set();
-                    
-                    // Create a list of all document styles for debugging
-                    const allDocStyles = new Set();
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        if (paragraphs.items[i].style) {
-                            allDocStyles.add(paragraphs.items[i].style);
-                        }
-                    }
-                    console.log('All styles in document:', [...allDocStyles]);
-                    console.log('Mapping keys:', Object.keys(mappings));
-                    
-                    // Normalize style names for comparison
-                    // Handle HTML entity decoding and Unicode normalization
-                    function normalizeStyleName(str) {
-                        if (!str) return '';
-                        // Decode HTML entities
-                        const txt = document.createElement('textarea');
-                        txt.innerHTML = str;
-                        let decoded = txt.value;
-                        // Normalize Unicode
-                        decoded = decoded.normalize('NFC');
-                        // Trim and lowercase
-                        return decoded.toLowerCase().trim();
-                    }
-                    
-                    // Create mapping lookup with normalized keys
-                    const normalizedMappings = {};
-                    for (const [customStyle, headingLevel] of Object.entries(mappings)) {
-                        const normalizedKey = normalizeStyleName(customStyle);
-                        normalizedMappings[normalizedKey] = {
-                            original: customStyle,
-                            level: headingLevel
-                        };
-                        console.log(`Mapping: "${customStyle}" (normalized: "${normalizedKey}") → ${headingLevel}`);
-                    }
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const para = paragraphs.items[i];
-                        const style = para.style;
-                        
-                        if (!style) continue;
-                        
-                        const normalizedStyle = normalizeStyleName(style);
-                        
-                        // Try to match - exact match first
-                        let matchedLevel = null;
-                        
-                        if (normalizedMappings[normalizedStyle]) {
-                            matchedLevel = normalizedMappings[normalizedStyle].level;
-                            matchedStyles.add(style);
-                        }
-                        
-                        // If no exact match, try partial/contains match
-                        if (!matchedLevel) {
-                            for (const [normKey, mapping] of Object.entries(normalizedMappings)) {
-                                // Both directions of contains matching
-                                if (normalizedStyle.includes(normKey) || normKey.includes(normalizedStyle)) {
-                                    matchedLevel = mapping.level;
-                                    matchedStyles.add(style);
-                                    console.log(`Partial match: "${style}" contains or is contained by "${mapping.original}"`);
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if (matchedLevel) {
-                            // Handle Normal
-                            if (matchedLevel.toUpperCase() === 'NORMAL') {
-                                try {
-                                    para.style = 'Normal';
-                                    convertedCount++;
-                                } catch (e) {
-                                    console.log('Could not apply Normal style:', e);
-                                }
-                            }
-                            // Handle TOC Heading
-                            else if (matchedLevel.toUpperCase() === 'TOC') {
-                                // Try different variations of TOC Heading style name
-                                const tocStyleNames = ['TOC Heading', 'TOCHeading', 'toc heading'];
-                                let applied = false;
-                                
-                                for (const styleName of tocStyleNames) {
-                                    try {
-                                        para.style = styleName;
-                                        convertedCount++;
-                                        applied = true;
-                                        console.log('Applied TOC Heading with style name:', styleName);
-                                        break;
-                                    } catch (e) {
-                                        console.log(`Could not apply "${styleName}":`, e.message);
-                                    }
-                                }
-                                
-                                if (!applied) {
-                                    console.log('Could not apply any TOC Heading style variation');
-                                }
-                            } else {
-                                // Get the heading number from H1, H2, etc.
-                                const levelMatch = matchedLevel.match(/H(\d+)/i);
-                                if (levelMatch) {
-                                    const level = parseInt(levelMatch[1], 10);
-                                    try {
-                                        // Apply the standard Word heading style
-                                        para.style = `Heading ${level}`;
-                                        convertedCount++;
-                                    } catch (e) {
-                                        console.log(`Could not apply Heading ${level} style:`, e);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    await context.sync();
-                    
-                    console.log('Matched styles:', [...matchedStyles]);
-                    console.log('Converted count:', convertedCount);
-                    
-                    hideCustomHeadingsModal();
-                    
-                    if (convertedCount > 0) {
-                        showToast(`Converted ${convertedCount} paragraph(s) to standard styles!`, 'success');
-                    } else {
-                        // Show more helpful error with the actual styles found
-                        console.log('No matches found. Document styles vs mappings:');
-                        console.log('Document styles:', [...allDocStyles]);
-                        console.log('Mapping keys:', Object.keys(mappings));
-                        showToast('No matching paragraphs found. Check console for details.', 'error');
-                    }
-                });
-            } catch (error) {
-                console.error("Conversion Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-
-        // ============================================
-        // CUSTOM LOT/LOF - Modal Functions
-        // For non-standard table/figure naming
-        // ============================================
-        
-        function showCustomLOTModal() {
-            document.getElementById('customLOTModal').classList.add('show');
-            document.getElementById('customLOTPreview').style.display = 'none';
-            document.getElementById('insertCustomLOT').disabled = true;
-        }
-        
-        function hideCustomLOTModal() {
-            document.getElementById('customLOTModal').classList.remove('show');
-        }
-        
-        function showCustomLOFModal() {
-            document.getElementById('customLOFModal').classList.add('show');
-            document.getElementById('customLOFPreview').style.display = 'none';
-            document.getElementById('insertCustomLOF').disabled = true;
-        }
-        
-        function hideCustomLOFModal() {
-            document.getElementById('customLOFModal').classList.remove('show');
-        }
-        
-        async function scanCustomLOT() {
-            await scanCustomCaptions('Table', 'customLOTPrefix', 'customLOTPreview', 'insertCustomLOT');
-        }
-        
-        async function scanCustomLOF() {
-            await scanCustomCaptions('Figure', 'customLOFPrefix', 'customLOFPreview', 'insertCustomLOF');
-        }
-        
-        async function scanCustomCaptions(captionType, prefixInputId, previewDivId, insertBtnId) {
-            const prefix = document.getElementById(prefixInputId).value.trim();
-            
-            try {
-                showToast(`Scanning for ${captionType.toLowerCase()} captions...`, 'success');
-                
-                await Word.run(async (context) => {
-                    const paragraphs = context.document.body.paragraphs;
-                    paragraphs.load("items");
-                    await context.sync();
-                    
-                    // Load text for all paragraphs
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        paragraphs.items[i].load("text");
-                    }
-                    await context.sync();
-                    
-                    // Build regex based on prefix
-                    let regex;
-                    if (prefix) {
-                        // Escape special regex characters in prefix
-                        const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                        regex = new RegExp(`^(${escapedPrefix}[\\d\\s]*)(.*)`, 'i');
-                    } else {
-                        // Default: match any "Table X" or "Figure X" pattern
-                        regex = new RegExp(`^(${captionType}\\s*[\\d\\.\\-\\w]+[\\-\\s]*\\d*)(.*)`, 'i');
-                    }
-                    
-                    const found = [];
-                    const captionParas = [];
-                    
-                    for (let i = 0; i < paragraphs.items.length; i++) {
-                        const text = paragraphs.items[i].text || '';
-                        const match = text.match(regex);
-                        
-                        if (match) {
-                            const captionNum = match[1].trim();
-                            const captionText = match[2].replace(/^[\t:\s]*/, '').trim();
-                            found.push({
-                                number: captionNum,
-                                text: captionText || '(no title)',
-                                fullText: text.trim(),
-                                paraIndex: i,
-                                pageNumber: null // Will be populated
-                            });
-                            captionParas.push(paragraphs.items[i]);
-                        }
-                    }
-                    
-                    // Try to get page numbers for each caption
-                    // Note: Word JS API doesn't have direct page number access
-                    // We'll try using the range's page property (may not work in all versions)
-                    try {
-                        for (let i = 0; i < captionParas.length; i++) {
-                            const range = captionParas[i].getRange();
-                            // Try to get section/page info - this is limited in Word JS
-                            // Fall back to using paragraph position estimate
-                        }
-                    } catch (e) {
-                        console.log('Page number detection not available:', e);
-                    }
-                    
-                    // Store for later insertion
-                    if (captionType === 'Table') {
-                        customCaptions.tables = found;
-                    } else {
-                        customCaptions.figures = found;
-                    }
-                    
-                    const previewDiv = document.getElementById(previewDivId);
-                    const insertBtn = document.getElementById(insertBtnId);
-                    
-                    if (found.length > 0) {
-                        let html = `<strong>Found ${found.length} ${captionType.toLowerCase()}(s):</strong><br>`;
-                        html += '<table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11px;">';
-                        html += '<tr style="background:#f5f5f5;"><th style="padding:4px;text-align:left;">Number</th><th style="padding:4px;text-align:left;">Caption</th></tr>';
-                        found.forEach((item, idx) => {
-                            html += `<tr style="border-bottom:1px solid #eee;">`;
-                            html += `<td style="padding:4px;font-weight:600;white-space:nowrap;">${item.number}</td>`;
-                            html += `<td style="padding:4px;color:#666;">${item.text.substring(0, 35)}${item.text.length > 35 ? '...' : ''}</td>`;
-                            html += `</tr>`;
-                        });
-                        html += '</table>';
-                        html += `<p style="font-size:10px;color:#888;margin-top:6px;">⚠️ Page numbers will show as "—" (Word API limitation). Update manually after insertion.</p>`;
-                        
-                        previewDiv.innerHTML = html;
-                        previewDiv.style.display = 'block';
-                        insertBtn.disabled = false;
-                        
-                        showToast(`Found ${found.length} ${captionType.toLowerCase()}(s)!`, 'success');
-                    } else {
-                        previewDiv.innerHTML = `<p style="color:#666;">No ${captionType.toLowerCase()} captions found matching the pattern.</p>`;
-                        previewDiv.style.display = 'block';
-                        insertBtn.disabled = true;
-                        
-                        showToast(`No ${captionType.toLowerCase()}s found`, 'error');
-                    }
-                });
-            } catch (error) {
-                console.error(`Scan ${captionType} Error:`, error);
-                showToast('Error: ' + error.message, 'error');
-            }
-        }
-        
-        async function insertCustomLOT() {
-            await insertCustomList('Table', customCaptions.tables);
-        }
-        
-        async function insertCustomLOF() {
-            await insertCustomList('Figure', customCaptions.figures);
-        }
-        
-        async function insertCustomList(captionType, items) {
-            if (!items || items.length === 0) {
-                showToast(`No ${captionType.toLowerCase()}s to insert. Scan first.`, 'error');
-                return;
-            }
-            
-            try {
-                await Word.run(async (context) => {
-                    const selection = context.document.getSelection();
-                    
-                    // Insert title with centered, bold formatting
-                    const titlePara = selection.insertParagraph(`List of ${captionType}s`, Word.InsertLocation.before);
-                    titlePara.font.name = "Times New Roman";
-                    titlePara.font.size = 12;
-                    titlePara.font.bold = true;
-                    titlePara.alignment = Word.Alignment.centered;
-                    titlePara.spaceAfter = 12;
-                    
-                    await context.sync();
-                    
-                    // Insert each entry as a paragraph with "Table of Figures" style
-                    // This matches Word's built-in LOT/LOF format
-                    let lastPara = titlePara;
-                    
-                    for (const item of items) {
-                        // Format: "Table Number<tab>Caption Text<tab>Page"
-                        const entryText = `${item.number}\t${item.text}\t—`;
-                        const entryPara = lastPara.insertParagraph(entryText, Word.InsertLocation.after);
-                        
-                        // Apply "Table of Figures" style (Word's built-in LOT/LOF style)
-                        try {
-                            entryPara.style = "Table of Figures";
-                        } catch (styleErr) {
-                            // If style doesn't exist, apply manual formatting
-                            entryPara.font.name = "Times New Roman";
-                            entryPara.font.size = 12;
-                            entryPara.font.bold = false;
-                        }
-                        
-                        lastPara = entryPara;
-                    }
-                    
-                    // Add note about page numbers
-                    const notePara = lastPara.insertParagraph("", Word.InsertLocation.after);
-                    const noteText = notePara.insertParagraph("(Page numbers show as '—'. Replace manually or use Find & Replace.)", Word.InsertLocation.after);
-                    noteText.font.size = 9;
-                    noteText.font.italic = true;
-                    noteText.font.color = "#666666";
-                    
-                    await context.sync();
-                    
-                    // Close modal
-                    if (captionType === 'Table') {
-                        hideCustomLOTModal();
-                    } else {
-                        hideCustomLOFModal();
-                    }
-                    
-                    showToast(`Inserted List of ${captionType}s with ${items.length} entries!`, 'success');
-                });
-            } catch (error) {
-                console.error(`Insert Custom L${captionType === 'Table' ? 'OT' : 'OF'} Error:`, error);
-                // Fallback to simple text insertion if paragraph method fails
-                try {
-                    await Word.run(async (context) => {
-                        const selection = context.document.getSelection();
-                        
-                        let lotText = `List of ${captionType}s\n\n`;
-                        items.forEach((item) => {
-                            lotText += `${item.number}\t${item.text}\t—\n`;
-                        });
-                        lotText += '\n(Page numbers need manual update)\n';
-                        
-                        selection.insertText(lotText, Word.InsertLocation.replace);
-                        await context.sync();
-                        
-                        if (captionType === 'Table') {
-                            hideCustomLOTModal();
-                        } else {
-                            hideCustomLOFModal();
-                        }
-                        
-                        showToast(`Inserted List of ${captionType}s (text format)!`, 'success');
-                    });
-                } catch (e2) {
-                    showToast('Error: ' + error.message, 'error');
-                }
-            }
         }
 
         // ============================================
@@ -4437,12 +3693,15 @@
                     await context.sync();
                     
                     // ---- Step 3: Insert TOC field AFTER the title paragraph ---
+                    // Use \t switch to explicitly include only Heading 1-5, excluding Title style
+                    // \t "StyleName,Level" maps specific styles to TOC levels
+                    // \h adds hyperlinks
                     const afterTitle = titlePara.getRange(Word.RangeLocation.after);
                     
                     const field = afterTitle.insertField(
                         Word.InsertLocation.after,
                         Word.FieldType.toc,
-                        '\\o "1-5" \\h'
+                        '\\t "Heading 1,1,Heading 2,2,Heading 3,3,Heading 4,4,Heading 5,5" \\h'
                     );
                     
                     field.updateResult();
@@ -4573,7 +3832,7 @@
                     }
                     
                     await context.sync();
-                    showToast('TOC inserted! (Build #79)', 'success');
+                    showToast('TOC inserted!', 'success');
                 });
             } catch (error) {
                 console.error("Insert TOC Error:", error);

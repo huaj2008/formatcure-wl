@@ -10,28 +10,24 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - RIBBON BUTTON FUNCTIONS
+        // Build #80
         // ============================================
 
-        // Pharmaceutical acronyms to preserve
+        // Pharmaceutical acronyms to preserve (synced with taskpane.html)
         const PRESERVED_TERMS = [
-            'FDA', 'EMA', 'ICH', 'GMP', 'GLP', 'GCP', 'API', 'IND', 'NDA', 'BLA', 'ANDA', 'DMF', 'CTD', 'eCTD',
-            'CRO', 'CMO', 'CDMO', 'QA', 'QC', 'QP', 'SOP', 'WI', 'BMR', 'BPR', 'OOS', 'OOT', 'CAPA', 'NCR',
-            'PK', 'PD', 'ADME', 'DMPK', 'AUC', 'Cmax', 'Tmax', 'CL', 'Vd', 't1/2', 'MRT', 'BE', 'BA', 'IVIVC',
-            'SAE', 'AE', 'SUSAR', 'TEAE', 'CIOMS', 'MedDRA', 'WHO', 'NIH', 'CDC', 'USP', 'EP', 'BP', 'JP', 'IP',
-            'HPLC', 'UPLC', 'GC', 'MS', 'NMR', 'IR', 'UV', 'DSC', 'TGA', 'XRD', 'SEM', 'TEM',
-            'DNA', 'RNA', 'mRNA', 'siRNA', 'PCR', 'qPCR', 'ELISA', 'FACS', 'WB',
-            'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN', 'STAT',
-            'pH', 'pKa', 'MW', 'Da', 'kDa', 'mg', 'mL', 'μL', 'ng', 'μg', 'kg', 'L', 'dL',
-            'w/v', 'v/v', 'w/w', 'N/A', 'TBD', 'WFI', 'PFS', 'RTU',
-            'COVID-19', 'SARS-CoV-2', 'HIV', 'HBV', 'HCV', 'HPV',
-            'CAR-T', 'ADC', 'mAb', 'LOD', 'LOQ', 'RSD', 'SD', 'CV', 'CI', 'SE',
-            'US', 'EU', 'UK', 'PMDA', 'NMPA', 'R&D', 'CMC', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP', 'cGMP'
+            'FDA', 'IND', 'NDA', 'BLA', 'ANDA', 'DMF', 'CTD', 'eCTD',
+            'PK', 'PD', 'ADME', 'AUC', 'Cmax', 'Tmax',
+            'API', 'GMP', 'cGMP', 'GLP', 'ICH', 'QbD', 'PAT', 'CPP', 'CQA', 'QTPP',
+            'DNA', 'RNA', 'mRNA', 'pH', 'UV', 'IR', 'NMR', 'HPLC', 'GC', 'MS',
+            'IV', 'IM', 'SC', 'PO', 'QD', 'BID', 'TID', 'QID', 'PRN',
+            'US', 'EU', 'UK', 'WHO', 'EMA', 'PMDA', 'TGA', 'NMPA',
+            'SOP', 'QA', 'QC', 'R&D', 'CMC', 'CMO', 'CRO', 'CDMO',
+            'DS', 'DP', 'ADC', 'SD', 'PBMC', 'Aleeto'
         ];
 
         const LOWERCASE_WORDS = [
-            'a', 'an', 'the', 'and', 'but', 'or', 'nor', 'for', 'yet', 'so',
-            'at', 'by', 'in', 'of', 'on', 'to', 'up', 'as', 'is', 'it',
-            'vs', 'via', 'per', 'with', 'from', 'into', 'onto', 'upon', 'than'
+            'a', 'an', 'the', 'at', 'by', 'for', 'in', 'of', 'on', 'to', 'up',
+            'and', 'as', 'but', 'or', 'nor', 'so', 'yet', 'be'
         ];
 
         // Initialize Office
@@ -42,17 +38,22 @@
                 Office.actions.associate("applyBodyFormat", applyBodyFormat);
                 Office.actions.associate("applyCrossRefStyle", applyCrossRefStyle);
                 Office.actions.associate("applyEctdLinkStyle", applyEctdLinkStyle);
-                Office.actions.associate("applyLatinTerms", applyLatinTerms);
             }
         });
 
         // ============================================
         // TITLE CASE
+        // Removes allCaps first, then converts to Title Case
         // ============================================
         async function applyTitleCase(event) {
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
+                    
+                    // Remove All Caps formatting first
+                    selection.font.allCaps = false;
+                    await context.sync();
+                    
                     selection.load("text");
                     await context.sync();
 
@@ -64,12 +65,16 @@
                         paras.load("items");
                         await context.sync();
                         if (paras.items.length > 0) {
+                            paras.items[0].font.allCaps = false;
+                            await context.sync();
                             target = paras.items[0].getRange();
                             target.load("text");
                             await context.sync();
                             text = target.text;
                             if (text.endsWith('\r')) text = text.slice(0, -1);
                         }
+                    } else {
+                        if (text.endsWith('\r')) text = text.slice(0, -1);
                     }
 
                     if (text && text.trim()) {
@@ -83,11 +88,17 @@
 
         // ============================================
         // SENTENCE CASE
+        // Removes allCaps first, then converts to Sentence Case
         // ============================================
         async function applySentenceCase(event) {
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
+                    
+                    // Remove All Caps formatting first
+                    selection.font.allCaps = false;
+                    await context.sync();
+                    
                     selection.load("text");
                     await context.sync();
 
@@ -99,12 +110,16 @@
                         paras.load("items");
                         await context.sync();
                         if (paras.items.length > 0) {
+                            paras.items[0].font.allCaps = false;
+                            await context.sync();
                             target = paras.items[0].getRange();
                             target.load("text");
                             await context.sync();
                             text = target.text;
                             if (text.endsWith('\r')) text = text.slice(0, -1);
                         }
+                    } else {
+                        if (text.endsWith('\r')) text = text.slice(0, -1);
                     }
 
                     if (text && text.trim()) {
@@ -118,6 +133,8 @@
 
         // ============================================
         // BODY FORMAT
+        // TNR 12pt, 1.15 spacing, 6pt before/after
+        // Keeps bold/italic/underline/color (no text change)
         // ============================================
         async function applyBodyFormat(event) {
             try {
@@ -128,23 +145,15 @@
                     await context.sync();
 
                     for (let i = 0; i < paras.items.length; i++) {
-                        paras.items[i].load("text");
-                    }
-                    await context.sync();
-
-                    for (let i = 0; i < paras.items.length; i++) {
                         const para = paras.items[i];
-                        let text = para.text;
-                        if (text.endsWith('\r')) text = text.slice(0, -1);
                         
-                        if (text.trim()) {
-                            para.insertText(convertToSentenceCase(text), Word.InsertLocation.replace);
-                        }
-                        
+                        // Apply formatting only — no text/case changes
+                        // Keeps bold, italic, underline, color as-is
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
-                        para.font.bold = false;
-                        para.lineSpacing = 13.8;
+                        para.lineSpacing = 13.8; // 1.15 spacing
+                        para.lineUnitAfter = 0;
+                        para.lineUnitBefore = 0;
                         para.spaceBefore = 6;
                         para.spaceAfter = 6;
                         para.alignment = Word.Alignment.left;
@@ -157,15 +166,16 @@
 
         // ============================================
         // CROSS-REF STYLE
+        // Blue, Bold, NO underline, NOT italic
+        // Does NOT change font/size (preserves 10pt in tables, 12pt in body)
         // ============================================
         async function applyCrossRefStyle(event) {
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
-                    selection.font.name = "Times New Roman";
-                    selection.font.size = 12;
                     selection.font.bold = true;
-                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.italic = false;
+                    selection.font.underline = Word.UnderlineType.none;
                     selection.font.color = "#0000FF";
                     await context.sync();
                 });
@@ -175,15 +185,15 @@
 
         // ============================================
         // eCTD LINK STYLE
+        // Blue only, NOT underlined, NOT bold
+        // Does NOT change font/size (preserves 10pt in tables, 12pt in body)
         // ============================================
         async function applyEctdLinkStyle(event) {
             try {
                 await Word.run(async (context) => {
                     const selection = context.document.getSelection();
-                    selection.font.name = "Times New Roman";
-                    selection.font.size = 12;
                     selection.font.bold = false;
-                    selection.font.underline = Word.UnderlineType.single;
+                    selection.font.underline = Word.UnderlineType.none;
                     selection.font.color = "#0000FF";
                     await context.sync();
                 });
@@ -192,28 +202,7 @@
         }
 
         // ============================================
-        // LATIN TERMS
-        // ============================================
-        async function applyLatinTerms(event) {
-            const terms = ['in vivo', 'in vitro', 'in situ', 'ex vivo', 'in utero'];
-            try {
-                await Word.run(async (context) => {
-                    for (const term of terms) {
-                        const results = context.document.body.search(term, { matchCase: false, matchWholeWord: true });
-                        results.load("items");
-                        await context.sync();
-                        for (let i = 0; i < results.items.length; i++) {
-                            results.items[i].font.italic = true;
-                        }
-                    }
-                    await context.sync();
-                });
-            } catch (e) { console.error(e); }
-            event.completed();
-        }
-
-        // ============================================
-        // CONVERSION FUNCTIONS
+        // CONVERSION FUNCTIONS (synced with taskpane.html)
         // ============================================
         function convertToTitleCase(text) {
             const preservedMap = {};
