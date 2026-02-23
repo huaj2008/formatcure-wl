@@ -1645,12 +1645,17 @@
         // Use this anywhere text is written back to the document
         function fixNumberingCase(text) {
             // Pattern: digit.digit.letter.digit (like 3.2.s.7.3 -> 3.2.S.7.3)
-            text = text.replace(/(\d+\.\d+\.)([sp])(\.\d+)/gi, (match, prefix, letter, suffix) => {
+            // Handles S, P, A, R, and other section letters in CTD numbering
+            text = text.replace(/(\d+\.\d+\.)([a-z])(\.\d+)/gi, (match, prefix, letter, suffix) => {
                 return prefix + letter.toUpperCase() + suffix;
             });
             // Also handle patterns like 3.2.S.2.3.1 (more dots) and 3.2.P.1-1 (with dash)
-            text = text.replace(/(\d+\.\d+\.)([sp])(\.[\d\.\-]+)/gi, (match, prefix, letter, suffix) => {
+            text = text.replace(/(\d+\.\d+\.)([a-z])(\.[\d\.\-]+)/gi, (match, prefix, letter, suffix) => {
                 return prefix + letter.toUpperCase() + suffix;
+            });
+            // Handle patterns like 3.2.A or 2.3.P (letter at end, no trailing digits)
+            text = text.replace(/(\d+\.\d+\.)([a-z])(\s|$)/gi, (match, prefix, letter, after) => {
+                return prefix + letter.toUpperCase() + after;
             });
             return text;
         }
@@ -2191,7 +2196,11 @@
                             // Apply font formatting
                             const fontObj = para.font;
                             fontObj.bold = (opt.bold === '1');
-                            fontObj.italic = (opt.italic === '1');
+                            // Only force italic ON when explicitly selected
+                            // Don't force italic OFF — preserves italic on latin terms (in vivo, etc.)
+                            if (opt.italic === '1') {
+                                fontObj.italic = true;
+                            }
                             fontObj.allCaps = false; // Ensure All Caps stays off
                             if (opt.size !== '0') {
                                 fontObj.size = parseInt(opt.size);
@@ -2287,7 +2296,7 @@
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
                         para.font.bold = true;
-                        para.font.italic = false;
+                        // Don't set italic — preserves italic on latin terms (in vivo, etc.)
                         
                         // Small Caps
                         try {
@@ -2307,13 +2316,11 @@
                         // Apply Title Case
                         const text = para.text || "";
                         if (text.trim()) {
-                            const titleCased = toTitleCase(text);
-                            if (titleCased !== text) {
-                                const range = para.getRange();
-                                range.load("text");
-                                await context.sync();
-                                // Use insertText to preserve formatting
-                                range.insertText(titleCased, Word.InsertLocation.replace);
+                            let trimmed = text;
+                            if (trimmed.endsWith('\r')) trimmed = trimmed.slice(0, -1);
+                            const titleCased = fixNumberingCase(convertToTitleCase(trimmed));
+                            if (titleCased !== trimmed) {
+                                para.insertText(titleCased, Word.InsertLocation.replace);
                             }
                         }
                         
@@ -2502,9 +2509,10 @@
                     headerRow.load("cells");
                     await context.sync();
                     
-                    // Format header row font (keep bold as-is)
+                    // Format header row font - Bold, TNR 10pt
                     headerRow.font.name = "Times New Roman";
                     headerRow.font.size = 10;
+                    headerRow.font.bold = true;
                     
                     // Format header cells - left align, clear shading, set cell padding
                     const headerCells = headerRow.cells;
@@ -2531,6 +2539,8 @@
                         const paras = headerCells.items[i].body.paragraphs.items;
                         for (let j = 0; j < paras.length; j++) {
                             paras[j].alignment = Word.Alignment.left;
+                            paras[j].lineUnitBefore = 0;
+                            paras[j].lineUnitAfter = 0;
                             paras[j].lineSpacing = 12; // Single spacing (10pt font)
                             paras[j].spaceBefore = 0;
                             paras[j].spaceAfter = 0;
@@ -2541,6 +2551,11 @@
                     const allRows = table.rows;
                     allRows.load("items");
                     await context.sync();
+                    
+                    // Reset all row heights to auto
+                    for (let r = 0; r < allRows.items.length; r++) {
+                        allRows.items[r].preferredHeight = 0;
+                    }
                     
                     for (let r = 1; r < allRows.items.length; r++) {
                         const row = allRows.items[r];
@@ -2575,6 +2590,8 @@
                             const paras = cells.items[c].body.paragraphs.items;
                             for (let p = 0; p < paras.length; p++) {
                                 paras[p].alignment = Word.Alignment.left;
+                                paras[p].lineUnitBefore = 0;
+                                paras[p].lineUnitAfter = 0;
                                 paras[p].lineSpacing = 12; // Single spacing (10pt font)
                                 paras[p].spaceBefore = 0;
                                 paras[p].spaceAfter = 0;
@@ -2679,9 +2696,10 @@
                         if (rows.items.length > 0) {
                             const headerRow = rows.items[0];
                             
-                            // Format header row - left align, white fill (keep bold as-is)
+                            // Format header row - Bold, TNR 10pt
                             headerRow.font.name = "Times New Roman";
                             headerRow.font.size = 10;
+                            headerRow.font.bold = true;
                             
                             const headerCells = headerRow.cells;
                             headerCells.load("items");
@@ -2707,13 +2725,20 @@
                                 const paras = headerCells.items[i].body.paragraphs.items;
                                 for (let j = 0; j < paras.length; j++) {
                                     paras[j].alignment = Word.Alignment.left;
+                                    paras[j].lineUnitBefore = 0;
+                                    paras[j].lineUnitAfter = 0;
                                     paras[j].lineSpacing = 12;
                                     paras[j].spaceBefore = 0;
                                     paras[j].spaceAfter = 0;
                                 }
                             }
                             
-                            // Format body rows (keep bold as-is)
+                            // Reset all row heights to auto
+                            for (let r = 0; r < rows.items.length; r++) {
+                                rows.items[r].preferredHeight = 0;
+                            }
+                            
+                            // Format body rows
                             for (let r = 1; r < rows.items.length; r++) {
                                 const row = rows.items[r];
                                 row.font.name = "Times New Roman";
@@ -2743,6 +2768,8 @@
                                     const paras = cells.items[c].body.paragraphs.items;
                                     for (let p = 0; p < paras.length; p++) {
                                         paras[p].alignment = Word.Alignment.left;
+                                        paras[p].lineUnitBefore = 0;
+                                        paras[p].lineUnitAfter = 0;
                                         paras[p].lineSpacing = 12;
                                         paras[p].spaceBefore = 0;
                                         paras[p].spaceAfter = 0;
