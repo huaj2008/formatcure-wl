@@ -3423,18 +3423,18 @@
                         // --- Delete unwanted TOC entries ---
                         let shouldDelete = false;
                         
-                        // 1. Delete "TOC Heading" style entries (Word's built-in TOC title)
-                        if (styleName.includes('toc heading')) {
+                        // 1. Delete "TOC Heading" style entries EXCEPT our "Table of Contents" title
+                        if (styleName.includes('toc heading') && paraText !== 'table of contents') {
                             shouldDelete = true;
                         }
                         
-                        // 2. Delete entries with tocLevel 0 (unknown/title level)
-                        if (tocLevel === 0) {
+                        // 2. Delete entries with tocLevel 0 (unknown/title level), but not our TOC Heading title
+                        if (tocLevel === 0 && !styleName.includes('toc heading')) {
                             shouldDelete = true;
                         }
                         
-                        // 3. Delete entries whose text contains "table of contents"
-                        if (paraText.includes('table of contents')) {
+                        // 3. Delete TOC entries (not TOC Heading) whose text contains "table of contents"
+                        if (paraText.includes('table of contents') && !styleName.includes('toc heading')) {
                             shouldDelete = true;
                         }
                         
@@ -3446,6 +3446,11 @@
                         
                         if (shouldDelete) {
                             para.delete();
+                            continue;
+                        }
+                        
+                        // Skip our "Table of Contents" title — already formatted
+                        if (styleName.includes('toc heading')) {
                             continue;
                         }
                         
