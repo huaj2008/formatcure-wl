@@ -2185,15 +2185,16 @@
                                 if (text.trim() !== '') {
                                     let converted;
                                     if (opt.case === '1') {
-                                        converted = convertToTitleCase(text);
+                                        converted = fixNumberingCase(convertToTitleCase(text));
                                     } else {
-                                        converted = convertToSentenceCase(text);
+                                        converted = fixNumberingCase(convertToSentenceCase(text));
                                     }
                                     para.insertText(converted, Word.InsertLocation.replace);
+                                    await context.sync();
                                 }
                             }
                             
-                            // Apply font formatting
+                            // Apply font formatting (after text replacement to avoid reset)
                             const fontObj = para.font;
                             fontObj.bold = (opt.bold === '1');
                             // Only force italic ON when explicitly selected
