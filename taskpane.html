@@ -550,7 +550,7 @@
     <!-- Minimal Header - just name and build -->
     <div class="mini-header">
         <span class="app-name">FormatCure WL</span>
-        <span class="build-num">Build #82</span>
+        <span class="build-num">Build #83</span>
     </div>
 
 
@@ -634,39 +634,39 @@
             </div>
 
             <!-- ====== TOC / LOT / LOF ====== -->
-            <!-- Insert TOC -->
+            <!-- Style TOC -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnInsertTOC">
                     <div class="btn-icon">📑</div>
-                    <span class="btn-label">Insert TOC</span>
+                    <span class="btn-label">Style TOC</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Insert Table of Contents</div>
-                    <div class="tooltip-desc">Insert "Table of Contents" title + TOC (H1-H5) at cursor. TNR 12pt, 3pt spacing, indented by level. Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-title">Style Table of Contents</div>
+                    <div class="tooltip-desc">Format existing TOC: titles centered 6pt/6pt, entries TNR 12pt 3pt/3pt, indented by level.</div>
                 </div>
             </div>
 
-            <!-- Insert LOT -->
+            <!-- Style LOT -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnInsertLOT">
                     <div class="btn-icon">📋</div>
-                    <span class="btn-label">Insert LOT</span>
+                    <span class="btn-label">Style LOT</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Insert List of Tables</div>
-                    <div class="tooltip-desc">Standard LOT (Table 1, 2, 3...). Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-title">Style List of Tables</div>
+                    <div class="tooltip-desc">Format existing LOT: title centered 6pt/6pt, entries TNR 12pt 3pt/3pt.</div>
                 </div>
             </div>
 
-            <!-- Insert LOF -->
+            <!-- Style LOF -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnInsertLOF">
                     <div class="btn-icon">🖼️</div>
-                    <span class="btn-label">Insert LOF</span>
+                    <span class="btn-label">Style LOF</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Insert List of Figures</div>
-                    <div class="tooltip-desc">Standard LOF (Figure 1, 2, 3...). Requires Office 2019+ or M365.</div>
+                    <div class="tooltip-title">Style List of Figures</div>
+                    <div class="tooltip-desc">Format existing LOF: title centered 6pt/6pt, entries TNR 12pt 3pt/3pt.</div>
                 </div>
             </div>
 
@@ -1037,7 +1037,7 @@
     <script type="text/javascript">
         // ============================================
         // FORMATCURE WL - TASKPANE LOGIC
-        // Build #82
+        // Build #83
         // ============================================
 
         // Pharmaceutical acronyms to preserve
@@ -1705,7 +1705,6 @@
         async function applyHeadingOptions() {
             // Hardcoded heading format spec
             const options = {
-                'toc': { case: 'title' },
                 1:     { case: 'title' },
                 2:     { case: 'sentence' },
                 3:     { case: 'sentence' },
@@ -1742,10 +1741,10 @@
                         // Determine heading level (standard or custom) or TOC Heading
                         let headingKey = getHeadingLevelForStyle(styleName);
                         
-                        // Fall back to legacy detection for TOC and standard headings
+                        // Fall back to legacy detection for standard headings (skip TOC heading)
                         if (headingKey === null) {
                             if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
-                                headingKey = 'toc';
+                                continue; // Skip — handled by Style TOC
                             } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
                             else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
                             else if (lowerStyleName.includes('heading 3') || lowerStyleName === 'h3') headingKey = 3;
@@ -3246,7 +3245,7 @@
             if (lowerStyle.includes('heading 8') || lowerStyle === 'h8') return 8;
             if (lowerStyle.includes('heading 9') || lowerStyle === 'h9') return 9;
             if (lowerStyle.includes('heading 10') || lowerStyle === 'h10') return 10;
-            if (lowerStyle.includes('toc heading')) return 'toc';
+            // TOC Heading skipped — handled by Style TOC
             
 
             
@@ -3296,489 +3295,136 @@
             return titleRange;
         }
 
+        // ============================================
+        // STYLE TOC / LOT / LOF
+        // Format existing TOC/LOT/LOF entries and titles
+        // Titles: TNR 12pt Bold, Centered, 6pt/6pt
+        // Entries: TNR 12pt, 3pt/3pt, indented by level
+        // ============================================
+        
         async function handleInsertTOC() {
-            // Check if insertField is supported (WordApi 1.5+)
-            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
-                showToast('Requires Office 2019+ or M365. Use Insert > Table of Contents.', 'error');
-                return;
-            }
-            
             try {
                 await Word.run(async (context) => {
-                    // --- Step 1: Clean up any existing TOC field and old title ---
-                    const fields = context.document.body.fields;
-                    fields.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code");
-                    }
-                    await context.sync();
-                    
-                    // Delete existing TOC field (not LOT/LOF which use \c switch)
-                    for (let i = 0; i < fields.items.length; i++) {
-                        const field = fields.items[i];
-                        const code = (field.code || "").toUpperCase();
-                        if (code.includes('TOC') && !code.includes('\\C "')) {
-                            field.delete();
-                            break;
-                        }
-                    }
-                    
-                    // Delete any existing "Table of Contents" paragraph from previous insert
                     const paras = context.document.body.paragraphs;
                     paras.load("items");
                     await context.sync();
                     
                     for (let i = 0; i < paras.items.length; i++) {
-                        paras.items[i].load("text, style");
+                        paras.items[i].load("style, text");
                     }
                     await context.sync();
                     
-                    // Collect document Title style text (to remove from TOC entries later)
-                    const titleTexts = [];
+                    let titleCount = 0;
+                    let entryCount = 0;
+                    
                     for (let i = 0; i < paras.items.length; i++) {
-                        const style = (paras.items[i].style || "").toLowerCase();
-                        if (style === 'title') {
-                            const t = (paras.items[i].text || "").trim().replace(/\r$/, '');
-                            if (t) titleTexts.push(t.toLowerCase());
-                        }
-                    }
-                    
-                    // Delete old "Table of Contents" title paragraphs
-                    for (let i = 0; i < paras.items.length; i++) {
-                        const text = (paras.items[i].text || "").trim().toLowerCase().replace(/\r$/, '');
-                        if (text === "table of contents") {
-                            paras.items[i].delete();
-                            // Don't break — delete ALL occurrences
-                        }
-                    }
-                    
-                    await context.sync();
-                    
-                    // --- Step 2: Insert "Table of Contents" title paragraph FIRST ---
-                    const selection = context.document.getSelection();
-                    const titlePara = selection.insertParagraph("Table of Contents", Word.InsertLocation.before);
-                    
-                    // Format: TNR 12pt Bold, Black, Left-aligned, 3pt before/after, single spacing
-                    titlePara.font.name = "Times New Roman";
-                    titlePara.font.size = 12;
-                    titlePara.font.bold = true;
-                    titlePara.font.italic = false;
-                    titlePara.font.color = "#000000";
-                    titlePara.font.underline = Word.UnderlineType.none;
-                    titlePara.alignment = Word.Alignment.left;
-                    titlePara.spaceBefore = 3;
-                    titlePara.spaceAfter = 3;
-                    titlePara.lineSpacing = 12;
-                    titlePara.leftIndent = 0;
-                    titlePara.rightIndent = 0;
-                    titlePara.firstLineIndent = 0;
-                    // Use TOC Heading style
-                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
-                    
-                    await context.sync();
-                    
-                    // ---- Step 3: Insert TOC field AFTER the title paragraph ---
-                    const afterTitle = titlePara.getRange(Word.RangeLocation.after);
-                    
-                    const field = afterTitle.insertField(
-                        Word.InsertLocation.after,
-                        Word.FieldType.toc,
-                        '\\o "1-5" \\h'
-                    );
-                    
-                    field.updateResult();
-                    await context.sync();
-                    
-                    // --- Step 4: Format TOC entries and remove unwanted entries ---
-                    const allParas = context.document.body.paragraphs;
-                    allParas.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < allParas.items.length; i++) {
-                        allParas.items[i].load("style, text");
-                    }
-                    await context.sync();
-                    
-                    const tocParasToFix = []; // Collect TOC paras for tab stop fix
-                    
-                    for (let i = 0; i < allParas.items.length; i++) {
-                        const para = allParas.items[i];
+                        const para = paras.items[i];
                         const styleName = (para.style || "").toLowerCase();
-                        const paraText = (para.text || "").trim().toLowerCase().replace(/\r$/, '');
+                        const text = (para.text || "").trim().toLowerCase().replace(/\r$/, '');
                         
-                        // Only process TOC-styled paragraphs
-                        if (!styleName.startsWith('toc')) {
-                            continue;
-                        }
-                        
-                        // Determine TOC level from style name (toc 1, toc 2, etc.)
-                        let tocLevel = 0;
-                        const levelMatch = styleName.match(/toc\s*(\d+)/);
-                        if (levelMatch) {
-                            tocLevel = parseInt(levelMatch[1]);
-                        }
-                        
-                        // --- Delete unwanted TOC entries ---
-                        let shouldDelete = false;
-                        
-                        // 1. Delete "TOC Heading" style entries EXCEPT our "Table of Contents" title
-                        if (styleName.includes('toc heading') && paraText !== 'table of contents') {
-                            shouldDelete = true;
-                        }
-                        
-                        // 2. Delete entries with tocLevel 0 (unknown/title level), but not our TOC Heading title
-                        if (tocLevel === 0 && !styleName.includes('toc heading')) {
-                            shouldDelete = true;
-                        }
-                        
-                        // 3. Delete TOC entries (not TOC Heading) whose text contains "table of contents"
-                        if (paraText.includes('table of contents') && !styleName.includes('toc heading')) {
-                            shouldDelete = true;
-                        }
-                        
-                        // 4. Delete entries that match the document's Title paragraph text
-                        // TOC entries include page numbers, so check if entry STARTS WITH title text
-                        if (titleTexts.some(t => paraText.startsWith(t) || t.startsWith(paraText.replace(/\d+\s*$/, '').trim()))) {
-                            shouldDelete = true;
-                        }
-                        
-                        if (shouldDelete) {
-                            para.delete();
-                            continue;
-                        }
-                        
-                        // Skip our "Table of Contents" title — already formatted
+                        // Format TOC Heading titles (Table of Contents, List of Tables, etc.)
                         if (styleName.includes('toc heading')) {
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = true;
+                            para.font.italic = false;
+                            para.font.color = "#000000";
+                            para.font.underline = Word.UnderlineType.none;
+                            para.alignment = Word.Alignment.centered;
+                            para.lineUnitBefore = 0;
+                            para.lineUnitAfter = 0;
+                            para.spaceBefore = 6;
+                            para.spaceAfter = 6;
+                            para.lineSpacing = 13.8;
+                            para.leftIndent = 0;
+                            para.rightIndent = 0;
+                            para.firstLineIndent = 0;
+                            titleCount++;
                             continue;
                         }
                         
-                        // --- Format remaining TOC entries ---
-                        // TNR 12pt, no bold, no underline, no allCaps, black
-                        // 3pt before/after, single spacing
-                        para.font.name = "Times New Roman";
-                        para.font.size = 12;
-                        para.font.bold = false;
-                        para.font.allCaps = false;
-                        para.font.underline = Word.UnderlineType.none;
-                        para.font.color = "#000000";
-                        
-                        para.spaceBefore = 3;
-                        para.spaceAfter = 3;
-                        para.lineSpacing = 12;
-                        para.alignment = Word.Alignment.left;
-                        
-                        // Reset all indentation to override TOC style defaults
-                        para.firstLineIndent = 0;
-                        para.rightIndent = 0;
-                        
-                        // Left indentation by level:
-                        // TOC 1 (H1) = 0pt from margin
-                        // TOC 2 (H2) = 6pt, TOC 3 = 12pt, TOC 4 = 18pt, TOC 5 = 24pt
-                        const leftIndentPt = (tocLevel <= 1) ? 0 : (tocLevel - 1) * 6;
-                        para.leftIndent = leftIndentPt;
-                        
-                        // Collect for right tab stop fix
-                        tocParasToFix.push(para);
-                    }
-                    
-                    await context.sync();
-                    
-                    // --- Step 5: Fix right tab stops via OOXML round-trip ---
-                    // Word's TOC styles have right-aligned tab stops for page numbers
-                    // that may not align with the actual right margin.
-                    // For letter paper with 1" margins: content width = 6.5" = 9360 twips.
-                    // We get each para's OOXML, fix the right tab stop position, and write it back.
-                    const rightTabPosTwips = 9360; // 6.5 inches in twips (letter, 1" margins)
-                    
-                    for (const para of tocParasToFix) {
-                        try {
-                            const paraRange = para.getRange(Word.RangeLocation.whole);
-                            const ooxmlObj = paraRange.getOoxml();
-                            await context.sync();
+                        // Format TOC entries (toc 1, toc 2, toc 3, etc.)
+                        if (styleName.match(/^toc\s*\d/)) {
+                            let tocLevel = 0;
+                            const levelMatch = styleName.match(/toc\s*(\d+)/);
+                            if (levelMatch) {
+                                tocLevel = parseInt(levelMatch[1]);
+                            }
                             
-                            let ooxml = ooxmlObj.value;
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = false;
+                            para.font.allCaps = false;
+                            para.font.underline = Word.UnderlineType.none;
+                            para.font.color = "#000000";
                             
-                            // Replace any existing right tab stop position with our calculated position
-                            // Match: <w:tab w:val="right" ... w:pos="XXXX"/>
-                            // The pos value is in twips
-                            ooxml = ooxml.replace(
-                                /(<w:tab\s[^>]*w:val="right"[^>]*w:pos=")(\d+)(")/g,
-                                `$1${rightTabPosTwips}$3`
-                            );
-                            // Also handle attribute order: w:pos before w:val
-                            ooxml = ooxml.replace(
-                                /(<w:tab\s[^>]*w:pos=")(\d+)("[^>]*w:val="right")/g,
-                                `$1${rightTabPosTwips}$3`
-                            );
+                            para.lineUnitBefore = 0;
+                            para.lineUnitAfter = 0;
+                            para.spaceBefore = 3;
+                            para.spaceAfter = 3;
+                            para.lineSpacing = 12;
+                            para.alignment = Word.Alignment.left;
                             
-                            paraRange.insertOoxml(ooxml, Word.InsertLocation.replace);
-                        } catch (ooxmlErr) {
-                            // If OOXML round-trip fails for a paragraph, skip it silently
-                            console.warn("Tab stop fix failed for a TOC entry:", ooxmlErr);
+                            para.firstLineIndent = 0;
+                            para.rightIndent = 0;
+                            
+                            // Left indentation by level:
+                            // TOC 1 (H1) = 0pt, TOC 2 = 6pt, TOC 3 = 12pt, etc.
+                            const leftIndentPt = (tocLevel <= 1) ? 0 : (tocLevel - 1) * 6;
+                            para.leftIndent = leftIndentPt;
+                            
+                            entryCount++;
+                            continue;
+                        }
+                        
+                        // Also format "Table of Figures" / "Table of Contents" style paragraphs
+                        // that might use Normal style instead of TOC Heading
+                        if (text === 'table of contents' || text === 'list of tables' || 
+                            text === 'list of figures' || text === 'contents') {
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = true;
+                            para.font.italic = false;
+                            para.font.color = "#000000";
+                            para.alignment = Word.Alignment.centered;
+                            para.lineUnitBefore = 0;
+                            para.lineUnitAfter = 0;
+                            para.spaceBefore = 6;
+                            para.spaceAfter = 6;
+                            para.lineSpacing = 13.8;
+                            // Set TOC Heading style
+                            para.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
+                            titleCount++;
+                            continue;
                         }
                     }
                     
                     await context.sync();
-                    showToast('TOC inserted! (Build #82)', 'success');
+                    
+                    if (titleCount > 0 || entryCount > 0) {
+                        showToast(`Styled ${titleCount} title(s), ${entryCount} entries`, 'success');
+                    } else {
+                        showToast('No TOC/LOT/LOF found to style', 'error');
+                    }
                 });
             } catch (error) {
-                console.error("Insert TOC Error:", error);
+                console.error("Style TOC Error:", error);
                 showToast('Error: ' + error.message, 'error');
             }
         }
         
+        // Style LOT and Style LOF use the same function as Style TOC
+        // since it formats ALL TOC-styled entries (TOC, LOT, LOF all use toc styles)
         async function handleInsertLOT() {
-            // Check if insertField is supported (WordApi 1.5+)
-            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
-                showToast('Requires Office 2019+ or M365. Use Insert > Table of Figures.', 'error');
-                return;
-            }
-            
-            try {
-                await Word.run(async (context) => {
-                    // First, look for existing LOT field to delete
-                    const fields = context.document.body.fields;
-                    fields.load("items");
-                    await context.sync();
-                    
-                    // Load field codes to find LOT and TOC
-                    for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code, result");
-                    }
-                    await context.sync();
-                    
-                    // Find TOC field to insert after
-                    let tocField = null;
-                    let existingLOTField = null;
-                    
-                    for (let i = 0; i < fields.items.length; i++) {
-                        const field = fields.items[i];
-                        const code = (field.code || "").toUpperCase();
-                        
-                        // Find main TOC (has heading levels, not \c switch)
-                        if (code.includes('TOC') && !code.includes('\\C "')) {
-                            tocField = field;
-                        }
-                        
-                        // Find existing LOT
-                        if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
-                            existingLOTField = field;
-                        }
-                    }
-                    
-                    // Delete existing LOT if found
-                    if (existingLOTField) {
-                        existingLOTField.delete();
-                    }
-                    
-                    // Delete existing "List of Tables" title paragraph
-                    const paras = context.document.body.paragraphs;
-                    paras.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < paras.items.length; i++) {
-                        paras.items[i].load("text");
-                    }
-                    await context.sync();
-                    
-                    for (let i = 0; i < paras.items.length; i++) {
-                        const text = (paras.items[i].text || "").trim().toLowerCase();
-                        if (text === "list of tables" || text === "list of tables\r") {
-                            paras.items[i].delete();
-                            break;
-                        }
-                    }
-                    
-                    await context.sync();
-                    
-                    // Determine insertion point
-                    let insertRange;
-                    if (tocField) {
-                        // Insert after TOC
-                        insertRange = tocField.result.getRange(Word.RangeLocation.after);
-                        // Add a paragraph break
-                        insertRange.insertParagraph("", Word.InsertLocation.after);
-                        insertRange = insertRange.getRange(Word.RangeLocation.after);
-                    } else {
-                        // No TOC found, use cursor position
-                        insertRange = context.document.getSelection().getRange();
-                    }
-                    
-                    await context.sync();
-                    
-                    // Insert formatted title
-                    const titlePara = insertRange.insertParagraph("List of Tables", Word.InsertLocation.before);
-                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
-                    titlePara.font.name = "Times New Roman";
-                    titlePara.font.size = 12;
-                    titlePara.font.bold = true;
-                    titlePara.alignment = Word.Alignment.centered;
-                    titlePara.spaceAfter = 12;
-                    
-                    await context.sync();
-                    
-                    // Get range after title for field insertion
-                    const fieldRange = titlePara.getRange(Word.RangeLocation.after);
-                    
-                    // Insert LOT using TOC field with \c "Table" switch
-                    const field = fieldRange.insertField(
-                        Word.InsertLocation.after,
-                        Word.FieldType.toc,
-                        '\\c "Table"'
-                    );
-                    
-                    // Update the field to populate it
-                    field.updateResult();
-                    
-                    // Format LOT entries: TNR 12pt, not bold
-                    const lotRange = field.result;
-                    lotRange.font.name = "Times New Roman";
-                    lotRange.font.size = 12;
-                    lotRange.font.bold = false;
-                    
-                    await context.sync();
-                    showToast('LOT inserted' + (tocField ? ' after TOC' : '') + '!', 'success');
-                });
-            } catch (error) {
-                console.error("Insert LOT Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
+            await handleInsertTOC();
         }
         
         async function handleInsertLOF() {
-            // Check if insertField is supported (WordApi 1.5+)
-            if (!Office.context.requirements.isSetSupported('WordApi', '1.5')) {
-                showToast('Requires Office 2019+ or M365. Use Insert > Table of Figures.', 'error');
-                return;
-            }
-            
-            try {
-                await Word.run(async (context) => {
-                    // First, look for existing fields
-                    const fields = context.document.body.fields;
-                    fields.load("items");
-                    await context.sync();
-                    
-                    // Load field codes
-                    for (let i = 0; i < fields.items.length; i++) {
-                        fields.items[i].load("code, result");
-                    }
-                    await context.sync();
-                    
-                    // Find TOC, LOT, and existing LOF fields
-                    let tocField = null;
-                    let lotField = null;
-                    let existingLOFField = null;
-                    
-                    for (let i = 0; i < fields.items.length; i++) {
-                        const field = fields.items[i];
-                        const code = (field.code || "").toUpperCase();
-                        
-                        // Find main TOC (has heading levels, not \c switch)
-                        if (code.includes('TOC') && !code.includes('\\C "')) {
-                            tocField = field;
-                        }
-                        
-                        // Find LOT
-                        if (code.includes('TOC') && code.includes('\\C "TABLE"')) {
-                            lotField = field;
-                        }
-                        
-                        // Find existing LOF
-                        if (code.includes('TOC') && code.includes('\\C "FIGURE"')) {
-                            existingLOFField = field;
-                        }
-                    }
-                    
-                    // Delete existing LOF if found
-                    if (existingLOFField) {
-                        existingLOFField.delete();
-                    }
-                    
-                    // Delete existing "List of Figures" title paragraph
-                    const paras = context.document.body.paragraphs;
-                    paras.load("items");
-                    await context.sync();
-                    
-                    for (let i = 0; i < paras.items.length; i++) {
-                        paras.items[i].load("text");
-                    }
-                    await context.sync();
-                    
-                    for (let i = 0; i < paras.items.length; i++) {
-                        const text = (paras.items[i].text || "").trim().toLowerCase();
-                        if (text === "list of figures" || text === "list of figures\r") {
-                            paras.items[i].delete();
-                            break;
-                        }
-                    }
-                    
-                    await context.sync();
-                    
-                    // Determine insertion point: after LOT > after TOC > cursor
-                    let insertRange;
-                    let insertAfter = '';
-                    
-                    if (lotField) {
-                        // Insert after LOT
-                        insertRange = lotField.result.getRange(Word.RangeLocation.after);
-                        insertRange.insertParagraph("", Word.InsertLocation.after);
-                        insertRange = insertRange.getRange(Word.RangeLocation.after);
-                        insertAfter = ' after LOT';
-                    } else if (tocField) {
-                        // Insert after TOC
-                        insertRange = tocField.result.getRange(Word.RangeLocation.after);
-                        insertRange.insertParagraph("", Word.InsertLocation.after);
-                        insertRange = insertRange.getRange(Word.RangeLocation.after);
-                        insertAfter = ' after TOC';
-                    } else {
-                        // No TOC/LOT found, use cursor position
-                        insertRange = context.document.getSelection().getRange();
-                    }
-                    
-                    await context.sync();
-                    
-                    // Insert formatted title
-                    const titlePara = insertRange.insertParagraph("List of Figures", Word.InsertLocation.before);
-                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
-                    titlePara.font.name = "Times New Roman";
-                    titlePara.font.size = 12;
-                    titlePara.font.bold = true;
-                    titlePara.alignment = Word.Alignment.centered;
-                    titlePara.spaceAfter = 12;
-                    
-                    await context.sync();
-                    
-                    // Get range after title for field insertion
-                    const fieldRange = titlePara.getRange(Word.RangeLocation.after);
-                    
-                    // Insert LOF using TOC field with \c "Figure" switch
-                    const field = fieldRange.insertField(
-                        Word.InsertLocation.after,
-                        Word.FieldType.toc,
-                        '\\c "Figure"'
-                    );
-                    
-                    // Update the field to populate it
-                    field.updateResult();
-                    
-                    // Format LOF entries: TNR 12pt, not bold
-                    const lofRange = field.result;
-                    lofRange.font.name = "Times New Roman";
-                    lofRange.font.size = 12;
-                    lofRange.font.bold = false;
-                    
-                    await context.sync();
-                    showToast('LOF inserted' + insertAfter + '!', 'success');
-                });
-            } catch (error) {
-                console.error("Insert LOF Error:", error);
-                showToast('Error: ' + error.message, 'error');
-            }
+            await handleInsertTOC();
         }
 
+        // ============================================
+        // CONVERSION FUNCTIONS
         // ============================================
         // CONVERSION FUNCTIONS
         // ============================================
