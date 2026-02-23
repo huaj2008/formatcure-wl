@@ -576,10 +576,10 @@
             <div class="tooltip-container">
                 <button class="btn secondary" id="btnHeadingDialog">
                     <div class="btn-icon">H⚙</div>
-                    <span class="btn-label">Heading Options</span>
+                    <span class="btn-label">Heading</span>
                 </button>
                 <div class="tooltip">
-                    <div class="tooltip-title">Heading Options</div>
+                    <div class="tooltip-title">Heading Format</div>
                     <div class="tooltip-desc">Set case, bold, italic, size for each heading level (H1-H10). Pre-populated with standard settings.</div>
                 </div>
             </div>
@@ -1799,11 +1799,7 @@
                             para.lineUnitAfter = 0;
                             para.lineUnitBefore = 0;
                             para.spaceBefore = 12;
-                            if (headingKey === 1 || headingKey === 2 || headingKey === 'toc') {
-                                para.spaceAfter = 12;
-                            } else {
-                                para.spaceAfter = 6; // H3-H10
-                            }
+                            para.spaceAfter = 6; // All headings: 6pt after
                             
                             headingCount++;
                         }
@@ -3378,8 +3374,8 @@
                     titlePara.leftIndent = 0;
                     titlePara.rightIndent = 0;
                     titlePara.firstLineIndent = 0;
-                    // Use Normal style so it does NOT get pulled into TOC
-                    titlePara.styleBuiltIn = Word.BuiltInStyleName.normal;
+                    // Use TOC Heading style
+                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
                     
                     await context.sync();
                     
@@ -3609,6 +3605,7 @@
                     
                     // Insert formatted title
                     const titlePara = insertRange.insertParagraph("List of Tables", Word.InsertLocation.before);
+                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
                     titlePara.font.name = "Times New Roman";
                     titlePara.font.size = 12;
                     titlePara.font.bold = true;
@@ -3740,6 +3737,7 @@
                     
                     // Insert formatted title
                     const titlePara = insertRange.insertParagraph("List of Figures", Word.InsertLocation.before);
+                    titlePara.styleBuiltIn = Word.BuiltInStyleName.tocHeading;
                     titlePara.font.name = "Times New Roman";
                     titlePara.font.size = 12;
                     titlePara.font.bold = true;
