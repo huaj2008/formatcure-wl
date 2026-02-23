@@ -2249,7 +2249,24 @@
                         }
                         
                         // Apply paragraph-level formatting (spacing, alignment)
+                        
+                        // Convert non-standard body styles to Normal
+                        // (e.g., Claude-generated docs use custom styles that ignore direct formatting)
+                        const standardBodyStyles = ['normal', 'body text', 'body', 'default paragraph font', 'no spacing'];
+                        if (!standardBodyStyles.some(s => styleName.includes(s)) && 
+                            !styleName.includes('heading') && !styleName.includes('toc') &&
+                            !styleName.includes('caption') && !styleName.includes('list')) {
+                            try {
+                                para.style = "Normal";
+                                await context.sync();
+                            } catch (e) { /* keep original style */ }
+                        }
+                        
                         para.alignment = Word.Alignment.left;
+                        // Clear line-unit spacing first (East Asian docs use lines not points)
+                        para.lineUnitBefore = 0;
+                        para.lineUnitAfter = 0;
+                        await context.sync();
                         para.spaceAfter = 6;
                         para.spaceBefore = 6;
                         para.lineSpacing = 13.8; // 1.15 × 12pt = 13.8pt
