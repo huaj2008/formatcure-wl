@@ -609,18 +609,6 @@
                 </div>
             </div>
 
-            <!-- Title Format -->
-            <div class="tooltip-container">
-                <button class="btn accent" id="btnTitleFormat">
-                    <div class="btn-icon">T̲</div>
-                    <span class="btn-label">Title Format</span>
-                </button>
-                <div class="tooltip">
-                    <div class="tooltip-title">Format Document Title</div>
-                    <div class="tooltip-desc">TNR 12pt Bold Small Caps, Title Case, 18pt before / 12pt after.</div>
-                </div>
-            </div>
-
             <!-- Table Format -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnTableFormat">
@@ -946,376 +934,6 @@
     </div>
 
     <!-- Heading Options Modal -->
-    <div class="modal-overlay" id="headingModal">
-        <div class="modal" style="max-width: 600px;">
-            <div class="modal-header">
-                <span class="modal-title">Heading Options</span>
-                <button class="modal-close" id="modalClose">×</button>
-            </div>
-            <div class="modal-body" style="padding: 12px;">
-                <!-- Global Spacing Settings -->
-                <div style="background:#e3f2fd;border-radius:4px;padding:8px 10px;margin-bottom:10px;">
-                    <div style="font-size:11px;font-weight:600;color:#1565c0;margin-bottom:6px;">Paragraph Spacing (all headings)</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:10px;">
-                        <div>
-                            <label style="display:block;color:#666;margin-bottom:2px;">Line Spacing</label>
-                            <select id="hLineSpacing" style="width:100%;font-size:10px;padding:2px;">
-                                <option value="0">--</option>
-                                <option value="1">1.0</option>
-                                <option value="1.15" selected>1.15</option>
-                                <option value="1.5">1.5</option>
-                                <option value="2">2.0</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="display:block;color:#666;margin-bottom:2px;">Space Before</label>
-                            <select id="hSpaceBefore" style="width:100%;font-size:10px;padding:2px;">
-                                <option value="0">--</option>
-                                <option value="0pt">0pt</option>
-                                <option value="3pt">3pt</option>
-                                <option value="6pt">6pt</option>
-                                <option value="12pt" selected>12pt</option>
-                                <option value="18pt">18pt</option>
-                                <option value="24pt">24pt</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="display:block;color:#666;margin-bottom:2px;">Space After</label>
-                            <select id="hSpaceAfter" style="width:100%;font-size:10px;padding:2px;">
-                                <option value="0">--</option>
-                                <option value="0pt">0pt</option>
-                                <option value="3pt">3pt</option>
-                                <option value="6pt" selected>6pt</option>
-                                <option value="12pt">12pt</option>
-                                <option value="18pt">18pt</option>
-                                <option value="24pt">24pt</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div style="font-size:9px;color:#666;margin-top:4px;">Note: H1 uses Space Before above; H2-H10 use 6pt</div>
-                </div>
-                
-                <p class="modal-desc" style="margin-bottom:6px;font-size:11px;">Font formatting per level:</p>
-                
-                <!-- Table header -->
-                <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;font-size:10px;font-weight:600;color:#666;margin-bottom:6px;padding:0 4px;">
-                    <span>Level</span>
-                    <span>Case</span>
-                    <span>Bold</span>
-                    <span>Italic</span>
-                    <span>Size</span>
-                </div>
-                
-                <div style="max-height:280px;overflow-y:auto;">
-                    <!-- Title -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#e8f5e9;border-radius:3px;margin-bottom:3px;border:1px solid #a5d6a7;">
-                        <label style="font-size:11px;font-weight:600;color:#2e7d32;">Title</label>
-                        <select id="hTitleCase" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1" selected>Title</option>
-                            <option value="2">Sentence</option>
-                        </select>
-                        <select id="hTitleBold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="hTitleItalic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="hTitleSize" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:55px 1fr;gap:4px;align-items:center;padding:0 4px 4px 4px;margin-bottom:3px;">
-                        <span></span>
-                        <label style="font-size:10px;color:#666;"><input type="checkbox" id="hTitleSmallCaps" checked style="margin-right:4px;">Small Caps &nbsp; | &nbsp; Space Before: <select id="hTitleSpaceBefore" style="font-size:10px;padding:1px;"><option value="6">6pt</option><option value="12">12pt</option><option value="18" selected>18pt</option><option value="24">24pt</option></select> &nbsp; After: <select id="hTitleSpaceAfter" style="font-size:10px;padding:1px;"><option value="6">6pt</option><option value="12" selected>12pt</option><option value="18">18pt</option><option value="24">24pt</option></select></label>
-                    </div>
-                    <!-- TOC Heading -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">TOC</label>
-                        <select id="hTocCase" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1" selected>Title</option>
-                            <option value="2">Sentence</option>
-                        </select>
-                        <select id="hTocBold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="hTocItalic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="hTocSize" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H1 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H1</label>
-                        <select id="h1Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1" selected>Title</option>
-                            <option value="2">Sentence</option>
-                        </select>
-                        <select id="h1Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h1Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h1Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H2 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H2</label>
-                        <select id="h2Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h2Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h2Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h2Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H3 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H3</label>
-                        <select id="h3Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h3Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h3Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h3Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H4 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H4</label>
-                        <select id="h4Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h4Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h4Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h4Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H5 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H5</label>
-                        <select id="h5Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h5Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h5Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h5Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H6 -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H6</label>
-                        <select id="h6Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h6Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h6Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h6Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <!-- H7-H10 (collapsed by default, less common) -->
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H7</label>
-                        <select id="h7Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h7Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h7Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h7Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H8</label>
-                        <select id="h8Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h8Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h8Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h8Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#fff;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H9</label>
-                        <select id="h9Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h9Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h9Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h9Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
-                        <label style="font-size:11px;font-weight:600;">H10</label>
-                        <select id="h10Case" style="font-size:10px;padding:2px;">
-                            <option value="0">No Change</option>
-                            <option value="1">Title</option>
-                            <option value="2" selected>Sentence</option>
-                        </select>
-                        <select id="h10Bold" style="font-size:10px;padding:2px;">
-                            <option value="1" selected>Yes</option>
-                            <option value="0">No</option>
-                        </select>
-                        <select id="h10Italic" style="font-size:10px;padding:2px;">
-                            <option value="0" selected>No</option>
-                            <option value="1">Yes</option>
-                        </select>
-                        <select id="h10Size" style="font-size:10px;padding:2px;">
-                            <option value="0">--</option>
-                            <option value="10">10</option>
-                            <option value="11">11</option>
-                            <option value="12" selected>12</option>
-                            <option value="14">14</option>
-                            <option value="16">16</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-btn cancel" id="modalCancel">Cancel</button>
-                <button class="modal-btn apply" id="modalApply">Apply to Document</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Special Characters Modal -->
     <div class="modal-overlay" id="specialCharsModal">
@@ -1469,7 +1087,7 @@
                 document.getElementById('btnSentenceCase').addEventListener('click', handleSentenceCase);
                 
                 // Standard Heading button
-                document.getElementById('btnHeadingDialog').addEventListener('click', showHeadingModal);
+                document.getElementById('btnHeadingDialog').addEventListener('click', applyHeadingOptions);
                 
                 // Title Format button
                 document.getElementById('btnTitleFormat').addEventListener('click', handleTitleFormat);
@@ -1485,7 +1103,6 @@
                 
                 // Body & Tables buttons
                 document.getElementById('btnBodyFormat').addEventListener('click', handleBodyFormat);
-                document.getElementById('btnTitleFormat').addEventListener('click', handleTitleFormat);
                 document.getElementById('btnTableFormat').addEventListener('click', handleTableFormat);
                 document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
                 
@@ -1514,12 +1131,6 @@
                 document.getElementById('btnInsertLOF').addEventListener('click', handleInsertLOF);
                 
                 // Heading Modal events
-                document.getElementById('modalClose').addEventListener('click', hideHeadingModal);
-                document.getElementById('modalCancel').addEventListener('click', hideHeadingModal);
-                document.getElementById('modalApply').addEventListener('click', applyHeadingOptions);
-                document.getElementById('headingModal').addEventListener('click', function(e) {
-                    if (e.target === this) hideHeadingModal();
-                });
                 
                 // Special Characters Modal events
                 document.getElementById('specialCharsClose').addEventListener('click', hideSpecialCharsModal);
@@ -2087,41 +1698,26 @@
         // ============================================
         // HEADING MODAL FUNCTIONS
         // ============================================
-        function showHeadingModal() {
-            document.getElementById('headingModal').classList.add('show');
-        }
 
-        function hideHeadingModal() {
-            document.getElementById('headingModal').classList.remove('show');
-        }
+
+
 
         async function applyHeadingOptions() {
-            // Gather global spacing options
-            const lineSpacing = document.getElementById('hLineSpacing').value;
-            const spaceBeforeH1 = document.getElementById('hSpaceBefore').value;
-            const spaceAfter = document.getElementById('hSpaceAfter').value;
-            
-            // Gather all options for each heading level
-            const levels = ['Title', 'Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-            const options = {};
-            
-            for (const level of levels) {
-                const key = level === 'Toc' ? 'toc' : level === 'Title' ? 'title' : parseInt(level);
-                const prefix = level === 'Toc' ? 'hToc' : level === 'Title' ? 'hTitle' : `h${level}`;
-                options[key] = {
-                    case: document.getElementById(`${prefix}Case`).value,
-                    bold: document.getElementById(`${prefix}Bold`).value,
-                    italic: document.getElementById(`${prefix}Italic`).value,
-                    size: document.getElementById(`${prefix}Size`).value
-                };
-            }
-            
-            // Title-specific options
-            const titleSmallCaps = document.getElementById('hTitleSmallCaps').checked;
-            const titleSpaceBefore = document.getElementById('hTitleSpaceBefore').value;
-            const titleSpaceAfter = document.getElementById('hTitleSpaceAfter').value;
+            // Hardcoded heading format spec
+            const options = {
+                'toc': { case: 'title' },
+                1:     { case: 'title' },
+                2:     { case: 'sentence' },
+                3:     { case: 'sentence' },
+                4:     { case: 'sentence' },
+                5:     { case: 'sentence' },
+                6:     { case: 'sentence' },
+                7:     { case: 'sentence' },
+                8:     { case: 'sentence' },
+                9:     { case: 'sentence' },
+                10:    { case: 'sentence' }
+            };
 
-            hideHeadingModal();
 
             try {
                 await Word.run(async (context) => {
@@ -2148,9 +1744,7 @@
                         
                         // Fall back to legacy detection for TOC and standard headings
                         if (headingKey === null) {
-                            if (lowerStyleName === 'title') {
-                                headingKey = 'title';
-                            } else if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
+                            if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
                                 headingKey = 'toc';
                             } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
                             else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
@@ -2167,7 +1761,7 @@
                         if (headingKey !== null && options[headingKey]) {
                             const opt = options[headingKey];
                             
-                            // FIRST: Remove All Caps formatting (key fix!)
+                            // FIRST: Remove All Caps formatting
                             para.font.allCaps = false;
                             await context.sync();
                             
@@ -2175,74 +1769,40 @@
                             para.load("text");
                             await context.sync();
                             
-                            // Apply case conversion if not "No Change"
-                            if (opt.case !== '0') {
-                                let text = para.text;
-                                if (text.endsWith('\r')) {
-                                    text = text.slice(0, -1);
-                                }
-                                
-                                if (text.trim() !== '') {
-                                    let converted;
-                                    if (opt.case === '1') {
-                                        converted = fixNumberingCase(convertToTitleCase(text));
-                                    } else {
-                                        converted = fixNumberingCase(convertToSentenceCase(text));
-                                    }
-                                    para.insertText(converted, Word.InsertLocation.replace);
-                                    await context.sync();
-                                }
+                            // Apply case conversion
+                            let text = para.text;
+                            if (text.endsWith('\r')) {
+                                text = text.slice(0, -1);
                             }
                             
-                            // Apply font formatting (after text replacement to avoid reset)
-                            const fontObj = para.font;
-                            fontObj.bold = (opt.bold === '1');
-                            // Only force italic ON when explicitly selected
-                            // Don't force italic OFF — preserves italic on latin terms (in vivo, etc.)
-                            if (opt.italic === '1') {
-                                fontObj.italic = true;
-                            }
-                            fontObj.allCaps = false; // Ensure All Caps stays off
-                            if (opt.size !== '0') {
-                                fontObj.size = parseInt(opt.size);
-                            }
-                            
-                            // Title-specific: Small Caps and custom spacing
-                            if (headingKey === 'title') {
-                                try {
-                                    fontObj.smallCaps = titleSmallCaps;
-                                } catch (e) { /* smallCaps not supported */ }
-                                para.lineUnitBefore = 0;
-                                para.lineUnitAfter = 0;
+                            if (text.trim() !== '') {
+                                let converted;
+                                if (opt.case === 'title') {
+                                    converted = fixNumberingCase(convertToTitleCase(text));
+                                } else {
+                                    converted = fixNumberingCase(convertToSentenceCase(text));
+                                }
+                                para.insertText(converted, Word.InsertLocation.replace);
                                 await context.sync();
-                                para.spaceBefore = parseFloat(titleSpaceBefore);
-                                para.spaceAfter = parseFloat(titleSpaceAfter);
-                            } else {
-                                // Non-title: ensure smallCaps is off
-                                try { fontObj.smallCaps = false; } catch (e) {}
                             }
                             
-                            // Apply paragraph spacing (non-title headings)
-                            if (headingKey !== 'title') {
-                                if (lineSpacing !== '0') {
-                                    para.lineSpacing = parseFloat(lineSpacing) * 12; // Convert multiplier to points (assuming 12pt font base)
-                                    para.lineUnitAfter = 0;
-                                    para.lineUnitBefore = 0;
-                                }
+                            // Apply font: TNR 12pt Bold, keep italic as-is
+                            para.font.name = "Times New Roman";
+                            para.font.size = 12;
+                            para.font.bold = true;
+                            para.font.allCaps = false;
+                            // Ensure smallCaps is off for headings
+                            try { para.font.smallCaps = false; } catch (e) {}
                             
-                                // Space before: H1/TOC uses selected value, H2-H10 use 6pt
-                                if (spaceBeforeH1 !== '0') {
-                                    if (headingKey === 1 || headingKey === 'toc') {
-                                        para.spaceBefore = parseFloat(spaceBeforeH1);
-                                    } else {
-                                        para.spaceBefore = 6; // H2-H10 always 6pt
-                                    }
-                                }
-                            
-                                // Space after
-                                if (spaceAfter !== '0') {
-                                    para.spaceAfter = parseFloat(spaceAfter);
-                                }
+                            // Apply paragraph spacing (hardcoded)
+                            para.lineSpacing = 13.8; // 1.15 × 12pt
+                            para.lineUnitAfter = 0;
+                            para.lineUnitBefore = 0;
+                            para.spaceBefore = 12;
+                            if (headingKey === 1 || headingKey === 2 || headingKey === 'toc') {
+                                para.spaceAfter = 12;
+                            } else {
+                                para.spaceAfter = 6; // H3-H10
                             }
                             
                             headingCount++;
@@ -2863,16 +2423,16 @@
                             await context.sync();
 
                             if (searchRange.items.length > 0) {
-                                searchRange.items[0].insertText(': ' + fixNumberingCase(captionText), Word.InsertLocation.replace);
+                                searchRange.items[0].insertText(': ' + fixNumberingCase(convertToTitleCase(captionText)), Word.InsertLocation.replace);
                             }
                         }
                     }
 
-                    // Apply formatting
+                    // Apply formatting - keep italic as-is for latin terms
                     para.font.name = "Times New Roman";
                     para.font.size = 12;
                     para.font.bold = true;
-                    para.font.italic = false;
+                    // Don't set italic — preserves author's italic (in vivo, etc.)
                     para.font.underline = Word.UnderlineType.none;
                     para.font.color = "black";
                     para.alignment = Word.Alignment.left;
@@ -3102,8 +2662,8 @@
                                 await context.sync();
                                 
                                 if (searchRange.items.length > 0) {
-                                    // Replace with colon + space + original caption text (no case change)
-                                    searchRange.items[0].insertText(': ' + fixNumberingCase(captionText), Word.InsertLocation.replace);
+                                    // Replace with colon + Title Case caption text (preserves author's casing)
+                                    searchRange.items[0].insertText(': ' + fixNumberingCase(convertToTitleCase(captionText)), Word.InsertLocation.replace);
                                 }
                             }
                         } else if (afterPrefix === '') {
@@ -3111,11 +2671,11 @@
                             continue;
                         }
 
-                        // Apply formatting to entire paragraph - Bold, black color, no italic/underline
+                        // Apply formatting - keep italic as-is for latin terms
                         para.font.name = "Times New Roman";
                         para.font.size = 12;
                         para.font.bold = true;
-                        para.font.italic = false;
+                        // Don't set italic — preserves author's italic (in vivo, etc.)
                         para.font.underline = Word.UnderlineType.none;
                         para.font.color = "black";
                         para.alignment = Word.Alignment.left;
@@ -4257,6 +3817,11 @@
                 if (preservedMap[lowerSegment]) {
                     result.push(preservedMap[lowerSegment]);
                 }
+                // Preserve words with intentional casing (ALL CAPS or mixed case like CfLT, pH, eCTD)
+                // Rule: if any uppercase letter appears after position 0, author intended this casing
+                else if (segment.length >= 2 && /[A-Z]/.test(segment.slice(1))) {
+                    result.push(segment);
+                }
                 else if (!isFirst && !isLast && LOWERCASE_WORDS.includes(lowerSegment)) {
                     result.push(lowerSegment);
                 }
@@ -4316,6 +3881,11 @@
 
                     if (preservedMap[lowerWord]) {
                         processedWords.push(preservedMap[lowerWord]);
+                    }
+                    // Preserve words with intentional casing (ALL CAPS or mixed case like CfLT, pH, eCTD)
+                    // Rule: if any uppercase letter appears after position 0, author intended this casing
+                    else if (word.length >= 2 && /[A-Z]/.test(word.slice(1))) {
+                        processedWords.push(word);
                     }
                     else if (isFirstWord) {
                         processedWords.push(word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
