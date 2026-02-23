@@ -609,6 +609,18 @@
                 </div>
             </div>
 
+            <!-- Title Format -->
+            <div class="tooltip-container">
+                <button class="btn accent" id="btnTitleFormat">
+                    <div class="btn-icon">T̲</div>
+                    <span class="btn-label">Title Format</span>
+                </button>
+                <div class="tooltip">
+                    <div class="tooltip-title">Format Document Title</div>
+                    <div class="tooltip-desc">TNR 12pt Bold Small Caps, Title Case, 18pt before / 12pt after.</div>
+                </div>
+            </div>
+
             <!-- Table Format -->
             <div class="tooltip-container">
                 <button class="btn accent" id="btnTableFormat">
@@ -995,6 +1007,35 @@
                 </div>
                 
                 <div style="max-height:280px;overflow-y:auto;">
+                    <!-- Title -->
+                    <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#e8f5e9;border-radius:3px;margin-bottom:3px;border:1px solid #a5d6a7;">
+                        <label style="font-size:11px;font-weight:600;color:#2e7d32;">Title</label>
+                        <select id="hTitleCase" style="font-size:10px;padding:2px;">
+                            <option value="0">No Change</option>
+                            <option value="1" selected>Title</option>
+                            <option value="2">Sentence</option>
+                        </select>
+                        <select id="hTitleBold" style="font-size:10px;padding:2px;">
+                            <option value="1" selected>Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                        <select id="hTitleItalic" style="font-size:10px;padding:2px;">
+                            <option value="0" selected>No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                        <select id="hTitleSize" style="font-size:10px;padding:2px;">
+                            <option value="0">--</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:55px 1fr;gap:4px;align-items:center;padding:0 4px 4px 4px;margin-bottom:3px;">
+                        <span></span>
+                        <label style="font-size:10px;color:#666;"><input type="checkbox" id="hTitleSmallCaps" checked style="margin-right:4px;">Small Caps &nbsp; | &nbsp; Space Before: <select id="hTitleSpaceBefore" style="font-size:10px;padding:1px;"><option value="6">6pt</option><option value="12">12pt</option><option value="18" selected>18pt</option><option value="24">24pt</option></select> &nbsp; After: <select id="hTitleSpaceAfter" style="font-size:10px;padding:1px;"><option value="6">6pt</option><option value="12" selected>12pt</option><option value="18">18pt</option><option value="24">24pt</option></select></label>
+                    </div>
                     <!-- TOC Heading -->
                     <div style="display:grid;grid-template-columns:55px 90px 50px 50px 55px;gap:4px;align-items:center;padding:4px;background:#f5f5f5;border-radius:3px;margin-bottom:3px;">
                         <label style="font-size:11px;font-weight:600;">TOC</label>
@@ -1444,6 +1485,7 @@
                 
                 // Body & Tables buttons
                 document.getElementById('btnBodyFormat').addEventListener('click', handleBodyFormat);
+                document.getElementById('btnTitleFormat').addEventListener('click', handleTitleFormat);
                 document.getElementById('btnTableFormat').addEventListener('click', handleTableFormat);
                 document.getElementById('btnAllTableFormat').addEventListener('click', handleAllTableFormat);
                 
@@ -2055,12 +2097,12 @@
             const spaceAfter = document.getElementById('hSpaceAfter').value;
             
             // Gather all options for each heading level
-            const levels = ['Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+            const levels = ['Title', 'Toc', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
             const options = {};
             
             for (const level of levels) {
-                const key = level === 'Toc' ? 'toc' : parseInt(level);
-                const prefix = level === 'Toc' ? 'hToc' : `h${level}`;
+                const key = level === 'Toc' ? 'toc' : level === 'Title' ? 'title' : parseInt(level);
+                const prefix = level === 'Toc' ? 'hToc' : level === 'Title' ? 'hTitle' : `h${level}`;
                 options[key] = {
                     case: document.getElementById(`${prefix}Case`).value,
                     bold: document.getElementById(`${prefix}Bold`).value,
@@ -2068,6 +2110,11 @@
                     size: document.getElementById(`${prefix}Size`).value
                 };
             }
+            
+            // Title-specific options
+            const titleSmallCaps = document.getElementById('hTitleSmallCaps').checked;
+            const titleSpaceBefore = document.getElementById('hTitleSpaceBefore').value;
+            const titleSpaceAfter = document.getElementById('hTitleSpaceAfter').value;
 
             hideHeadingModal();
 
@@ -2096,7 +2143,9 @@
                         
                         // Fall back to legacy detection for TOC and standard headings
                         if (headingKey === null) {
-                            if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
+                            if (lowerStyleName === 'title') {
+                                headingKey = 'title';
+                            } else if (lowerStyleName.includes('toc heading') || lowerStyleName === 'toc heading') {
                                 headingKey = 'toc';
                             } else if (lowerStyleName.includes('heading 1') || lowerStyleName === 'h1') headingKey = 1;
                             else if (lowerStyleName.includes('heading 2') || lowerStyleName === 'h2') headingKey = 2;
@@ -2148,25 +2197,42 @@
                                 fontObj.size = parseInt(opt.size);
                             }
                             
-                            // Apply paragraph spacing
-                            if (lineSpacing !== '0') {
-                                para.lineSpacing = parseFloat(lineSpacing) * 12; // Convert multiplier to points (assuming 12pt font base)
-                                para.lineUnitAfter = 0;
+                            // Title-specific: Small Caps and custom spacing
+                            if (headingKey === 'title') {
+                                try {
+                                    fontObj.smallCaps = titleSmallCaps;
+                                } catch (e) { /* smallCaps not supported */ }
                                 para.lineUnitBefore = 0;
+                                para.lineUnitAfter = 0;
+                                await context.sync();
+                                para.spaceBefore = parseFloat(titleSpaceBefore);
+                                para.spaceAfter = parseFloat(titleSpaceAfter);
+                            } else {
+                                // Non-title: ensure smallCaps is off
+                                try { fontObj.smallCaps = false; } catch (e) {}
                             }
                             
-                            // Space before: H1/TOC uses selected value, H2-H10 use 6pt
-                            if (spaceBeforeH1 !== '0') {
-                                if (headingKey === 1 || headingKey === 'toc') {
-                                    para.spaceBefore = parseFloat(spaceBeforeH1);
-                                } else {
-                                    para.spaceBefore = 6; // H2-H10 always 6pt
+                            // Apply paragraph spacing (non-title headings)
+                            if (headingKey !== 'title') {
+                                if (lineSpacing !== '0') {
+                                    para.lineSpacing = parseFloat(lineSpacing) * 12; // Convert multiplier to points (assuming 12pt font base)
+                                    para.lineUnitAfter = 0;
+                                    para.lineUnitBefore = 0;
                                 }
-                            }
                             
-                            // Space after
-                            if (spaceAfter !== '0') {
-                                para.spaceAfter = parseFloat(spaceAfter);
+                                // Space before: H1/TOC uses selected value, H2-H10 use 6pt
+                                if (spaceBeforeH1 !== '0') {
+                                    if (headingKey === 1 || headingKey === 'toc') {
+                                        para.spaceBefore = parseFloat(spaceBeforeH1);
+                                    } else {
+                                        para.spaceBefore = 6; // H2-H10 always 6pt
+                                    }
+                                }
+                            
+                                // Space after
+                                if (spaceAfter !== '0') {
+                                    para.spaceAfter = parseFloat(spaceAfter);
+                                }
                             }
                             
                             headingCount++;
@@ -2194,6 +2260,75 @@
         // For paragraphs WITH cross-refs: applies formatting only (no text change)
         // For paragraphs WITHOUT cross-refs: applies formatting only (no case change)
         // ============================================
+        // ============================================
+        // TITLE FORMAT HANDLER
+        // ============================================
+        async function handleTitleFormat() {
+            try {
+                await Word.run(async (context) => {
+                    const selection = context.document.getSelection();
+                    const paragraphs = selection.paragraphs;
+                    paragraphs.load("items");
+                    await context.sync();
+
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        paragraphs.items[i].load("style, text");
+                    }
+                    await context.sync();
+
+                    let count = 0;
+                    for (let i = 0; i < paragraphs.items.length; i++) {
+                        const para = paragraphs.items[i];
+                        
+                        // Set Title style
+                        para.style = "Title";
+                        
+                        // Apply formatting
+                        para.font.name = "Times New Roman";
+                        para.font.size = 12;
+                        para.font.bold = true;
+                        para.font.italic = false;
+                        
+                        // Small Caps
+                        try {
+                            para.font.smallCaps = true;
+                        } catch (e) {
+                            console.log('smallCaps not supported');
+                        }
+                        
+                        para.alignment = Word.Alignment.left;
+                        para.lineUnitBefore = 0;
+                        para.lineUnitAfter = 0;
+                        await context.sync();
+                        para.spaceBefore = 18;
+                        para.spaceAfter = 12;
+                        para.lineSpacing = 13.8;
+                        
+                        // Apply Title Case
+                        const text = para.text || "";
+                        if (text.trim()) {
+                            const titleCased = toTitleCase(text);
+                            if (titleCased !== text) {
+                                const range = para.getRange();
+                                range.load("text");
+                                await context.sync();
+                                // Use insertText to preserve formatting
+                                range.insertText(titleCased, Word.InsertLocation.replace);
+                            }
+                        }
+                        
+                        count++;
+                    }
+                    
+                    await context.sync();
+                    showToast(`Title formatted (${count} paragraph(s))!`, 'success');
+                });
+            } catch (error) {
+                console.error("Title Format Error:", error);
+                showToast('Select a paragraph first: ' + error.message, 'error');
+            }
+        }
+
         async function handleBodyFormat() {
             try {
                 await Word.run(async (context) => {
@@ -2222,8 +2357,9 @@
                             continue;
                         }
                         
-                        // Skip headings (H1-H10, TOC Heading)
-                        if (styleName.includes('heading') || styleName.includes('toc')) {
+                        // Skip headings (H1-H10, TOC Heading, Title, Subtitle)
+                        if (styleName.includes('heading') || styleName.includes('toc') ||
+                            styleName === 'title' || styleName === 'subtitle') {
                             skippedCount++;
                             continue;
                         }
@@ -2250,15 +2386,11 @@
                         
                         // Apply paragraph-level formatting (spacing, alignment)
                         
-                        // Convert non-standard body styles to Normal
-                        // (e.g., Claude-generated docs use custom styles that ignore direct formatting)
-                        const standardBodyStyles = ['normal', 'body text', 'body', 'default paragraph font', 'no spacing'];
-                        if (!standardBodyStyles.some(s => styleName.includes(s)) && 
-                            !styleName.includes('heading') && !styleName.includes('toc') &&
-                            !styleName.includes('caption') && !styleName.includes('list')) {
+                        // Convert non-standard styles to Normal
+                        // (paragraphs reaching here already passed heading/TOC/caption/table checks)
+                        if (para.style !== "Normal") {
                             try {
                                 para.style = "Normal";
-                                await context.sync();
                             } catch (e) { /* keep original style */ }
                         }
                         
